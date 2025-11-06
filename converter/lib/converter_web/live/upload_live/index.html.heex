@@ -1,0 +1,10 @@
+<h1>Upload your documents</h1>
+
+<.form let={f} for={:upload} phx-submit="save">
+  {live_file_input(@uploads.documents)}
+  {submit("Upload")}
+</.form>
+
+<%= for entry <- @uploads.documents.entries do %>
+  <p>{entry.client_name} - {entry.progress}%</p>
+<% end %>
