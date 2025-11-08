@@ -1,13 +1,13 @@
-# conversion_processor service
+# name service
 
-This service handles all conversion_processor-related operations in the system.
+This service handles all name-related operations in the system.
 
 ## Architecture
 
 The service follows Clean Architecture principles with the following structure:
 
 ```
-services/conversion_processor-service/
+services/name-service/
 ├── cmd/                    # Application entry points
 │   └── main.go            # Main application setup
 ├── internal/              # Private application code

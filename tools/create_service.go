@@ -33,6 +33,8 @@ func main() {
 		}
 	}
 
+	// Create an empty README.md
+	readmePath := "README.md"
 	readmeContent := fmt.Sprintf(`# %s service
 
 This service handles all %s-related operations in the system.
@@ -88,6 +90,12 @@ services/%s-service/
 5. **Flexibility**: Easy to swap implementations without affecting business logic
 `, *serviceName, *serviceName, *serviceName)
 
+	if err := os.WriteFile(readmePath, []byte(readmeContent), 0644); err != nil {
+		fmt.Printf("Error creating README.md: %v\n", err)
+		os.Exit(1)
+	}
+	d, _ := os.Getwd()
+	fmt.Printf("Successfully created %s service structure in %s\n", *serviceName, d)
 	fmt.Println("\nDirectory structure created:")
 	fmt.Printf(`
 services/%s-service/
