@@ -8,14 +8,16 @@ import (
 )
 
 type Worker struct {
-	errors chan error
-	wg     *sync.WaitGroup
+	errors    chan error
+	queueName string
+	wg        *sync.WaitGroup
 }
 
-func NewWorker() *Worker {
+func NewWorker(queueName string) *Worker {
 	return &Worker{
-		errors: make(chan error),
-		wg:     &sync.WaitGroup{},
+		errors:    make(chan error),
+		wg:        &sync.WaitGroup{},
+		queueName: queueName,
 	}
 }
 
@@ -34,12 +36,12 @@ func (w *Worker) Start() {
 		defer ch.Close()
 
 		q, err := ch.QueueDeclare(
-			"hello", // name
-			false,   // durable
-			false,   // delete when unused
-			false,   // exclusive
-			false,   // no-wait
-			nil,     // arguments
+			w.queueName, // name
+			false,       // durable
+			false,       // delete when unused
+			false,       // exclusive
+			false,       // no-wait
+			nil,         // arguments
 		)
 		failOnError(err, "Failed to declare a queue")
 
