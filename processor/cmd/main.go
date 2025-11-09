@@ -2,9 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"micro_file_converter/internal/service"
-	"os"
 )
 
 func main() {
@@ -12,8 +10,7 @@ func main() {
 	flag.Parse()
 
 	if *serviceName == "" {
-		fmt.Println("Please provide a queue name using -qname flag")
-		os.Exit(1)
+		*serviceName = "hello_Q"
 	}
 
 	worker := service.NewWorker(*serviceName)

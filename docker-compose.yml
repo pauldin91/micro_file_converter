@@ -1,0 +1,63 @@
+services:
+  libre:
+    build:
+      context: ./libre
+      dockerfile: dockerfile
+    container_name: libre
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/data  
+    networks:
+      - micro.converter
+
+
+  db:
+    image: postgres:17.5-alpine3.22
+    container_name: db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=postgres
+    ports:
+      - "5434:5432"  
+    volumes:
+      - postgres-data:/var/lib/postgresql/data 
+    networks:
+      - micro.converter  
+    restart: always
+
+  rabbit:
+    image: rabbitmq:4-management-alpine
+    container_name: rabbit
+    ports:
+      - "5672:5672"
+      - "15671:15671"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - micro.converter  
+    restart: always
+
+  processor:
+    container_name: processor
+    build:
+        context: ./processor
+        dockerfile: dockerfile
+    volumes:
+      - ./uploads:/data  
+    networks:
+      - micro.converter
+
+    depends_on:
+      - db
+      - rabbit  
+      - libre 
+
+networks:
+  micro.converter:
+    driver: bridge  
+
+volumes:
+  postgres-data: 
+  rabbitmq-data: 

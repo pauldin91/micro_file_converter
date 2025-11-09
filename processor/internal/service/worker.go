@@ -1,8 +1,14 @@
 package service
 
 import (
+	"encoding/json"
 	"log"
+	"os"
+	"path"
+	"path/filepath"
 	"sync"
+
+	dto "micro_file_converter/pkg/types"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -27,7 +33,7 @@ func (w *Worker) Start() {
 	go func() {
 		defer w.wg.Done()
 
-		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+		conn, err := amqp.Dial("amqp://guest:guest@rabbit:5672/")
 		failOnError(err, "Failed to connect to RabbitMQ")
 		defer conn.Close()
 
@@ -58,13 +64,30 @@ func (w *Worker) Start() {
 
 		log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 		for d := range msgs {
-			log.Printf("Received a message: %s", d.Body)
+			var batch dto.Batch
+			json.Unmarshal(d.Body, &batch)
+			go w.convert(batch)
 		}
 
 	}()
 	go w.handle()
 
 	w.wg.Wait()
+
+}
+
+func (w *Worker) convert(batch dto.Batch) {
+	l, _ := os.Getwd()
+	log.Printf("CWD: %s\n", l)
+	dir := path.Join(filepath.Dir(filepath.Dir(l)), "data", batch.Id)
+	files, err := os.ReadDir(dir)
+	if err != nil {
+		log.Printf("Error: %s\n", err.Error())
+
+	}
+	for _, f := range files {
+		log.Printf("Received a message: %s\n", f)
+	}
 
 }
 
