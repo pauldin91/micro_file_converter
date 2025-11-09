@@ -1,17 +1,4 @@
 services:
-  libre:
-    build:
-      context: ./libre
-      dockerfile: dockerfile
-    container_name: libre
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./uploads:/data  
-    networks:
-      - micro.converter
-
-
   db:
     image: postgres:17.5-alpine3.22
     container_name: db
@@ -52,7 +39,6 @@ services:
     depends_on:
       - db
       - rabbit  
-      - libre 
 
 networks:
   micro.converter:

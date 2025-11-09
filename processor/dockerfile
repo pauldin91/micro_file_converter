@@ -1,17 +1,22 @@
-FROM golang:1.24 AS build
+# syntax=docker/dockerfile:1
 
+FROM golang:1.24-bullseye AS build
 WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
 
 COPY . .
+RUN go build -o main ./cmd/main.go
 
-RUN go mod tidy
+FROM ubuntu:24.04
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd/main.go
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libreoffice && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-FROM alpine:3.21
+ENV UNO_JAVA_JFW_DISABLE=true
 
 WORKDIR /app
-
 COPY --from=build /app/main .
-
 CMD ["./main"]

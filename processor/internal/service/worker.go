@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"sync"
@@ -78,15 +79,24 @@ func (w *Worker) Start() {
 
 func (w *Worker) convert(batch dto.Batch) {
 	l, _ := os.Getwd()
-	log.Printf("CWD: %s\n", l)
 	dir := path.Join(filepath.Dir(filepath.Dir(l)), "data", batch.Id)
+	outputDir := path.Join(dir, "converted")
+	os.MkdirAll(outputDir, 0755)
 	files, err := os.ReadDir(dir)
 	if err != nil {
-		log.Printf("Error: %s\n", err.Error())
-
+		w.errors <- err
+		log.Printf("Error reading dir: %s\n", err.Error())
 	}
+
 	for _, f := range files {
-		log.Printf("Received a message: %s\n", f)
+		log.Printf("Received a message: %s\n", path.Join(outputDir, f.Name()))
+		cmd := exec.Command("libreoffice", "--headless", "--convert-to", "pdf", "--outdir", outputDir, path.Join(dir, f.Name()))
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Printf("Error: %s\n", err.Error())
+		}
+
 	}
 
 }
