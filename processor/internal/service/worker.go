@@ -9,22 +9,23 @@ import (
 	"path/filepath"
 	"sync"
 
+	"micro_file_converter/internal/utils"
 	dto "micro_file_converter/pkg/types"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Worker struct {
-	errors    chan error
-	queueName string
-	wg        *sync.WaitGroup
+	errors chan error
+	wg     *sync.WaitGroup
+	conf   utils.Config
 }
 
-func NewWorker(queueName string) *Worker {
+func NewWorker(conf utils.Config) *Worker {
 	return &Worker{
-		errors:    make(chan error),
-		wg:        &sync.WaitGroup{},
-		queueName: queueName,
+		errors: make(chan error),
+		wg:     &sync.WaitGroup{},
+		conf:   conf,
 	}
 }
 
@@ -34,7 +35,7 @@ func (w *Worker) Start() {
 	go func() {
 		defer w.wg.Done()
 
-		conn, err := amqp.Dial("amqp://guest:guest@rabbit:5672/")
+		conn, err := amqp.Dial(w.conf.RabbitMQHost)
 		failOnError(err, "Failed to connect to RabbitMQ")
 		defer conn.Close()
 
@@ -43,12 +44,12 @@ func (w *Worker) Start() {
 		defer ch.Close()
 
 		q, err := ch.QueueDeclare(
-			w.queueName, // name
-			false,       // durable
-			false,       // delete when unused
-			false,       // exclusive
-			false,       // no-wait
-			nil,         // arguments
+			w.conf.BatchQueue, // name
+			false,             // durable
+			false,             // delete when unused
+			false,             // exclusive
+			false,             // no-wait
+			nil,               // arguments
 		)
 		failOnError(err, "Failed to declare a queue")
 

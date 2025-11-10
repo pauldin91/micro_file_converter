@@ -1,19 +1,25 @@
 package main
 
 import (
-	"flag"
+	"log"
 	"micro_file_converter/internal/service"
+	"micro_file_converter/internal/utils"
+	"os"
+	"path/filepath"
 )
 
 func main() {
-	serviceName := flag.String("qname", "", "The name of the queue to consume")
-	flag.Parse()
-
-	if *serviceName == "" {
-		*serviceName = "hello_Q"
+	l, _ := os.Getwd()
+	conf, err := utils.LoadConfig(l)
+	if err != nil {
+		l, _ := os.Getwd()
+		files, _ := os.ReadDir(l)
+		for _, f := range files {
+			log.Printf("Could not load app.env file in %s\n", f.Name())
+		}
+		log.Panicf("Could not load app.env file in %s\n", filepath.Dir(l))
 	}
-
-	worker := service.NewWorker(*serviceName)
+	worker := service.NewWorker(conf)
 	worker.Start()
 
 }
