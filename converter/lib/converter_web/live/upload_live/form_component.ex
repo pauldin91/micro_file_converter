@@ -19,10 +19,9 @@ defmodule ConverterWeb.UploadLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <.input field={@form[:pages]} type="number" label="Pages" />
-        <.input field={@form[:filename]} type="text" label="Filename" />
+        <.live_file_input upload={@uploads.files} />
         <:actions>
-          <.button phx-disable-with="Saving...">Save Upload</.button>
+          <.button type="submit" phx-disable-with="Saving...">Save Upload</.button>
         </:actions>
       </.simple_form>
     </div>

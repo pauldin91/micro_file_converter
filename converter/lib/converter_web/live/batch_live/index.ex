@@ -6,7 +6,10 @@ defmodule ConverterWeb.BatchLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    {:ok, stream(socket, :batches, Batches.list_batches())}
+    {:ok,
+     socket
+     |> assign(:changeset, Conversion.change_batch(%Batch{}))
+     |> allow_upload(:files, accept: ~w(.doc .docx .txt .png .jpg .pdf), max_entries: 10)}
   end
 
   @impl true
