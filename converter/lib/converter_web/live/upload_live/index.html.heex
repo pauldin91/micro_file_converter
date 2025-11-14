@@ -9,7 +9,7 @@
 
 <.table
   id="uploads"
-  rows={@streams.uploads}
+  rows={@documents}
   row_click={fn {_id, upload} -> JS.navigate(~p"/uploads/#{upload}") end}
 >
   <:col :let={{_id, upload}} label="Pages">{upload.pages}</:col>
@@ -30,10 +30,15 @@
   </:action>
 </.table>
 
-<.modal :if={@live_action in [:new, :edit]} id="upload-modal" show on_cancel={JS.patch(~p"/uploads")}>
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="upload-modal"
+  show
+  on_cancel={JS.patch(~p"/uploads")}
+>
   <.live_component
     module={ConverterWeb.UploadLive.FormComponent}
-    id={@upload.id || :new}
+    id="new-upload"
     title={@page_title}
     action={@live_action}
     upload={@upload}

@@ -20,9 +20,11 @@ defmodule ConverterWeb.Router do
   scope "/", ConverterWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-    live "/batches", ConverterWeb.BatchLive.Index, :index
-    live "/uploads", ConverterWeb.UploadLive.Index, :index
+    live "/uploads", UploadLive.Index, :index
+    live "/uploads/new", UploadLive.Index, :new
+    live "/uploads/:id/edit", UploadLive.Index, :edit
+
+    live "/uploads/:id", UploadLive.Show, :show
   end
 
   # Other scopes may use custom stacks.
