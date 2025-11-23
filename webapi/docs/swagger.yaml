@@ -1,4 +1,26 @@
 info:
   contact: {}
-paths: {}
+paths:
+  /uploads:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload one or more files via multipart/form-data
+      parameters:
+      - description: Files to upload
+        in: formData
+        name: files
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload multiple files
+      tags:
+      - files
 swagger: "2.0"

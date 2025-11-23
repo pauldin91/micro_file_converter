@@ -2,6 +2,6 @@ package api
 
 const (
 	apiRoot         string = "/api"
-	uploadEndpoint  string = apiRoot + "/uploads"
-	swaggerEndpoint string = apiRoot + "/swagger/*"
+	uploadEndpoint  string = "/uploads"
+	swaggerEndpoint string = "/swagger/*"
 )
