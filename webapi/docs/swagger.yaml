@@ -1,7 +1,7 @@
 info:
   contact: {}
 paths:
-  /uploads:
+  /api/uploads:
     post:
       consumes:
       - multipart/form-data

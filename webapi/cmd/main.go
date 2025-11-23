@@ -10,9 +10,11 @@ import (
 
 func main() {
 	cfg, _ := utils.LoadConfig("..")
-	_ = db.NewDbConn(cfg.DbConn)
+	dbConn := db.NewDbConn(cfg.DbConn)
 
-	httpServer := api.NewServer(cfg)
+	httpServer := api.NewServer(cfg).
+		WithDBConn(dbConn)
+
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"webapi/db"
 	"webapi/utils"
 
 	_ "webapi/docs"
@@ -15,14 +16,20 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-type Server struct {
+type Application struct {
 	httpServer *http.Server
+	dbConn     *db.DbConn
 }
 
-func NewServer(cfg utils.Config) *Server {
-	server := Server{}
+func (server *Application) WithDBConn(dbConn db.DbConn) *Application {
+	server.dbConn = &dbConn
+	return server
+}
+
+func NewServer(cfg utils.Config) *Application {
+	server := Application{}
 	router := chi.NewMux()
-	router.Get("/swagger/*", httpSwagger.Handler(
+	router.Get(swaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
 	))
 	router.Post(uploadEndpoint, server.uploadHandler)
@@ -33,16 +40,19 @@ func NewServer(cfg utils.Config) *Server {
 	return &server
 }
 
-func (server *Server) Start() {
+func (server *Application) Start() {
 
-	log.Info().Msgf("INFO: HTTP server started on %s\n", server.httpServer.Addr)
-	if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal().Msgf("Could not start HTTP server: %s", err)
-	}
+	go func() {
+
+		log.Info().Msgf("INFO: HTTP server started on %s\n", server.httpServer.Addr)
+		if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("Could not start HTTP server: %s", err)
+		}
+	}()
 
 }
 
-func (server *Server) WaitForShutdown(ctx context.Context) {
+func (server *Application) WaitForShutdown(ctx context.Context) {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 

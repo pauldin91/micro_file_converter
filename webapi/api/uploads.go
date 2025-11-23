@@ -1,11 +1,18 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	db "webapi/db/models"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
+
+var tempUUID, _ = uuid.NewUUID()
 
 // uploadHandler handles multiple file uploads
 // @Summary      Upload multiple files
@@ -15,8 +22,8 @@ import (
 // @Produce      json
 // @Param        files  formData  file   true  "Files to upload" collectionFormat
 // @Success      200 {object} map[string]interface{}
-// @Router       /uploads [post]
-func (server *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
+// @Router       /api/uploads [post]
+func (server *Application) uploadHandler(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Upload handler called")
 
 	if err := r.ParseMultipartForm(0); err != nil {
@@ -33,6 +40,27 @@ func (server *Server) uploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+
+	var files []db.File = make([]db.File, 0)
+	for _, i := range fileNames {
+		files = append(files, db.File{Name: i})
+	}
+
+	user := db.User{
+		Name:  "papajas",
+		Email: "papajas@email.com",
+	}
+
+	err := gorm.G[db.User](server.dbConn.DB).Create(context.Background(), &user)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
+	err = gorm.G[db.Upload](server.dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
+		return
+	}
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": http.StatusOK,

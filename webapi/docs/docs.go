@@ -15,7 +15,7 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/uploads": {
+        "/api/uploads": {
             "post": {
                 "description": "Upload one or more files via multipart/form-data",
                 "consumes": [
