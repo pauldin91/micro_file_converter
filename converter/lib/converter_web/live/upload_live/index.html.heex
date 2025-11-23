@@ -38,7 +38,7 @@
 >
   <.live_component
     module={ConverterWeb.UploadLive.FormComponent}
-    id="new-upload"
+    id={@upload.id || :new}
     title={@page_title}
     action={@live_action}
     upload={@upload}

@@ -12,7 +12,7 @@ defmodule ConverterWeb.UploadLive.Index do
         max_entries: 10,
         max_file_size: 8_000_000
       )
-      |> assign(:documents, Documents.list_uploads())
+      |> assign(:uploads, Documents.list_uploads())
 
     {:ok, socket}
   end
@@ -44,7 +44,7 @@ defmodule ConverterWeb.UploadLive.Index do
   @spec handle_event(<<_::32>>, any(), Phoenix.LiveView.Socket.t()) :: {:noreply, map()}
   def handle_event("save", _params, socket) do
     uploaded_files =
-      consume_uploaded_entries(socket, :documents, fn %{path: path}, entry ->
+      consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
         dest = Path.join(["uploads", socket.assigns.batch_id, entry.client_name])
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
