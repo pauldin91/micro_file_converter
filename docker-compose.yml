@@ -40,6 +40,16 @@ services:
       - db
       - rabbit  
 
+  upload_service:
+    container_name: upload_service
+    build: 
+      context: ./upload_service
+      dockerfile: dockerfile
+    volumes:
+      - ./uploads:/data  
+    networks:
+      - micro.converter
+
 networks:
   micro.converter:
     driver: bridge  

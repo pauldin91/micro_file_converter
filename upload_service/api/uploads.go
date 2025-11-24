@@ -1,15 +1,12 @@
 package api
 
 import (
-	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	db "webapi/db/models"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
-	"gorm.io/gorm"
 )
 
 var tempUUID, _ = uuid.NewUUID()
@@ -46,21 +43,21 @@ func (server *Application) uploadHandler(w http.ResponseWriter, r *http.Request)
 		files = append(files, db.File{Name: i})
 	}
 
-	user := db.User{
-		Name:  "papajas",
-		Email: "papajas@email.com",
-	}
+	// user := db.User{
+	// 	Name:  "papajas",
+	// 	Email: "papajas@email.com",
+	// }
 
-	err := gorm.G[db.User](server.dbConn.DB).Create(context.Background(), &user)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
-		return
-	}
-	err = gorm.G[db.Upload](server.dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
-	if err != nil {
-		http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
-		return
-	}
+	// err := gorm.G[db.User](server.dbConn.DB).Create(context.Background(), &user)
+	// if err != nil {
+	// 	http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
+	// 	return
+	// }
+	// err = gorm.G[db.Upload](server.dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
+	// if err != nil {
+	// 	http.Error(w, fmt.Sprintf("Error: %s", err.Error()), http.StatusBadRequest)
+	// 	return
+	// }
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": http.StatusOK,

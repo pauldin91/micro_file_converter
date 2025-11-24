@@ -2,6 +2,7 @@ package db
 
 import (
 	"log"
+	"webapi/common"
 	db "webapi/db/models"
 
 	"gorm.io/driver/postgres"
@@ -9,10 +10,11 @@ import (
 )
 
 type DbConn struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	consumer chan common.UploadDto
 }
 
-func NewDbConn(dsn string) DbConn {
+func NewDbConn(dsn string, consumer chan common.UploadDto) DbConn {
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -24,6 +26,7 @@ func NewDbConn(dsn string) DbConn {
 		&db.File{},
 	)
 	return DbConn{
-		DB: database,
+		DB:       database,
+		consumer: consumer,
 	}
 }

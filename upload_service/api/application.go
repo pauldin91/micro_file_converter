@@ -6,7 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"webapi/db"
+	"webapi/common"
 	"webapi/utils"
 
 	_ "webapi/docs"
@@ -18,16 +18,13 @@ import (
 
 type Application struct {
 	httpServer *http.Server
-	dbConn     *db.DbConn
-}
-
-func (server *Application) WithDBConn(dbConn db.DbConn) *Application {
-	server.dbConn = &dbConn
-	return server
+	dtoChan    chan common.UploadDto
 }
 
 func NewServer(cfg utils.Config) *Application {
-	server := Application{}
+	server := Application{
+		dtoChan: make(chan common.UploadDto),
+	}
 	router := chi.NewMux()
 	router.Get(swaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
