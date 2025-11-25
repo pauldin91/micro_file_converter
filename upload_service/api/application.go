@@ -18,12 +18,12 @@ import (
 
 type Application struct {
 	httpServer *http.Server
-	dtoChan    chan common.UploadDto
+	producer   chan common.UploadDto
 }
 
-func NewServer(cfg utils.Config) *Application {
+func NewServer(cfg utils.Config, producer chan common.UploadDto) *Application {
 	server := Application{
-		dtoChan: make(chan common.UploadDto),
+		producer: producer,
 	}
 	router := chi.NewMux()
 	router.Get(swaggerEndpoint, httpSwagger.Handler(
@@ -37,7 +37,7 @@ func NewServer(cfg utils.Config) *Application {
 	return &server
 }
 
-func (server *Application) Start() {
+func (server *Application) Start(ctx context.Context) {
 
 	go func() {
 
@@ -46,6 +46,8 @@ func (server *Application) Start() {
 			log.Fatal().Msgf("Could not start HTTP server: %s", err)
 		}
 	}()
+
+	server.WaitForShutdown(ctx)
 
 }
 

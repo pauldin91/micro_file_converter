@@ -14,13 +14,11 @@ func main() {
 	communicator := make(chan common.UploadDto)
 
 	cfg, _ := utils.LoadConfig("..")
-	_ = db.NewDbConn(cfg.DbConn, communicator)
+	worker := db.NewUploadWorker(cfg.DbConn, communicator)
 
-	httpServer := api.NewServer(cfg)
+	httpServer := api.NewServer(cfg, communicator)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-
-	httpServer.Start()
-	httpServer.WaitForShutdown(ctx)
-
+	worker.Start(ctx)
+	httpServer.Start(ctx)
 }

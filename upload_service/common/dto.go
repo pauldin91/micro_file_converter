@@ -2,5 +2,5 @@ package common
 
 type UploadDto struct {
 	FileNames []string
-	Username  string
+	Email     string
 }

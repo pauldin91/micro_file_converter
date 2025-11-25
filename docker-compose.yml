@@ -45,6 +45,13 @@ services:
     build: 
       context: ./upload_service
       dockerfile: dockerfile
+    
+    depends_on:
+      - db
+      - rabbit  
+
+    ports:
+      - "8080:8080"
     volumes:
       - ./uploads:/data  
     networks:
