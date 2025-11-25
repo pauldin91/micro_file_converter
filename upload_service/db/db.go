@@ -48,26 +48,10 @@ func (dbConn *UploadWorker) Start(ctx context.Context) {
 				for _, i := range upload.FileNames {
 					files = append(files, db.File{Name: i})
 				}
-				user := db.User{
-					Email: upload.Email,
-				}
 
-				user, err := gorm.G[db.User](dbConn.DB).Where("email = ?", user.Email).First(ctx)
-				if errors.Is(err, gorm.ErrRecordNotFound) {
-					user = db.User{
-						Email: upload.Email,
-						Name:  strings.Split(upload.Email, "@")[0],
-					}
+				user := dbConn.getOrAddUser(ctx, upload)
 
-					err = gorm.G[db.User](dbConn.DB).Create(ctx, &user)
-					if err != nil {
-						dbConn.errors <- err
-					}
-				} else if err != nil {
-					dbConn.errors <- err
-				}
-
-				err = gorm.G[db.Upload](dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
+				err := gorm.G[db.Upload](dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
 				if err != nil {
 					dbConn.errors <- err
 				}
@@ -77,5 +61,25 @@ func (dbConn *UploadWorker) Start(ctx context.Context) {
 			}
 		}
 	}()
+}
 
+func (worker *UploadWorker) getOrAddUser(ctx context.Context, upload common.UploadDto) db.User {
+	user := db.User{
+		Email: upload.Email,
+	}
+	user, err := gorm.G[db.User](worker.DB).Where("email = ?", user.Email).First(ctx)
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		user = db.User{
+			Email: upload.Email,
+			Name:  strings.Split(upload.Email, "@")[0],
+		}
+
+		err = gorm.G[db.User](worker.DB).Create(ctx, &user)
+		if err != nil {
+			worker.errors <- err
+		}
+	} else if err != nil {
+		worker.errors <- err
+	}
+	return user
 }
