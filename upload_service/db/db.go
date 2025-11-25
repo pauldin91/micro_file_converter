@@ -48,8 +48,11 @@ func (dbConn *UploadWorker) Start(ctx context.Context) {
 				for _, i := range upload.FileNames {
 					files = append(files, db.File{Name: i})
 				}
+				user := db.User{
+					Email: upload.Email,
+				}
 
-				user, err := gorm.G[db.User](dbConn.DB).Where("email = ?").First(ctx)
+				user, err := gorm.G[db.User](dbConn.DB).Where("email = ?", user.Email).First(ctx)
 				if errors.Is(err, gorm.ErrRecordNotFound) {
 					user = db.User{
 						Email: upload.Email,
@@ -60,6 +63,8 @@ func (dbConn *UploadWorker) Start(ctx context.Context) {
 					if err != nil {
 						dbConn.errors <- err
 					}
+				} else if err != nil {
+					dbConn.errors <- err
 				}
 
 				err = gorm.G[db.Upload](dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})

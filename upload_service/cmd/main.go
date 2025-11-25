@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
 	"time"
 	"webapi/api"
 	"webapi/common"
@@ -12,13 +14,15 @@ import (
 func main() {
 
 	communicator := make(chan common.UploadDto)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
 
 	cfg, _ := utils.LoadConfig("..")
 	worker := db.NewUploadWorker(cfg.DbConn, communicator)
-
-	httpServer := api.NewServer(cfg, communicator)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	httpServer := api.NewServer(cfg, communicator)
 	worker.Start(ctx)
-	httpServer.Start(ctx)
+	httpServer.Start(shutdownCtx)
+	<-ctx.Done()
 }
