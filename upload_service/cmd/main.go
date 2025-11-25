@@ -7,7 +7,7 @@ import (
 	"time"
 	"webapi/api"
 	"webapi/common"
-	"webapi/db"
+	service "webapi/service"
 	"webapi/utils"
 )
 
@@ -18,7 +18,7 @@ func main() {
 	defer cancel()
 
 	cfg, _ := utils.LoadConfig("..")
-	worker := db.NewUploadWorker(cfg.DbConn, communicator)
+	worker := service.NewUploadWorker(cfg.DbConn, communicator)
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	httpServer := api.NewServer(cfg, communicator)

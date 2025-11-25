@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"sync"
 
-	"micro_file_converter/internal/utils"
 	dto "micro_file_converter/pkg/types"
+	"micro_file_converter/utils"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )

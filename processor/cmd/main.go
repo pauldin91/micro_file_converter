@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"micro_file_converter/internal/service"
-	"micro_file_converter/internal/utils"
+	"micro_file_converter/service"
+	"micro_file_converter/utils"
 	"os"
 	"path/filepath"
 )

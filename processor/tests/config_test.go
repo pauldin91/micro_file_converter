@@ -2,7 +2,7 @@ package tests
 
 import (
 	"log"
-	"micro_file_converter/internal/utils"
+	"micro_file_converter/utils"
 	"os"
 	"strings"
 	"testing"
