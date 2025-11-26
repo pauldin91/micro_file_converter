@@ -3,9 +3,6 @@ package api
 import (
 	"context"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"webapi/common"
 	"webapi/utils"
 
@@ -37,30 +34,16 @@ func NewServer(cfg utils.Config, producer chan common.UploadDto) *Application {
 	return &server
 }
 
-func (server *Application) Start(ctx context.Context) {
+func (server *Application) Start(ctx context.Context) error {
+	errChan := make(chan error, 1)
 
 	go func() {
-
-		log.Info().Msgf("INFO: HTTP server started on %s\n", server.httpServer.Addr)
+		log.Info().Msgf("HTTP server started on %s", server.httpServer.Addr)
 		if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("Could not start HTTP server: %s", err)
+			errChan <- err
 		}
+		close(errChan)
 	}()
+	return <-errChan
 
-	server.WaitForShutdown(ctx)
-
-}
-
-func (server *Application) WaitForShutdown(ctx context.Context) {
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-
-	sig := <-signalChan
-	log.Info().Msgf("Received signal: %s. Shutting down gracefully...", sig)
-
-	if err := server.httpServer.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("HTTP server Shutdown: %v", err)
-	}
-
-	log.Info().Msg("Server gracefully stopped")
 }
