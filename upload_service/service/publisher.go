@@ -1,19 +1,22 @@
 package service
 
 import (
-	"log"
 	"webapi/common"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"github.com/rs/zerolog/log"
 )
 
 type Publisher struct {
-	addr string
+	addr    string
+	queue   string
+	channel *amqp.Channel
 }
 
-func NewPublisher(addr string) *Publisher {
+func NewPublisher(addr, queue string) *Publisher {
 	return &Publisher{
-		addr: addr,
+		addr:  addr,
+		queue: queue,
 	}
 }
 
@@ -27,25 +30,29 @@ func (pub *Publisher) Start() {
 	common.FailOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
-	q, err := ch.QueueDeclare(
-		"hello", // name
-		false,   // durable
-		false,   // delete when unused
-		false,   // exclusive
-		false,   // no-wait
-		nil,     // arguments
+	_, err = ch.QueueDeclare(
+		pub.queue, // name
+		false,     // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
-	common.FailOnError(err, "Failed to declare a queue")
 
-	body := "Hello World!"
-	err = ch.Publish("", // exchange
-		q.Name, // routing key
-		false,  // mandatory
-		false,  // immediate
+	common.FailOnError(err, "Failed to declare a queue")
+	pub.channel = ch
+}
+
+func (pub *Publisher) Publish(msg string) {
+	err := pub.channel.Publish("", // exchange
+		pub.queue, // routing key
+		false,     // mandatory
+		false,     // immediate
 		amqp.Publishing{
 			ContentType: "text/plain",
-			Body:        []byte(body),
+			Body:        []byte(msg),
 		})
-	common.FailOnError(err, "Failed to publish a message")
-	log.Printf(" [x] Sent %s\n", body)
+	if err != nil {
+		log.Error().Msgf("unable to send msg to broker: %s\n", err.Error())
+	}
 }
