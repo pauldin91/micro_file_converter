@@ -6,6 +6,8 @@ type Config struct {
 	Environment       string `mapstructure:"ENVIRONMENT"`
 	DbConn            string `mapstructure:"DB_CONN"`
 	HttpServerAddress string `mapstructure:"HTTP_SERVER_ADDRESS"`
+	Amqp              string `mapstructure:"AMQP"`
+	BatchQueue        string `mapstructure:"BATCH_QUEUE"`
 }
 
 func LoadConfig(path string) (config Config, err error) {

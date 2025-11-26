@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"webapi/common"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -11,16 +12,19 @@ type Publisher struct {
 	addr    string
 	queue   string
 	channel *amqp.Channel
+
+	receiver chan string
 }
 
-func NewPublisher(addr, queue string) *Publisher {
+func NewPublisher(addr, queue string, receiver chan string) *Publisher {
 	return &Publisher{
-		addr:  addr,
-		queue: queue,
+		addr:     addr,
+		queue:    queue,
+		receiver: receiver,
 	}
 }
 
-func (pub *Publisher) Start() {
+func (pub *Publisher) Start(ctx context.Context) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 
 	common.FailOnError(err, "Failed to connect to RabbitMQ")
@@ -41,6 +45,7 @@ func (pub *Publisher) Start() {
 
 	common.FailOnError(err, "Failed to declare a queue")
 	pub.channel = ch
+
 }
 
 func (pub *Publisher) Publish(msg string) {

@@ -15,10 +15,11 @@ import (
 type UploadWorker struct {
 	DB       *gorm.DB
 	consumer chan common.UploadDto
+	receiver chan string
 	errors   chan error
 }
 
-func NewUploadWorker(dsn string, consumer chan common.UploadDto) UploadWorker {
+func NewUploadWorker(dsn string, receiver chan string, consumer chan common.UploadDto) UploadWorker {
 
 	database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -32,6 +33,7 @@ func NewUploadWorker(dsn string, consumer chan common.UploadDto) UploadWorker {
 	return UploadWorker{
 		DB:       database,
 		consumer: consumer,
+		receiver: receiver,
 		errors:   make(chan error),
 	}
 }
@@ -50,10 +52,12 @@ func (dbConn *UploadWorker) Start(ctx context.Context) {
 				}
 
 				user := dbConn.getOrAddUser(ctx, upload)
-
-				err := gorm.G[db.Upload](dbConn.DB).Create(context.Background(), &db.Upload{UserID: user.ID, Status: "Queued", Files: files})
+				batch := &db.Upload{UserID: user.ID, Status: "Queued", Files: files}
+				err := gorm.G[db.Upload](dbConn.DB).Create(context.Background(), batch)
 				if err != nil {
 					dbConn.errors <- err
+				} else {
+					dbConn.receiver <- batch.ID.String()
 				}
 
 			case err := <-dbConn.errors:
