@@ -1,4 +1,4 @@
-package utils
+package config
 
 import "github.com/spf13/viper"
 
@@ -10,10 +10,10 @@ type Config struct {
 	BatchQueue        string `mapstructure:"BATCH_QUEUE"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
-	viper.AddConfigPath(path)
+func LoadConfig() (config Config, err error) {
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+	viper.AddConfigPath("../..")
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()

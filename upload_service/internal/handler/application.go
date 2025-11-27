@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"webapi/common"
-	"webapi/utils"
+	"webapi/internal/config"
 
 	_ "webapi/docs"
 
@@ -21,15 +21,11 @@ type Application struct {
 	producer   chan common.UploadDto
 }
 
-func NewServer(cfg utils.Config, producer chan common.UploadDto) *Application {
+func NewServer(cfg config.Config, producer chan common.UploadDto) *Application {
 	server := Application{
 		producer: producer,
 	}
-	router := chi.NewMux()
-	router.Get(common.SwaggerEndpoint, httpSwagger.Handler(
-		httpSwagger.URL("swagger/doc.json"),
-	))
-	router.Post(common.UploadEndpoint, server.uploadHandler)
+	router := server.registerRoutes()
 	server.httpServer = &http.Server{
 		Addr:    cfg.HttpServerAddress,
 		Handler: router,
@@ -50,5 +46,14 @@ func (server *Application) Start(ctx context.Context) error {
 	<-quit
 
 	return server.httpServer.Close()
+}
 
+func (server *Application) registerRoutes() *chi.Mux {
+	router := chi.NewMux()
+	router.Get(common.SwaggerEndpoint, httpSwagger.Handler(
+		httpSwagger.URL("swagger/doc.json"),
+	))
+	var uploadHandler UploadHandler = NewUploadHandler()
+	router.Post(common.UploadEndpoint, uploadHandler.createUpload)
+	return router
 }

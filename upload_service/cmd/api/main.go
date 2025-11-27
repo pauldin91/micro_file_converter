@@ -6,10 +6,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"webapi/api"
-	"webapi/background"
 	"webapi/common"
-	"webapi/utils"
+	"webapi/internal/config"
+	api "webapi/internal/handler"
+	"webapi/pkg/rabbitmq"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -27,10 +27,10 @@ func main() {
 	communicator := make(chan common.UploadDto, 100)
 	receiver := make(chan string, 100)
 
-	cfg, _ := utils.LoadConfig("..")
+	cfg, _ := config.LoadConfig()
 
 	// worker := service.NewUploadWorker(cfg.DbConn, receiver, communicator)
-	publisher := background.NewPublisher(cfg, receiver)
+	_ = rabbitmq.NewPublisher(cfg, receiver)
 	server := api.NewServer(cfg, communicator)
 
 	// errgroup with root context allows graceful cancel on fatal error
@@ -39,10 +39,6 @@ func main() {
 	// HTTP server
 	group.Go(func() error {
 		return server.Start(subCtx)
-	})
-
-	group.Go(func() error {
-		return publisher.Start(subCtx)
 	})
 
 	// Wait for any fatal error or shutdown signal

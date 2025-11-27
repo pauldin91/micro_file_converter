@@ -1,11 +1,10 @@
-package tests
+package config
 
 import (
 	"log"
 	"os"
 	"strings"
 	"testing"
-	"webapi/utils"
 )
 
 func TestOverwriteCfg(t *testing.T) {
@@ -18,7 +17,7 @@ func TestOverwriteCfg(t *testing.T) {
 		os.Setenv(key[0], key[1])
 	}
 
-	cfg, err := utils.LoadConfig("..")
+	cfg, err := LoadConfig()
 	if err != nil {
 		log.Println("could load cfg")
 	}

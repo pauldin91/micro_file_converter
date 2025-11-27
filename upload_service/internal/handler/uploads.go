@@ -3,13 +3,16 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"webapi/common"
 
-	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
 
-var tempUUID, _ = uuid.NewUUID()
+type UploadHandler struct {
+}
+
+func NewUploadHandler() UploadHandler {
+	return UploadHandler{}
+}
 
 // uploadHandler handles multiple file uploads
 // @Summary      Upload multiple files
@@ -20,7 +23,7 @@ var tempUUID, _ = uuid.NewUUID()
 // @Param        files  formData  file   true  "Files to upload" collectionFormat
 // @Success      200 {object} map[string]interface{}
 // @Router       /api/uploads [post]
-func (server *Application) uploadHandler(w http.ResponseWriter, r *http.Request) {
+func (handler UploadHandler) createUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Upload handler called")
 
 	if err := r.ParseMultipartForm(0); err != nil {
@@ -38,12 +41,10 @@ func (server *Application) uploadHandler(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	var dto common.UploadDto = common.UploadDto{
-		Email:     "papajas@email.com",
-		FileNames: fileNames,
-	}
-
-	server.producer <- dto
+	// var dto common.UploadDto = common.UploadDto{
+	// 	Email:     "papajas@email.com",
+	// 	FileNames: fileNames,
+	// }
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": http.StatusOK,
