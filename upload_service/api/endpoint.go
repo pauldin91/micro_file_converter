@@ -1,7 +1,0 @@
-package api
-
-const (
-	apiRoot         string = "/api"
-	uploadEndpoint  string = apiRoot + "/uploads"
-	swaggerEndpoint string = "/swagger/*"
-)

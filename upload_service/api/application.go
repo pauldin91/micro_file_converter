@@ -3,6 +3,9 @@ package api
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"webapi/common"
 	"webapi/utils"
 
@@ -23,10 +26,10 @@ func NewServer(cfg utils.Config, producer chan common.UploadDto) *Application {
 		producer: producer,
 	}
 	router := chi.NewMux()
-	router.Get(swaggerEndpoint, httpSwagger.Handler(
+	router.Get(common.SwaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
 	))
-	router.Post(uploadEndpoint, server.uploadHandler)
+	router.Post(common.UploadEndpoint, server.uploadHandler)
 	server.httpServer = &http.Server{
 		Addr:    cfg.HttpServerAddress,
 		Handler: router,
@@ -35,15 +38,17 @@ func NewServer(cfg utils.Config, producer chan common.UploadDto) *Application {
 }
 
 func (server *Application) Start(ctx context.Context) error {
-	errChan := make(chan error, 1)
+	log.Info().Msgf("HTTP server starting on %s", server.httpServer.Addr)
+	if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Error().Msgf("Error starting the http server: %s\n", err)
 
-	go func() {
-		log.Info().Msgf("HTTP server started on %s", server.httpServer.Addr)
-		if err := server.httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			errChan <- err
-		}
-		close(errChan)
-	}()
-	return <-errChan
+	}
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+
+	<-quit
+
+	return server.httpServer.Close()
 
 }

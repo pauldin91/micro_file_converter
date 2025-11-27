@@ -5,33 +5,44 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"syscall"
 	"webapi/api"
+	"webapi/background"
 	"webapi/common"
 	"webapi/utils"
 
 	"golang.org/x/sync/errgroup"
 )
 
+var interruptSignals = []os.Signal{
+	os.Interrupt,
+	syscall.SIGTERM,
+	syscall.SIGINT,
+}
+
 func main() {
-	// Root context for whole application
-	rootCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...)
 	defer stop()
 
-	communicator := make(chan common.UploadDto)
-	// receiver := make(chan string)
+	communicator := make(chan common.UploadDto, 100)
+	receiver := make(chan string, 100)
 
 	cfg, _ := utils.LoadConfig("..")
 
 	// worker := service.NewUploadWorker(cfg.DbConn, receiver, communicator)
-	// broker := service.NewPublisher(cfg.Amqp, cfg.BatchQueue, receiver)
+	publisher := background.NewPublisher(cfg, receiver)
 	server := api.NewServer(cfg, communicator)
 
 	// errgroup with root context allows graceful cancel on fatal error
-	group, ctx := errgroup.WithContext(rootCtx)
+	group, subCtx := errgroup.WithContext(ctx)
 
 	// HTTP server
 	group.Go(func() error {
-		return server.Start(ctx)
+		return server.Start(subCtx)
+	})
+
+	group.Go(func() error {
+		return publisher.Start(subCtx)
 	})
 
 	// Wait for any fatal error or shutdown signal
@@ -42,5 +53,5 @@ func main() {
 	}
 
 	// Block until OS signal truly finishes
-	<-rootCtx.Done()
+	<-ctx.Done()
 }
