@@ -1,6 +1,7 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"webapi/common"
 	"webapi/internal/config"
 
@@ -12,11 +13,9 @@ type Publisher struct {
 	conn    *amqp.Connection
 	channel *amqp.Channel
 	queue   string
-
-	receiver chan string
 }
 
-func NewPublisher(cfg config.Config, receiver chan string) *Publisher {
+func NewPublisher(cfg config.Config) *Publisher {
 	conn, err := amqp.Dial(cfg.Amqp)
 	common.FailOnError(err, "Failed to connect to RabbitMQ")
 	ch, err := conn.Channel()
@@ -33,21 +32,25 @@ func NewPublisher(cfg config.Config, receiver chan string) *Publisher {
 
 	common.FailOnError(err, "Failed to declare a queue")
 	return &Publisher{
-		channel:  ch,
-		conn:     conn,
-		queue:    cfg.BatchQueue,
-		receiver: receiver,
+		channel: ch,
+		conn:    conn,
+		queue:   cfg.BatchQueue,
 	}
 }
 
-func (pub *Publisher) Publish(msg string) {
-	err := pub.channel.Publish("", // exchange
+func (pub *Publisher) Publish(msg any) {
+	body, err := json.Marshal(msg)
+	if err != nil {
+		log.Error().Msgf("nable to serialize event %s\n", err.Error())
+		return
+	}
+	err = pub.channel.Publish("", // exchange
 		pub.queue, // routing key
 		false,     // mandatory
 		false,     // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(msg),
+			ContentType: "application/json",
+			Body:        []byte(body),
 		})
 	if err != nil {
 		log.Error().Msgf("unable to send msg to broker: %s\n", err.Error())

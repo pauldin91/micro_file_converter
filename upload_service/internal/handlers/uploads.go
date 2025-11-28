@@ -1,17 +1,23 @@
-package api
+package handlers
 
 import (
 	"encoding/json"
 	"net/http"
+	"webapi/common"
+	"webapi/internal/config"
+	"webapi/pkg/rabbitmq"
 
 	"github.com/rs/zerolog/log"
 )
 
 type UploadHandler struct {
+	publisher *rabbitmq.Publisher
 }
 
-func NewUploadHandler() UploadHandler {
-	return UploadHandler{}
+func NewUploadHandler(cfg config.Config) UploadHandler {
+	return UploadHandler{
+		publisher: rabbitmq.NewPublisher(cfg),
+	}
 }
 
 // uploadHandler handles multiple file uploads
@@ -23,7 +29,7 @@ func NewUploadHandler() UploadHandler {
 // @Param        files  formData  file   true  "Files to upload" collectionFormat
 // @Success      200 {object} map[string]interface{}
 // @Router       /api/uploads [post]
-func (handler UploadHandler) createUpload(w http.ResponseWriter, r *http.Request) {
+func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request) {
 	log.Info().Msg("Upload handler called")
 
 	if err := r.ParseMultipartForm(0); err != nil {
@@ -41,10 +47,12 @@ func (handler UploadHandler) createUpload(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	// var dto common.UploadDto = common.UploadDto{
-	// 	Email:     "papajas@email.com",
-	// 	FileNames: fileNames,
-	// }
+	var dto common.UploadDto = common.UploadDto{
+		Email:     "papajas@email.com",
+		FileNames: fileNames,
+	}
+
+	handler.publisher.Publish(dto)
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": http.StatusOK,

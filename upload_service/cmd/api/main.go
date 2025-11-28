@@ -3,35 +3,24 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
+	"log"
 	"os/signal"
-	"syscall"
-	"webapi/common"
+	api "webapi/cmd"
 	"webapi/internal/config"
-	api "webapi/internal/handler"
-	"webapi/pkg/rabbitmq"
 
 	"golang.org/x/sync/errgroup"
 )
 
-var interruptSignals = []os.Signal{
-	os.Interrupt,
-	syscall.SIGTERM,
-	syscall.SIGINT,
-}
-
 func main() {
-	ctx, stop := signal.NotifyContext(context.Background(), interruptSignals...)
+	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
 	defer stop()
 
-	communicator := make(chan common.UploadDto, 100)
-	receiver := make(chan string, 100)
-
-	cfg, _ := config.LoadConfig()
-
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Panicf("unable to read cfg: %s\n", err.Error())
+	}
 	// worker := service.NewUploadWorker(cfg.DbConn, receiver, communicator)
-	_ = rabbitmq.NewPublisher(cfg, receiver)
-	server := api.NewServer(cfg, communicator)
+	server := api.NewServer(cfg)
 
 	// errgroup with root context allows graceful cancel on fatal error
 	group, subCtx := errgroup.WithContext(ctx)
@@ -40,7 +29,6 @@ func main() {
 	group.Go(func() error {
 		return server.Start(subCtx)
 	})
-
 	// Wait for any fatal error or shutdown signal
 	if err := group.Wait(); err != nil {
 		fmt.Println("Exited due to fatal error:", err)
