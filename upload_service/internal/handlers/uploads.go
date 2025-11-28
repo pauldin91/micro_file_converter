@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"webapi/common"
 	"webapi/internal/config"
+	"webapi/internal/events"
 	"webapi/pkg/rabbitmq"
 
 	"github.com/rs/zerolog/log"
@@ -47,7 +47,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	var dto common.UploadDto = common.UploadDto{
+	var dto events.UploadedEvent = events.UploadedEvent{
 		Email:     "papajas@email.com",
 		FileNames: fileNames,
 	}
