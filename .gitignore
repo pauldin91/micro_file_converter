@@ -10,5 +10,6 @@ erl_crash.dump
 .elixir_ls/
 
 /uploads
+build/
 
 __debug_*

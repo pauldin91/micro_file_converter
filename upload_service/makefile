@@ -20,9 +20,6 @@ new_migration:
 docs:
 	dbdocs build doc/db.dbml
 
-schema:
-	dbml2sql --postgres -o doc/schema.sql doc/db.dbml
-
 gen:
 	sqlc generate
 
@@ -30,10 +27,10 @@ test:
 	go test -v -cover -short ./...
 
 build: 
-	mkdir -p bin
-	go build cmd/api/main.go -o bin/main 
+	mkdir -p build
+	go build -o build/main ./cmd/api/main.go
 
 clean:
-	rm -rf bin
+	rm -rf build
 
 .PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlc test server mock proto evans redis

@@ -1,6 +1,11 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	Environment       string `mapstructure:"ENVIRONMENT"`
@@ -11,9 +16,12 @@ type Config struct {
 }
 
 func LoadConfig() (config Config, err error) {
+
+	d, err := os.Getwd()
+	fmt.Printf("Current dir is : %s\n", d)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
-	viper.AddConfigPath("../..")
+	viper.AddConfigPath(d)
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
