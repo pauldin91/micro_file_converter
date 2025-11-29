@@ -1,6 +1,6 @@
 -- name: CreateUpload :one
 INSERT INTO uploads (user_email, status)
-VALUES ($1,COALESCE($2, 'QUEUED'))
+VALUES ($1,$2)
 RETURNING  id, user_email, status, created_at, created_by, updated_at, updated_by;
 
 -- name: GetUploadByEmail :one

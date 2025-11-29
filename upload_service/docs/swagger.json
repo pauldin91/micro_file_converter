@@ -19,6 +19,13 @@
                 "summary": "Upload multiple files",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "User email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
                         "type": "file",
                         "description": "Files to upload",
                         "name": "files",

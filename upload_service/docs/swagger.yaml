@@ -7,6 +7,11 @@ paths:
       - multipart/form-data
       description: Upload one or more files via multipart/form-data
       parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
       - description: Files to upload
         in: formData
         name: files

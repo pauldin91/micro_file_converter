@@ -1,9 +1,10 @@
 CREATE TYPE upload_status AS ENUM ('REJECTED','QUEUED', 'PROCESSED', 'FAIL');
 
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 
 CREATE TABLE uploads (
-  id uuid PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   status upload_status NOT NULL DEFAULT 'QUEUED',
   user_email varchar NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),

@@ -15,13 +15,13 @@ import (
 
 const createUpload = `-- name: CreateUpload :one
 INSERT INTO uploads (user_email, status)
-VALUES ($1,COALESCE($2, 'QUEUED'))
+VALUES ($1,$2)
 RETURNING  id, user_email, status, created_at, created_by, updated_at, updated_by
 `
 
 type CreateUploadParams struct {
-	UserEmail string      `json:"user_email"`
-	Column2   interface{} `json:"column_2"`
+	UserEmail string       `json:"user_email"`
+	Status    UploadStatus `json:"status"`
 }
 
 type CreateUploadRow struct {
@@ -35,7 +35,7 @@ type CreateUploadRow struct {
 }
 
 func (q *Queries) CreateUpload(ctx context.Context, arg CreateUploadParams) (CreateUploadRow, error) {
-	row := q.db.QueryRow(ctx, createUpload, arg.UserEmail, arg.Column2)
+	row := q.db.QueryRow(ctx, createUpload, arg.UserEmail, arg.Status)
 	var i CreateUploadRow
 	err := row.Scan(
 		&i.ID,

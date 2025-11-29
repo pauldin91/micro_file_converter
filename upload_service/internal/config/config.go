@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"runtime"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -16,20 +18,33 @@ type Config struct {
 	MigrationDest     string `mapstructure:"MIGRATIONS"`
 }
 
-func LoadConfig() (config Config, err error) {
+func IsUnderDebugger() bool {
+	for _, pc := range make([]uintptr, 32) {
+		f := runtime.FuncForPC(pc)
+		if f != nil && strings.Contains(f.Name(), "debug") {
+			return true
+		}
+	}
+	return false
+}
+func LoadConfig() (Config, error) {
+	var config Config
+	var d string
+	var err error
 
-	d, err := os.Getwd()
+	d, _ = os.Getwd()
 	fmt.Printf("Current dir is : %s\n", d)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+	viper.AddConfigPath("../..")
 	viper.AddConfigPath(d)
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		return
+		return config, err
 	}
 
 	err = viper.Unmarshal(&config)
-	return
+	return config, err
 }

@@ -88,7 +88,8 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 func runDBMigration(dbSource string) {
 	migration, err := migrate.New("file://db/migrations", dbSource)
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create new migrate instance")
+		log.Error().Err(err).Msg("cannot create new migrate instance")
+		return
 	}
 
 	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
