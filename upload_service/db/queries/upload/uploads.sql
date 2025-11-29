@@ -1,6 +1,6 @@
 -- name: CreateUpload :one
-INSERT INTO uploads (user_email, status)
-VALUES ($1,$2)
+INSERT INTO uploads (id,user_email, status)
+VALUES ($1,$2,$3)
 RETURNING  id, user_email, status, created_at, created_by, updated_at, updated_by;
 
 -- name: GetUploadByEmail :one

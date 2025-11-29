@@ -1,16 +1,24 @@
 package utils
 
-import "github.com/spf13/viper"
+import (
+	"fmt"
+	"os"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
 	RabbitMQHost string `mapstructure:"RABBITMQ_HOST"`
 	BatchQueue   string `mapstructure:"BATCH_QUEUE"`
 }
 
-func LoadConfig(path string) (Config, error) {
-	viper.AddConfigPath(path)
+func LoadConfig() (Config, error) {
+	d, _ := os.Getwd()
+	fmt.Printf("Current dir is : %s\n", d)
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+	viper.AddConfigPath("../..")
+	viper.AddConfigPath(d)
 	viper.AutomaticEnv()
 
 	var config Config

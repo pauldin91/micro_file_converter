@@ -15,7 +15,7 @@ func TestOverwriteCfg(t *testing.T) {
 		var key []string = strings.Split(i, "=")
 		os.Setenv(key[0], key[1])
 	}
-	cfg, err := utils.LoadConfig("..")
+	cfg, err := utils.LoadConfig()
 	if err != nil {
 		log.Println("could load cfg")
 	}

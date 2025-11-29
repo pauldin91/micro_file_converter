@@ -16,6 +16,7 @@ type Config struct {
 	Amqp              string `mapstructure:"AMQP"`
 	BatchQueue        string `mapstructure:"BATCH_QUEUE"`
 	MigrationDest     string `mapstructure:"MIGRATIONS"`
+	Dockerized        bool   `mapstructure:"DOCKERIZED"`
 }
 
 func IsUnderDebugger() bool {

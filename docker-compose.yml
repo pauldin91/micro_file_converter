@@ -32,7 +32,8 @@ services:
         context: ./processor
         dockerfile: dockerfile
     volumes:
-      - ./uploads:/data  
+      - ./uploads:/data/uploads  
+
     networks:
       - micro.converter
 
@@ -49,11 +50,13 @@ services:
     depends_on:
       - db
       - rabbit  
-
+    
+    environment:
+      - DOCKERIZED=true
     ports:
       - "8080:8080"
     volumes:
-      - ./uploads:/data  
+      - ./uploads:/data/uploads  
     networks:
       - micro.converter
 

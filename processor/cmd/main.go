@@ -9,8 +9,7 @@ import (
 )
 
 func main() {
-	l, _ := os.Getwd()
-	conf, err := utils.LoadConfig(l)
+	conf, err := utils.LoadConfig()
 	if err != nil {
 		l, _ := os.Getwd()
 		files, _ := os.ReadDir(l)

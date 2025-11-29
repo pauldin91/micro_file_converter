@@ -3,7 +3,10 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 	db "webapi/db/sqlc"
@@ -11,20 +14,30 @@ import (
 	"webapi/internal/events"
 	"webapi/pkg/rabbitmq"
 
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 )
+
+const dockerImageDir string = "/data/upload"
 
 type UploadHandler struct {
 	publisher   *rabbitmq.Publisher
 	uploadStore db.UploadStore
 	userStore   db.UserStore
+	uploadDir   string
 }
 
 func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
+	var uploadDir string = dockerImageDir
+	if !cfg.Dockerized {
+		cwd, _ := os.Getwd()
+		uploadDir = filepath.Base(cwd)
+	}
 	return UploadHandler{
 		publisher:   rabbitmq.NewPublisher(cfg),
 		uploadStore: store,
 		userStore:   store,
+		uploadDir:   uploadDir,
 	}
 }
 
@@ -48,10 +61,21 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 
 	uploadedFiles := r.MultipartForm.File["files"]
 	email := r.FormValue("email")
-	fileNames := make([]string, 0, len(uploadedFiles))
+	batchId, _ := uuid.NewUUID()
 
-	for _, f := range uploadedFiles {
-		fileNames = append(fileNames, f.Filename)
+	for _, fh := range uploadedFiles {
+		src, err := fh.Open()
+		if err != nil {
+			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
+		}
+		defer src.Close()
+		dst, err := os.Create(filepath.Join(handler.uploadDir, batchId.String(), fh.Filename))
+		if err != nil {
+			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
+		}
+		defer dst.Close()
+
+		io.Copy(dst, src)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -70,20 +94,22 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		user.Email = created.Email
 	}
 
-	upload, err := handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{UserEmail: user.Email, Status: "QUEUED"})
+	upload, err := handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{ID: batchId, UserEmail: user.Email, Status: "QUEUED"})
 	if err != nil {
 		http.Error(w, "Could not create resource", http.StatusBadRequest)
 		return
 	}
 	var dto events.UploadedEvent = events.UploadedEvent{
-		FileNames: fileNames,
-		Email:     email,
-		Id:        upload.ID,
+		// FileNames: fileNames,
+		Email: email,
+		Id:    upload.ID,
 	}
-	handler.publisher.Publish(dto)
+	go func() {
+		handler.publisher.Publish(dto)
+	}()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"status": http.StatusCreated,
-		"id":     upload.ID,
+		"id":     batchId,
 	})
 }
