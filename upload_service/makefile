@@ -1,17 +1,17 @@
-DB_URL=postgresql://postgres:mysecretpassword@localhost:5432/upload_service_dev?sslmode=disable
+DBSRC=postgresql://postgres:mysecretpassword@localhost:5432/upload_service_dev?sslmode=disable
 
-migrateup:
-	migrate -path db/migrations -database "$(DB_URL)" -verbose up $(times)
+up:
+	migrate -path db/migrations -database "$(DBSRC)"  up $(times)
 
-migratedown:
-	migrate -path db/migrations -database "$(DB_URL)" -verbose down $(times)  
+down:
+	migrate -path db/migrations -database "$(DBSRC)"  down $(times)  
 
 dirty:
-	migrate -path db/migrations -database "$(DB_URL)" force $(version)  
-	make migratedown
+	migrate -path db/migrations -database "$(DBSRC)" force $(version)  
+	make down
 
 migrate_version:
-	migrate -path db/migrations -database "$(DB_URL)" version
+	migrate -path db/migrations -database "$(DBSRC)" version
 
 
 new_migration:
@@ -32,5 +32,3 @@ build:
 
 clean:
 	rm -rf build
-
-.PHONY: network postgres createdb dropdb migrateup migratedown migrateup1 migratedown1 new_migration db_docs db_schema sqlc test server mock proto evans redis

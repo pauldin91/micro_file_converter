@@ -19,15 +19,14 @@ func main() {
 	if err != nil {
 		log.Panicf("unable to read cfg: %s\n", err.Error())
 	}
-	// worker := service.NewUploadWorker(cfg.DbConn, receiver, communicator)
-	server := api.NewServer(cfg)
-
 	// errgroup with root context allows graceful cancel on fatal error
 	group, subCtx := errgroup.WithContext(ctx)
+	// worker := service.NewUploadWorker(cfg.DbConn, receiver, communicator)
+	server := api.NewServer(subCtx, cfg)
 
 	// HTTP server
 	group.Go(func() error {
-		return server.Start(subCtx)
+		return server.Start()
 	})
 	// Wait for any fatal error or shutdown signal
 	if err := group.Wait(); err != nil {

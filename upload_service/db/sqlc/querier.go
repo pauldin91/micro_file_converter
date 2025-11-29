@@ -6,14 +6,28 @@ package db
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 type Querier interface {
+	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
+	CreateUpload(ctx context.Context, arg CreateUploadParams) (CreateUploadRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
+	DeleteFilesdByUploadId(ctx context.Context, uploadID uuid.UUID) (File, error)
+	DeleteUploadByEmail(ctx context.Context, userEmail string) (DeleteUploadByEmailRow, error)
 	DeleteUser(ctx context.Context, email string) (DeleteUserRow, error)
+	GetAllFiles(ctx context.Context, arg GetAllFilesParams) ([]File, error)
+	GetAllUploads(ctx context.Context, arg GetAllUploadsParams) ([]GetAllUploadsRow, error)
 	GetAllUsers(ctx context.Context) ([]GetAllUsersRow, error)
+	GetFilesByName(ctx context.Context, name string) ([]File, error)
+	GetFilesByUploadId(ctx context.Context, uploadID uuid.UUID) ([]File, error)
+	GetUploadByEmail(ctx context.Context, userEmail string) (GetUploadByEmailRow, error)
+	GetUploadByEmailWithDocuments(ctx context.Context, userEmail string) ([]GetUploadByEmailWithDocumentsRow, error)
 	GetUser(ctx context.Context, email string) (GetUserRow, error)
 	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
+	UpdateFile(ctx context.Context, arg UpdateFileParams) (File, error)
+	UpdateUpload(ctx context.Context, arg UpdateUploadParams) (UpdateUploadRow, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error)
 }
 

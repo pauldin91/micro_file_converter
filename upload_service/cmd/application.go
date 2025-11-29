@@ -6,12 +6,18 @@ import (
 	"os"
 	"syscall"
 	"webapi/common"
+	db "webapi/db/sqlc"
 	"webapi/internal/config"
 	"webapi/internal/handlers"
 
 	_ "webapi/docs"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -24,10 +30,13 @@ var InterruptSignals = []os.Signal{
 
 type Application struct {
 	httpServer *http.Server
+	ctx        context.Context
 }
 
-func NewServer(cfg config.Config) *Application {
-	server := Application{}
+func NewServer(ctx context.Context, cfg config.Config) *Application {
+	server := Application{
+		ctx: ctx,
+	}
 	router := server.registerRoutes(cfg)
 	server.httpServer = &http.Server{
 		Addr:    cfg.HttpServerAddress,
@@ -36,11 +45,11 @@ func NewServer(cfg config.Config) *Application {
 	return &server
 }
 
-func (server *Application) Start(ctx context.Context) error {
+func (server *Application) Start() error {
 	log.Info().Msgf("HTTP server starting on %s", server.httpServer.Addr)
 
 	go func() {
-		<-ctx.Done()
+		<-server.ctx.Done()
 		log.Info().Msg("Shutting down HTTP server...")
 		if err := server.httpServer.Shutdown(context.Background()); err != nil {
 			log.Error().Err(err).Msg("HTTP server shutdown failed")
@@ -62,7 +71,29 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 		httpSwagger.URL("swagger/doc.json"),
 	))
 
-	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg)
+	connPool, err := pgxpool.New(server.ctx, cfg.DbConn)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot connect to db")
+	}
+
+	runDBMigration(cfg.DbConn)
+
+	store := db.NewStore(connPool)
+
+	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store)
 	router.Post(common.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
+}
+
+func runDBMigration(dbSource string) {
+	migration, err := migrate.New("file://db/migrations", dbSource)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create new migrate instance")
+	}
+
+	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatal().Err(err).Msg("failed to run migrate up")
+	}
+
+	log.Info().Msg("db migrated successfully")
 }

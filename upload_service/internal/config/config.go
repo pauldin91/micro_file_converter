@@ -13,6 +13,7 @@ type Config struct {
 	HttpServerAddress string `mapstructure:"HTTP_SERVER_ADDRESS"`
 	Amqp              string `mapstructure:"AMQP"`
 	BatchQueue        string `mapstructure:"BATCH_QUEUE"`
+	MigrationDest     string `mapstructure:"MIGRATIONS"`
 }
 
 func LoadConfig() (config Config, err error) {

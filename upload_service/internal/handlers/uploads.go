@@ -3,20 +3,24 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	db "webapi/db/sqlc"
 	"webapi/internal/config"
 	"webapi/internal/events"
+	"webapi/internal/repository"
 	"webapi/pkg/rabbitmq"
 
 	"github.com/rs/zerolog/log"
 )
 
 type UploadHandler struct {
-	publisher *rabbitmq.Publisher
+	publisher     *rabbitmq.Publisher
+	uploadService repository.UploadService
 }
 
-func NewUploadHandler(cfg config.Config) UploadHandler {
+func NewUploadHandler(cfg config.Config, store db.UploadStore) UploadHandler {
 	return UploadHandler{
-		publisher: rabbitmq.NewPublisher(cfg),
+		publisher:     rabbitmq.NewPublisher(cfg),
+		uploadService: *repository.NewUploadService(store),
 	}
 }
 
