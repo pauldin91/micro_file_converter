@@ -17,6 +17,7 @@ type Publisher struct {
 }
 
 func NewPublisher(cfg config.Config) *Publisher {
+	log.Info().Msgf("MQ address is: %s\n", cfg.Amqp)
 	conn, err := amqp.Dial(cfg.Amqp)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to RabbitMQ")

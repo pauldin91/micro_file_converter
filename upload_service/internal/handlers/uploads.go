@@ -18,8 +18,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-const dockerImageDir string = "/data/upload"
-
 type UploadHandler struct {
 	publisher   *rabbitmq.Publisher
 	uploadStore db.UploadStore
@@ -28,11 +26,13 @@ type UploadHandler struct {
 }
 
 func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
-	var uploadDir string = dockerImageDir
-	if !cfg.Dockerized {
+	var uploadDir string = cfg.UploadData
+	if len(cfg.UploadData) == 0 {
 		cwd, _ := os.Getwd()
-		uploadDir = filepath.Base(cwd)
+		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
 	}
+
+	log.Info().Msgf("upload path is: %s\n", uploadDir)
 	return UploadHandler{
 		publisher:   rabbitmq.NewPublisher(cfg),
 		uploadStore: store,
@@ -52,7 +52,7 @@ func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
 // @Success      200 {object} map[string]interface{}
 // @Router       /api/uploads [post]
 func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request) {
-	log.Info().Msg("Upload handler called")
+	log.Info().Msgf("upload path is: %s\n", handler.uploadDir)
 
 	if err := r.ParseMultipartForm(0); err != nil {
 		http.Error(w, "Unable to parse multipart form", http.StatusBadRequest)
@@ -69,6 +69,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
 		}
 		defer src.Close()
+		os.Mkdir(filepath.Join(handler.uploadDir, batchId.String()), 0755)
 		dst, err := os.Create(filepath.Join(handler.uploadDir, batchId.String(), fh.Filename))
 		if err != nil {
 			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
