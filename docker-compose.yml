@@ -31,6 +31,9 @@ services:
     build:
         context: ./processor
         dockerfile: dockerfile
+    environment:
+      - UPLOAD_DATA_VOLUME=/data/uploads
+      - AMQP=amqp://guest:guest@rabbit:5672
     volumes:
       - ./uploads:/data/uploads  
 

@@ -45,7 +45,7 @@ func (w *Worker) Start() {
 
 		q, err := ch.QueueDeclare(
 			w.conf.BatchQueue, // name
-			false,             // durable
+			true,              // durable
 			false,             // delete when unused
 			false,             // exclusive
 			false,             // no-wait

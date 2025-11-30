@@ -7,7 +7,7 @@ COPY go.mod go.sum app.env ./
 RUN go mod download
 
 COPY . .
-RUN go build -o main ./cmd/main.go
+RUN go build -o main ./cmd/app/main.go
 
 FROM ubuntu:24.04
 

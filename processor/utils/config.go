@@ -8,7 +8,7 @@ import (
 )
 
 type Config struct {
-	RabbitMQHost string `mapstructure:"RABBITMQ_HOST"`
+	RabbitMQHost string `mapstructure:"AMQP"`
 	BatchQueue   string `mapstructure:"BATCH_QUEUE"`
 }
 
