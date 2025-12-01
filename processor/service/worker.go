@@ -79,8 +79,13 @@ func (w *Worker) Start() {
 }
 
 func (w *Worker) convert(batch dto.Batch) {
-	l, _ := os.Getwd()
-	dir := path.Join(filepath.Dir(filepath.Dir(l)), "data", batch.Id)
+	var uploadDir string = w.conf.UploadData
+	if len(w.conf.UploadData) == 0 {
+		cwd, _ := os.Getwd()
+		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
+	}
+
+	dir := path.Join(uploadDir, batch.Id)
 	outputDir := path.Join(dir, "converted")
 	os.MkdirAll(outputDir, 0755)
 	files, err := os.ReadDir(dir)

@@ -1,7 +1,7 @@
 
 
 build:
-	docker compose up --build $(ps)
+	docker compose up $(ps)
 
 exec:
 	docker exec -it $(img) sh

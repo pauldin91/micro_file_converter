@@ -10,6 +10,7 @@ import (
 type Config struct {
 	RabbitMQHost string `mapstructure:"AMQP"`
 	BatchQueue   string `mapstructure:"BATCH_QUEUE"`
+	UploadData   string `mapstructure:"UPLOAD_DATA_VOLUME"`
 }
 
 func LoadConfig() (Config, error) {
