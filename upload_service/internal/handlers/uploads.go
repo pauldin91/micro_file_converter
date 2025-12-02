@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -63,27 +64,31 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 	email := r.FormValue("email")
 	batchId, _ := uuid.NewUUID()
 
-	for _, fh := range uploadedFiles {
-		src, err := fh.Open()
-		if err != nil {
-			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
-		}
-		defer src.Close()
-		os.Mkdir(filepath.Join(handler.uploadDir, batchId.String()), 0755)
-		dst, err := os.Create(filepath.Join(handler.uploadDir, batchId.String(), fh.Filename))
-		if err != nil {
-			log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
-		}
-		defer dst.Close()
+	go func(uploads []*multipart.FileHeader) {
 
-		io.Copy(dst, src)
-	}
+		for _, fh := range uploads {
+			src, err := fh.Open()
+			if err != nil {
+				log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
+			}
+			defer src.Close()
+			os.Mkdir(filepath.Join(handler.uploadDir, batchId.String()), 0755)
+			dst, err := os.Create(filepath.Join(handler.uploadDir, batchId.String(), fh.Filename))
+			if err != nil {
+				log.Error().Msgf("Could not copy file %s %s\n", fh.Filename, err)
+			}
+			defer dst.Close()
+
+			io.Copy(dst, src)
+		}
+	}(uploadedFiles)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
+
 	user, err := handler.userStore.GetUserByEmail(ctx, email)
 	if err != nil {
 		toCreate := db.CreateUserParams{Email: email, Username: strings.Split(email, "@")[0]}
@@ -95,15 +100,14 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		user.Email = created.Email
 	}
 
-	upload, err := handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{ID: batchId, UserEmail: user.Email, Status: "QUEUED"})
+	_, err = handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{ID: batchId, UserEmail: user.Email, Status: "QUEUED"})
 	if err != nil {
 		http.Error(w, "Could not create resource", http.StatusBadRequest)
 		return
 	}
 	var dto events.UploadedEvent = events.UploadedEvent{
-		// FileNames: fileNames,
 		Email: email,
-		Id:    upload.ID,
+		Id:    batchId,
 	}
 	go func() {
 		handler.publisher.Publish(dto)
