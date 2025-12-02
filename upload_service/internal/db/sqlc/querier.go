@@ -12,6 +12,7 @@ import (
 
 type Querier interface {
 	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
+	CreateFilesBatch(ctx context.Context, arg CreateFilesBatchParams) ([]CreateFilesBatchRow, error)
 	CreateUpload(ctx context.Context, arg CreateUploadParams) (CreateUploadRow, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error)
 	DeleteFilesdByUploadId(ctx context.Context, uploadID uuid.UUID) (File, error)

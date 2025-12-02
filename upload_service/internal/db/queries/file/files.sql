@@ -3,16 +3,21 @@ INSERT INTO files (upload_id,name, pages)
 VALUES ($1,$2,COALESCE($3, 0))
 RETURNING  id, name, pages, upload_id;
 
--- name: CreateFilesBatch :exec
+-- name: CreateFilesBatch :many
 WITH idx AS (
-    SELECT generate_series(1, array_length($2::text[], 1)) AS i
+    SELECT generate_series(1, array_length(sqlc.arg(names)::text[], 1)) AS i
+),
+ins AS (
+    INSERT INTO files (upload_id, name, pages)
+    SELECT
+        sqlc.arg(upload_id)::uuid AS upload_id,
+        (sqlc.arg(names)::text[])[i] AS name,
+        (sqlc.arg(pages)::int[])[i] AS pages
+    FROM idx
+    RETURNING id, upload_id, name, pages
 )
-INSERT INTO files (upload_id, name, pages)
-SELECT
-    $1::uuid AS upload_id,
-    ($2::text[])[i] AS name,
-    ($3::int[])[i] AS pages
-FROM idx;
+SELECT id, upload_id, name, pages FROM ins;
+
 
 -- name: GetFilesByName :many
 SELECT id, name, pages, upload_id

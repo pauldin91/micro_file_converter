@@ -36,6 +36,60 @@ func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, e
 	return i, err
 }
 
+const createFilesBatch = `-- name: CreateFilesBatch :many
+WITH idx AS (
+    SELECT generate_series(1, array_length($1::text[], 1)) AS i
+),
+ins AS (
+    INSERT INTO files (upload_id, name, pages)
+    SELECT
+        $2::uuid AS upload_id,
+        ($1::text[])[i] AS name,
+        ($3::int[])[i] AS pages
+    FROM idx
+    RETURNING id, upload_id, name, pages
+)
+SELECT id, upload_id, name, pages FROM ins
+`
+
+type CreateFilesBatchParams struct {
+	Names    []string  `json:"names"`
+	UploadID uuid.UUID `json:"upload_id"`
+	Pages    []int32   `json:"pages"`
+}
+
+type CreateFilesBatchRow struct {
+	ID       uuid.UUID   `json:"id"`
+	UploadID uuid.UUID   `json:"upload_id"`
+	Name     string      `json:"name"`
+	Pages    pgtype.Int4 `json:"pages"`
+}
+
+func (q *Queries) CreateFilesBatch(ctx context.Context, arg CreateFilesBatchParams) ([]CreateFilesBatchRow, error) {
+	rows, err := q.db.Query(ctx, createFilesBatch, arg.Names, arg.UploadID, arg.Pages)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []CreateFilesBatchRow{}
+	for rows.Next() {
+		var i CreateFilesBatchRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.UploadID,
+			&i.Name,
+			&i.Pages,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const deleteFilesdByUploadId = `-- name: DeleteFilesdByUploadId :one
 DELETE FROM files
 WHERE upload_id = $1
