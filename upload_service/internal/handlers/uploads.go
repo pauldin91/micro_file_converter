@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	db "webapi/db/sqlc"
 	"webapi/internal/config"
+	db "webapi/internal/db/sqlc"
 	"webapi/internal/events"
 	"webapi/pkg/rabbitmq"
 
@@ -23,6 +23,7 @@ type UploadHandler struct {
 	publisher   *rabbitmq.Publisher
 	uploadStore db.UploadStore
 	userStore   db.UserStore
+	fileStore   db.FileStore
 	uploadDir   string
 }
 
@@ -38,6 +39,7 @@ func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
 		publisher:   rabbitmq.NewPublisher(cfg),
 		uploadStore: store,
 		userStore:   store,
+		fileStore:   store,
 		uploadDir:   uploadDir,
 	}
 }
@@ -83,6 +85,11 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		}
 	}(uploadedFiles)
 
+	filenames := make([]string, len(uploadedFiles))
+	for _, f := range uploadedFiles {
+		filenames = append(filenames, f.Filename)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
@@ -105,6 +112,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		http.Error(w, "Could not create resource", http.StatusBadRequest)
 		return
 	}
+	// _, err :=handler.fileStore.
 	var dto events.UploadedEvent = events.UploadedEvent{
 		Email: email,
 		Id:    batchId,

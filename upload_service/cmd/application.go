@@ -6,8 +6,8 @@ import (
 	"os"
 	"syscall"
 	"webapi/common"
-	db "webapi/db/sqlc"
 	"webapi/internal/config"
+	db "webapi/internal/db/sqlc"
 	"webapi/internal/handlers"
 
 	_ "webapi/docs"
