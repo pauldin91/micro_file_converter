@@ -19,15 +19,10 @@ func main() {
 	reg := regexp.MustCompile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
 	for _, ntry := range d {
 		fullPath := filepath.Join(dir, ntry.Name())
-		log.Printf("Ntry is: %s\n", fullPath)
 		if reg.Match([]byte(fullPath)) {
 			err := os.RemoveAll(fullPath)
-			if err != nil {
-				log.Printf("dir to remove was: %s error %s\n", fullPath, err)
-
-			} else {
-
-				log.Printf("dir removed: %s\n", fullPath)
+			if err == nil {
+				log.Printf("removed: %s\n", fullPath)
 			}
 
 		}

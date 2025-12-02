@@ -9,23 +9,30 @@ import (
 	"path/filepath"
 	"sync"
 
+	"micro_file_converter/internal/config"
 	dto "micro_file_converter/pkg/types"
-	"micro_file_converter/utils"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Worker struct {
-	errors chan error
-	wg     *sync.WaitGroup
-	conf   utils.Config
+	errors    chan error
+	wg        *sync.WaitGroup
+	conf      config.Config
+	uploadDir string
 }
 
-func NewWorker(conf utils.Config) *Worker {
+func NewWorker(conf config.Config) *Worker {
+	var uploadDir string = conf.UploadData
+	if len(conf.UploadData) == 0 {
+		cwd, _ := os.Getwd()
+		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
+	}
 	return &Worker{
-		errors: make(chan error),
-		wg:     &sync.WaitGroup{},
-		conf:   conf,
+		errors:    make(chan error),
+		wg:        &sync.WaitGroup{},
+		conf:      conf,
+		uploadDir: uploadDir,
 	}
 }
 
@@ -72,20 +79,14 @@ func (w *Worker) Start() {
 		}
 
 	}()
-	go w.handle()
 
 	w.wg.Wait()
 
 }
 
 func (w *Worker) convert(batch dto.Batch) {
-	var uploadDir string = w.conf.UploadData
-	if len(w.conf.UploadData) == 0 {
-		cwd, _ := os.Getwd()
-		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
-	}
 
-	dir := path.Join(uploadDir, batch.Id)
+	dir := path.Join(w.uploadDir, batch.Id)
 	outputDir := path.Join(dir, "converted")
 	os.MkdirAll(outputDir, 0755)
 	files, err := os.ReadDir(dir)

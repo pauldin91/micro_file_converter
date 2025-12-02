@@ -2,7 +2,7 @@ package tests
 
 import (
 	"log"
-	"micro_file_converter/utils"
+	"micro_file_converter/internal/config"
 	"os"
 	"strings"
 	"testing"
@@ -15,7 +15,7 @@ func TestOverwriteCfg(t *testing.T) {
 		var key []string = strings.Split(i, "=")
 		os.Setenv(key[0], key[1])
 	}
-	cfg, err := utils.LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
 		log.Println("could load cfg")
 	}

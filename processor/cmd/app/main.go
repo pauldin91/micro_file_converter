@@ -2,14 +2,14 @@ package main
 
 import (
 	"log"
-	"micro_file_converter/service"
-	"micro_file_converter/utils"
+	"micro_file_converter/internal/config"
+	"micro_file_converter/internal/service"
 	"os"
 	"path/filepath"
 )
 
 func main() {
-	conf, err := utils.LoadConfig()
+	conf, err := config.LoadConfig()
 	if err != nil {
 		l, _ := os.Getwd()
 		files, _ := os.ReadDir(l)
