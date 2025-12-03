@@ -18,8 +18,11 @@ services:
     image: rabbitmq:4-management-alpine
     container_name: rabbit
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - 5672:5672
+      - 15672:15672
+      - 5552:5552
+    environment:
+      - RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS=-rabbitmq_stream advertised_host localhost
     volumes:
       - rabbitmq-data:/var/lib/rabbitmq
     networks:
