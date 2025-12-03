@@ -1,6 +1,6 @@
 -- name: CreateFile :one
-INSERT INTO files (upload_id,name, pages)
-VALUES ($1,$2,COALESCE($3, 0))
+INSERT INTO files (upload_id,name)
+VALUES ($1,$2)
 RETURNING  id, name, pages, upload_id;
 
 -- name: CreateFilesBatch :many
@@ -12,7 +12,7 @@ ins AS (
     SELECT
         sqlc.arg(upload_id)::uuid AS upload_id,
         (sqlc.arg(names)::text[])[i] AS name,
-        (sqlc.arg(pages)::int[])[i] AS pages
+        sqlc.arg(pages)::int AS pages
     FROM idx
     RETURNING id, upload_id, name, pages
 )

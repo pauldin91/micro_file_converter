@@ -13,19 +13,18 @@ import (
 )
 
 const createFile = `-- name: CreateFile :one
-INSERT INTO files (upload_id,name, pages)
-VALUES ($1,$2,COALESCE($3, 0))
+INSERT INTO files (upload_id,name)
+VALUES ($1,$2)
 RETURNING  id, name, pages, upload_id
 `
 
 type CreateFileParams struct {
-	UploadID uuid.UUID   `json:"upload_id"`
-	Name     string      `json:"name"`
-	Column3  interface{} `json:"column_3"`
+	UploadID uuid.UUID `json:"upload_id"`
+	Name     string    `json:"name"`
 }
 
 func (q *Queries) CreateFile(ctx context.Context, arg CreateFileParams) (File, error) {
-	row := q.db.QueryRow(ctx, createFile, arg.UploadID, arg.Name, arg.Column3)
+	row := q.db.QueryRow(ctx, createFile, arg.UploadID, arg.Name)
 	var i File
 	err := row.Scan(
 		&i.ID,
@@ -45,7 +44,7 @@ ins AS (
     SELECT
         $2::uuid AS upload_id,
         ($1::text[])[i] AS name,
-        ($3::int[])[i] AS pages
+        $3::int AS pages
     FROM idx
     RETURNING id, upload_id, name, pages
 )
@@ -55,7 +54,7 @@ SELECT id, upload_id, name, pages FROM ins
 type CreateFilesBatchParams struct {
 	Names    []string  `json:"names"`
 	UploadID uuid.UUID `json:"upload_id"`
-	Pages    []int32   `json:"pages"`
+	Pages    int32     `json:"pages"`
 }
 
 type CreateFilesBatchRow struct {

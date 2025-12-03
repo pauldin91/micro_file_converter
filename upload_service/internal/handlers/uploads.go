@@ -85,7 +85,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		}
 	}(uploadedFiles)
 
-	filenames := make([]string, len(uploadedFiles))
+	filenames := make([]string, 0)
 	for _, f := range uploadedFiles {
 		filenames = append(filenames, f.Filename)
 	}
@@ -93,7 +93,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	user, err := handler.userStore.GetUserByEmail(ctx, email)
@@ -107,12 +107,20 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		user.Email = created.Email
 	}
 
-	_, err = handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{ID: batchId, UserEmail: user.Email, Status: "QUEUED"})
+	upload, err := handler.uploadStore.CreateUpload(ctx, db.CreateUploadParams{ID: batchId, UserEmail: user.Email, Status: "QUEUED"})
 	if err != nil {
-		http.Error(w, "Could not create resource", http.StatusBadRequest)
+		http.Error(w, "Could not create upload resource", http.StatusBadRequest)
 		return
 	}
-	// _, err :=handler.fileStore.
+	var createBatchFiles = db.CreateFilesBatchParams{
+		UploadID: upload.ID,
+		Names:    filenames,
+	}
+	_, err = handler.fileStore.CreateFilesBatch(ctx, createBatchFiles)
+	if err != nil {
+		http.Error(w, "Could not create file resources", http.StatusBadRequest)
+		return
+	}
 	var dto events.UploadedEvent = events.UploadedEvent{
 		Email: email,
 		Id:    batchId,

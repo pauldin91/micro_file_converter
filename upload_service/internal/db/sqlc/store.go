@@ -46,6 +46,7 @@ type UploadStore interface {
 
 type FileStore interface {
 	CreateFile(ctx context.Context, arg CreateFileParams) (File, error)
+	CreateFilesBatch(ctx context.Context, arg CreateFilesBatchParams) ([]CreateFilesBatchRow, error)
 	DeleteFilesdByUploadId(ctx context.Context, uploadID uuid.UUID) (File, error)
 	GetAllFiles(ctx context.Context, arg GetAllFilesParams) ([]File, error)
 	GetFilesByName(ctx context.Context, name string) ([]File, error)
