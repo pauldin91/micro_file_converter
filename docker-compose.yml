@@ -62,6 +62,7 @@ services:
     environment:
       - UPLOAD_DATA_VOLUME=/data/uploads
       - AMQP=amqp://guest:guest@rabbit:5672
+      - DB_SOURCE=postgres://postgres:mysecretpassword@db:5432/upload_service_dev?sslmode=disable
     ports:
       - "8080:8080"
     volumes:

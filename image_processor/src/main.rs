@@ -1,50 +1,54 @@
-use futures::StreamExt;
-use rabbitmq_stream_client::error::StreamCreateError;
-use rabbitmq_stream_client::types::{ByteCapacity, OffsetSpecification, ResponseCode};
-use std::io::stdin;
-use tokio::task;
+use futures_lite::StreamExt;
+use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use tracing::info;
 
-use rabbitmq_stream_client::Environment;
+#[tokio::main]
+async fn main() {
+    if std::env::var("RUST_LOG").is_err() {
+        unsafe { std::env::set_var("RUST_LOG", "info") };
+    }
 
-fn main() {
-    let environment = Environment::builder().build().await?;
-    let stream = "hello-rust-stream";
-    let create_response = environment
-        .stream_creator()
-        .max_length(ByteCapacity::GB(5))
-        .create(stream)
-        .await;
+    tracing_subscriber::fmt::init();
 
-    if let Err(e) = create_response {
-        if let StreamCreateError::Create { stream, status } = e {
-            match status {
-                // we can ignore this error because the stream already exists
-                ResponseCode::StreamAlreadyExists => {}
-                err => {
-                    println!("Error creating stream: {:?} {:?}", stream, err);
-                }
+    let addr = std::env::var("AMQP_ADDR").unwrap_or_else(|_| "amqp://127.0.0.1:5672/%2f".into());
+
+    let conn = Connection::connect(&addr, ConnectionProperties::default())
+        .await
+        .expect("connection error");
+
+    info!("CONNECTED");
+
+    //receive channel
+    let channel = conn.create_channel().await.expect("create_channel");
+    info!(state=?conn.status());
+    let _ = channel.basic_qos(1, BasicQosOptions::default()).await;
+
+    info!("will consume");
+    let mut consumer = channel
+        .basic_consume(
+            "batch-processing".into(),
+            "image-processor".into(),
+            BasicConsumeOptions::default(),
+            FieldTable::default(),
+        )
+        .await
+        .expect("basic_consume");
+    info!(state=?conn.status());
+
+    while let Some(delivery) = consumer.next().await {
+        match delivery {
+            Ok(delivery) => {
+                let body_str = String::from_utf8_lossy(&delivery.data);
+                println!("Received: {}", body_str);
+
+                delivery
+                    .ack(BasicAckOptions::default())
+                    .await
+                    .expect("basic_ack");
+            }
+            Err(err) => {
+                eprintln!("Consumer error: {:?}", err);
             }
         }
     }
-
-    let mut consumer = environment
-        .consumer()
-        .offset(OffsetSpecification::First)
-        .build(stream)
-        .await
-        .unwrap();
-
-    let handle = consumer.handle();
-    task::spawn(async move {
-        while let Some(delivery) = consumer.next().await {
-            let d = delivery.unwrap();
-            println!(
-                "Got message: {:#?} with offset: {}",
-                d.message()
-                    .data()
-                    .map(|data| String::from_utf8(data.to_vec()).unwrap()),
-                d.offset(),
-            );
-        }
-    });
 }
