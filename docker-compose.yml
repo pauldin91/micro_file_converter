@@ -45,7 +45,20 @@ services:
 
     depends_on:
       - db
-      - rabbit  
+      - rabbit 
+
+
+  image_processor:
+    container_name: image_processor
+    build: 
+      context: ./image_processor
+      dockerfile: dockerfile
+    environment:
+      AMQP_ADDR: amqp://rabbit:5672/%2f
+    networks:
+      - micro.converter  
+    depends_on:
+      - rabbit
 
   upload_service:
     container_name: upload_service
