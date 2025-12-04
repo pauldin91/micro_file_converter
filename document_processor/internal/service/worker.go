@@ -1,16 +1,16 @@
 package service
 
 import (
+	"common"
+	"common/pkg/types"
 	"encoding/json"
 	"log"
+	"micro_file_converter/internal/config"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"sync"
-
-	"micro_file_converter/internal/config"
-	dto "micro_file_converter/pkg/types"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -43,11 +43,11 @@ func (w *Worker) Start() {
 		defer w.wg.Done()
 
 		conn, err := amqp.Dial(w.conf.RabbitMQHost)
-		failOnError(err, "Failed to connect to RabbitMQ")
+		types.FailOnError(err, "Failed to connect to RabbitMQ")
 		defer conn.Close()
 
 		ch, err := conn.Channel()
-		failOnError(err, "Failed to open a channel")
+		types.FailOnError(err, "Failed to open a channel")
 		defer ch.Close()
 
 		q, err := ch.QueueDeclare(
@@ -58,7 +58,7 @@ func (w *Worker) Start() {
 			false,             // no-wait
 			nil,               // arguments
 		)
-		failOnError(err, "Failed to declare a queue")
+		types.FailOnError(err, "Failed to declare a queue")
 
 		msgs, err := ch.Consume(
 			q.Name, // queue
@@ -69,11 +69,11 @@ func (w *Worker) Start() {
 			false,  // no-wait
 			nil,    // args
 		)
-		failOnError(err, "Failed to register a consumer")
+		types.FailOnError(err, "Failed to register a consumer")
 
 		log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 		for d := range msgs {
-			var batch dto.Batch
+			var batch common.Batch
 			json.Unmarshal(d.Body, &batch)
 			go w.convert(batch)
 		}
@@ -84,7 +84,7 @@ func (w *Worker) Start() {
 
 }
 
-func (w *Worker) convert(batch dto.Batch) {
+func (w *Worker) convert(batch common.Batch) {
 
 	dir := path.Join(w.uploadDir, batch.Id)
 	outputDir := path.Join(dir, "converted")
@@ -114,11 +114,5 @@ func (w *Worker) handle() {
 		case err := <-w.errors:
 			log.Printf("error %v\n", err)
 		}
-	}
-}
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Panicf("%s: %s", msg, err)
 	}
 }

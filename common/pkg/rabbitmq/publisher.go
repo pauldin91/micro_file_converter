@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"time"
-	"webapi/internal/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/rs/zerolog/log"
@@ -16,9 +15,9 @@ type Publisher struct {
 	queue   amqp.Queue
 }
 
-func NewPublisher(cfg config.Config) *Publisher {
-	log.Info().Msgf("MQ address is: %s\n", cfg.Amqp)
-	conn, err := amqp.Dial(cfg.Amqp)
+func NewPublisher(addr, queue string) *Publisher {
+	log.Info().Msgf("MQ address is: %s\n", addr)
+	conn, err := amqp.Dial(addr)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to connect to RabbitMQ")
 	}
@@ -29,7 +28,7 @@ func NewPublisher(cfg config.Config) *Publisher {
 	}
 
 	q, err := ch.QueueDeclare(
-		cfg.BatchQueue,
+		queue,
 		true, // durable
 		false,
 		false,

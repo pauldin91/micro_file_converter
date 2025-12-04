@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"common/pkg/rabbitmq"
 	"context"
 	"encoding/json"
 	"io"
@@ -13,7 +14,6 @@ import (
 	"webapi/internal/config"
 	db "webapi/internal/db/sqlc"
 	"webapi/internal/events"
-	"webapi/pkg/rabbitmq"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
@@ -36,7 +36,7 @@ func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
 
 	log.Info().Msgf("upload path is: %s\n", uploadDir)
 	return UploadHandler{
-		publisher:   rabbitmq.NewPublisher(cfg),
+		publisher:   rabbitmq.NewPublisher(cfg.Amqp, cfg.BatchQueue),
 		uploadStore: store,
 		userStore:   store,
 		fileStore:   store,

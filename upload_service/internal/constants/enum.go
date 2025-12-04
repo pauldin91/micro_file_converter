@@ -1,4 +1,4 @@
-package common
+package constants
 
 type Status string
 

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"common"
 	"context"
 	"encoding/json"
 	"log"
-	dto "micro_file_converter/pkg/types"
 	"os"
 	"path"
 	"path/filepath"
@@ -41,7 +41,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	batch := dto.Batch{Id: "certain_test", Timestamp: time.Now().UTC()}
+	batch := common.Batch{Id: "certain_test", Timestamp: time.Now().UTC()}
 	l, _ := os.Getwd()
 
 	dir := path.Join(filepath.Dir(l), "uploads", "tests", batch.Id)

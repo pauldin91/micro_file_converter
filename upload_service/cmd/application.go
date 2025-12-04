@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"os"
 	"syscall"
-	"webapi/common"
 	"webapi/internal/config"
+	"webapi/internal/constants"
 	db "webapi/internal/db/sqlc"
 	"webapi/internal/handlers"
 
@@ -67,7 +67,7 @@ func (server *Application) Start() error {
 
 func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 	router := chi.NewMux()
-	router.Get(common.SwaggerEndpoint, httpSwagger.Handler(
+	router.Get(constants.SwaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
 	))
 
@@ -81,7 +81,7 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 	store := db.NewStore(connPool)
 
 	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store)
-	router.Post(common.UploadEndpoint, uploadHandler.CreateUpload)
+	router.Post(constants.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
 }
 
