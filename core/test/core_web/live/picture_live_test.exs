@@ -4,9 +4,9 @@ defmodule CoreWeb.PictureLiveTest do
   import Phoenix.LiveViewTest
   import Core.PicturesFixtures
 
-  @create_attrs %{name: "some name", status: "some status", timestamp: "2025-12-04T05:07:00Z", guid: "some guid"}
-  @update_attrs %{name: "some updated name", status: "some updated status", timestamp: "2025-12-05T05:07:00Z", guid: "some updated guid"}
-  @invalid_attrs %{name: nil, status: nil, timestamp: nil, guid: nil}
+  @create_attrs %{name: "some name", status: "some status"}
+  @update_attrs %{name: "some updated name", status: "some updated status"}
+  @invalid_attrs %{name: nil, status: nil}
 
   defp create_picture(_) do
     picture = picture_fixture()

@@ -5,8 +5,6 @@ defmodule Core.Pictures.Picture do
   schema "pictures" do
     field :name, :string
     field :status, :string
-    field :timestamp, :utc_datetime
-    field :guid, :string
 
     timestamps(type: :utc_datetime)
   end
@@ -14,7 +12,7 @@ defmodule Core.Pictures.Picture do
   @doc false
   def changeset(picture, attrs) do
     picture
-    |> cast(attrs, [:guid, :name, :timestamp, :status])
-    |> validate_required([:guid, :name, :timestamp, :status])
+    |> cast(attrs, [:name, :status])
+    |> validate_required([:name, :status])
   end
 end

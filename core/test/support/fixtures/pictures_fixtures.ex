@@ -11,10 +11,8 @@ defmodule Core.PicturesFixtures do
     {:ok, picture} =
       attrs
       |> Enum.into(%{
-        guid: "some guid",
         name: "some name",
-        status: "some status",
-        timestamp: ~U[2025-12-04 05:07:00Z]
+        status: "some status"
       })
       |> Core.Pictures.create_picture()
 

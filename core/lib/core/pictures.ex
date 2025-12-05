@@ -8,9 +8,36 @@ defmodule Core.Pictures do
 
   alias Core.Pictures.Picture
 
+  def save_files(transaction_id, uploaded_entries) do
+    transaction_dir = Path.join([@upload_dir, transaction_id])
+
+    metadata = %{
+      transaction_id: transaction_id,
+      timestamp: DateTime.utc_now(),
+      files: [],
+      file_count: length(uploaded_entries)
+    }
+
+    files_metadata =
+      Enum.map(uploaded_entries, fn entry ->
+        %{
+          filename: entry.client_name,
+          size: File.stat!(entry.path).size,
+          content_type: entry.client_type
+        }
+      end)
+
+    final_metadata = %{metadata | files: files_metadata}
+
+    # Save metadata as JSON
+    metadata_path = Path.join([transaction_dir, "metadata.json"])
+    File.write!(metadata_path, Jason.encode!(final_metadata, pretty: true))
+
+    final_metadata
+  end
+
   @doc """
   Returns the list of pictures.
-
   ## Examples
 
       iex> list_pictures()
