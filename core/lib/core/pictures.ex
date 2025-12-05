@@ -4,10 +4,12 @@ defmodule Core.Pictures do
   """
 
   import Ecto.Query, warn: false
+  alias Core.Pictures.Picture
   alias Core.Repo
 
   alias Core.Pictures.Picture
 
+  @upload_dir "priv/uploads"
   def save_files(transaction_id, uploaded_entries) do
     transaction_dir = Path.join([@upload_dir, transaction_id])
 
@@ -28,16 +30,19 @@ defmodule Core.Pictures do
       end)
 
     final_metadata = %{metadata | files: files_metadata}
-
     # Save metadata as JSON
     metadata_path = Path.join([transaction_dir, "metadata.json"])
+    File.mkdir_p!(Path.dirname(metadata_path))
     File.write!(metadata_path, Jason.encode!(final_metadata, pretty: true))
 
     final_metadata
   end
 
+  alias Core.Pictures.Picture
+
   @doc """
   Returns the list of pictures.
+
   ## Examples
 
       iex> list_pictures()
