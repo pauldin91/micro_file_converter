@@ -28,95 +28,93 @@
       </div>
     </div>
 
-    <%= for entry <- @uploads.files.entries do %>
-      <div class="flex items-center justify-between p-3 bg-base-200 rounded mb-2">
+    <div :for={entry <- @uploads.files.entries} id={"upload-#{entry.ref}"} class="mb-2">
+      <div class="flex items-center justify-between p-3 bg-base-200 rounded">
         <div class="flex items-center">
           <div class="text-sm font-medium text-base-content">{entry.client_name}</div>
           <div class="text-sm text-base-content/70 ml-2">({format_bytes(entry.client_size)})</div>
         </div>
-        <button
+
+        <.button
           type="button"
           phx-click="cancel-upload"
           phx-value-ref={entry.ref}
           class="text-error hover:text-error/80"
         >
           ✕
-        </button>
+        </.button>
       </div>
 
-      <div class="w-full bg-base-300 rounded-full h-2 mb-2">
+      <div class="w-full bg-base-300 rounded-full h-2 mt-2">
         <div class="bg-primary h-2 rounded-full" style={"width: #{entry.progress}%"}></div>
       </div>
-    <% end %>
+    </div>
 
-    <%= for err <- upload_errors(@uploads.files) do %>
-      <div class="text-error text-sm mb-2">
-        {error_to_string(err)}
-      </div>
-    <% end %>
+    <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
+      {error_to_string(err)}
+    </div>
 
-    <button
+    <.button
       type="submit"
       disabled={@uploads.files.entries == [] or @processing}
       class="btn btn-primary w-full"
     >
       {if @processing, do: "Processing...", else: "Upload Files"}
-    </button>
+    </.button>
   </form>
 
-  <%= if @processing do %>
-    <div class="mt-8 p-6 bg-warning/10 border border-warning/20 rounded-lg">
-      <div class="flex items-center">
-        <svg class="animate-spin h-5 w-5 text-warning mr-3" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-          </circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          >
-          </path>
-        </svg>
-        <span class="text-warning font-medium">Processing files...</span>
-      </div>
+  <div :if={@processing} class="mt-8 p-6 bg-warning/10 border border-warning/20 rounded-lg">
+    <div class="flex items-center">
+      <svg class="animate-spin h-5 w-5 text-warning mr-3" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+        </circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        >
+        </path>
+      </svg>
+      <span class="text-warning font-medium">Processing files...</span>
     </div>
-  <% end %>
+  </div>
 
-  <%= if @metadata && !@processing do %>
-    <div class="mt-8 p-6 bg-success/10 border border-success/20 rounded-lg">
-      <h2 class="text-xl font-semibold text-success mb-4">Upload Successful!</h2>
+  <div
+    :if={@metadata && !@processing}
+    class="mt-8 p-6 bg-success/10 border border-success/20 rounded-lg"
+  >
+    <h2 class="text-xl font-semibold text-success mb-4">Upload Successful!</h2>
 
-      <div class="space-y-2 text-sm text-base-content">
-        <div>
-          <strong>Transaction ID:</strong>
-          <code class="bg-base-300 px-2 py-1 rounded text-base-content">{@transaction_id}</code>
-        </div>
-        <div>
-          <strong>Timestamp:</strong> {Calendar.strftime(
-            @metadata.timestamp,
-            "%Y-%m-%d %H:%M:%S UTC"
-          )}
-        </div>
-        <div><strong>Files Uploaded:</strong> {@metadata.file_count}</div>
+    <div class="space-y-2 text-sm text-base-content">
+      <div>
+        <strong>Transaction ID:</strong>
+        <code class="bg-base-300 px-2 py-1 rounded text-base-content">{@transaction_id}</code>
       </div>
-
-      <div class="mt-4">
-        <h3 class="font-medium text-success mb-2">Files:</h3>
-        <ul class="space-y-1">
-          <%= for file <- @metadata.files do %>
-            <li class="flex justify-between items-center text-sm text-base-content">
-              <span>{file.filename}</span>
-              <span class="text-base-content/70">({format_bytes(file.size)})</span>
-            </li>
-          <% end %>
-        </ul>
+      <div>
+        <strong>Timestamp:</strong> {Calendar.strftime(
+          @metadata.timestamp,
+          "%Y-%m-%d %H:%M:%S UTC"
+        )}
       </div>
-
-      <div class="mt-4 p-3 bg-info/10 border border-info/20 rounded">
-        <p class="text-sm text-info">
-          <strong>Note:</strong> Save your transaction ID to download these files later.
-        </p>
-      </div>
+      <div><strong>Files Uploaded:</strong> {@metadata.file_count}</div>
     </div>
-  <% end %>
+
+    <div class="mt-4">
+      <h3 class="font-medium text-success mb-2">Files:</h3>
+      <ul class="space-y-1">
+        <%= for file <- @metadata.files do %>
+          <li class="flex justify-between items-center text-sm text-base-content">
+            <span>{file.filename}</span>
+            <span class="text-base-content/70">({format_bytes(file.size)})</span>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+
+    <div class="mt-4 p-3 bg-info/10 border border-info/20 rounded">
+      <p class="text-sm text-info">
+        <strong>Note:</strong> Save your transaction ID to download these files later.
+      </p>
+    </div>
+  </div>
 </div>
