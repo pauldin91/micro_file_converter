@@ -1,0 +1,43 @@
+<.header>
+  Listing Transforms
+  <:actions>
+    <.link patch={~p"/transforms/new"}>
+      <.button>New Transform</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="transforms"
+  rows={@streams.transforms}
+  row_click={fn {_id, transform} -> JS.navigate(~p"/transforms/#{transform}") end}
+>
+  <:col :let={{_id, transform}} label="Guid">{transform.guid}</:col>
+  <:col :let={{_id, transform}} label="Type">{transform.type}</:col>
+  <:col :let={{_id, transform}} label="Exec">{transform.exec}</:col>
+  <:action :let={{_id, transform}}>
+    <div class="sr-only">
+      <.link navigate={~p"/transforms/#{transform}"}>Show</.link>
+    </div>
+    <.link patch={~p"/transforms/#{transform}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, transform}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: transform.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="transform-modal" show on_cancel={JS.patch(~p"/transforms")}>
+  <.live_component
+    module={CoreWeb.TransformLive.FormComponent}
+    id={@transform.id || :new}
+    title={@page_title}
+    action={@live_action}
+    transform={@transform}
+    patch={~p"/transforms"}
+  />
+</.modal>

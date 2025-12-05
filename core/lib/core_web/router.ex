@@ -56,6 +56,18 @@ defmodule CoreWeb.Router do
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
+
+      live "/pictures", PictureLive.Index, :index
+      live "/pictures/new", PictureLive.Index, :new
+      live "/pictures/:id/edit", PictureLive.Index, :edit
+      live "/pictures/:id", PictureLive.Show, :show
+      live "/pictures/:id/show/edit", PictureLive.Show, :edit
+
+      live "/transforms", TransformLive.Index, :index
+      live "/transforms/new", TransformLive.Index, :new
+      live "/transforms/:id/edit", TransformLive.Index, :edit
+      live "/transforms/:id", TransformLive.Show, :show
+      live "/transforms/:id/show/edit", TransformLive.Show, :edit
     end
 
     post "/users/log_in", UserSessionController, :create

@@ -1,0 +1,49 @@
+<.header>
+  Listing Pictures
+  <:actions>
+    <.link patch={~p"/pictures/new"}>
+      <.button>New Picture</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="pictures"
+  rows={@pictures}
+  row_click={fn {_id, picture} -> JS.navigate(~p"/pictures/#{picture}") end}
+>
+  <:col :let={{_id, picture}} label="Guid">{picture.guid}</:col>
+  <:col :let={{_id, picture}} label="Name">{picture.name}</:col>
+  <:col :let={{_id, picture}} label="Timestamp">{picture.timestamp}</:col>
+  <:col :let={{_id, picture}} label="Status">{picture.status}</:col>
+  <:action :let={{_id, picture}}>
+    <div class="sr-only">
+      <.link navigate={~p"/pictures/#{picture}"}>Show</.link>
+    </div>
+    <.link patch={~p"/pictures/#{picture}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, picture}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: picture.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal
+  :if={@live_action in [:new, :edit]}
+  id="picture-modal"
+  show
+  on_cancel={JS.patch(~p"/pictures")}
+>
+  <.live_component
+    module={CoreWeb.PictureLive.FormComponent}
+    id={@picture.id || :new}
+    title={@page_title}
+    action={@live_action}
+    picture={@picture}
+    patch={~p"/pictures"}
+  />
+</.modal>
