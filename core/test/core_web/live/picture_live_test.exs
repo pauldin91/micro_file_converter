@@ -2,11 +2,11 @@ defmodule CoreWeb.PictureLiveTest do
   use CoreWeb.ConnCase
 
   import Phoenix.LiveViewTest
-  import Core.PicturesFixtures
+  import Core.UploadsFixtures
 
-  @create_attrs %{name: "some name", status: "some status", guid: "7488a646-e31f-11e4-aace-600308960662"}
-  @update_attrs %{name: "some updated name", status: "some updated status", guid: "7488a646-e31f-11e4-aace-600308960668"}
-  @invalid_attrs %{name: nil, status: nil, guid: nil}
+  @create_attrs %{name: "some name", size: 42, status: "some status"}
+  @update_attrs %{name: "some updated name", size: 43, status: "some updated status"}
+  @invalid_attrs %{name: nil, size: nil, status: nil}
 
   defp create_picture(_) do
     picture = picture_fixture()

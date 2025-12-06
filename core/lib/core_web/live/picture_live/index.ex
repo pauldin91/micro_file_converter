@@ -1,8 +1,8 @@
 defmodule CoreWeb.PictureLive.Index do
   use CoreWeb, :live_view
 
-  alias Core.Pictures
-  alias Core.Pictures.Picture
+  alias Core.Uploads
+  alias Core.Uploads.Picture
 
   @impl true
   def mount(_params, _session, socket) do

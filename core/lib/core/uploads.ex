@@ -1,13 +1,12 @@
-defmodule Core.Pictures do
+defmodule Core.Uploads do
   @moduledoc """
-  The Pictures context.
+  The Uploads context.
   """
 
   import Ecto.Query, warn: false
-  alias Core.Pictures.Picture
   alias Core.Repo
 
-  alias Core.Pictures.Picture
+  alias Core.Uploads.Picture
 
   def save_files(pricture_id, uploaded_entries) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
@@ -37,8 +36,6 @@ defmodule Core.Pictures do
 
     final_metadata
   end
-
-  alias Core.Pictures.Picture
 
   @doc """
   Returns the list of pictures.
