@@ -56,7 +56,9 @@ defmodule CoreWeb.PictureLive.Index do
 
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
-        %{path: dest, client_name: entry.client_name, client_type: entry.client_type}
+
+        {:ok,
+         metadata: %{path: dest, client_name: entry.client_name, client_type: entry.client_type}}
       end)
 
     if uploaded_files != [] do
@@ -70,14 +72,12 @@ defmodule CoreWeb.PictureLive.Index do
         send(pid, {:processing_complete, picture.id})
       end)
 
-      socket =
-        socket
-        |> assign(:picture_id, picture.id)
-        |> assign(:metadata, metadata)
-        |> assign(:uploaded_files, uploaded_files)
-        |> assign(:processing, true)
-
-      {:noreply, socket}
+      {:noreply,
+       socket
+       |> assign(:picture_id, picture.id)
+       |> assign(:metadata, metadata)
+       |> assign(:uploaded_files, uploaded_files)
+       |> assign(:processing, true)}
     else
       {:noreply, socket}
     end

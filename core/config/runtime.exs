@@ -20,6 +20,11 @@ if System.get_env("PHX_SERVER") do
   config :core, CoreWeb.Endpoint, server: true
 end
 
+uploads_dir =
+  System.get_env("UPLOADS_DIR") || "priv/uploads"
+
+config :core, :uploads_dir, uploads_dir
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
@@ -50,11 +55,6 @@ if config_env() == :prod do
 
   host = System.get_env("PHX_HOST") || "example.com"
   port = String.to_integer(System.get_env("PORT") || "4000")
-
-  uploads_dir =
-    System.get_env("UPLOADS_DIR") || "/data/uploads"
-
-  config :core, :uploads_dir, uploads_dir
 
   config :core, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
