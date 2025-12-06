@@ -9,12 +9,12 @@ defmodule Core.Pictures do
 
   alias Core.Pictures.Picture
 
-  @upload_dir "priv/uploads"
-  def save_files(transaction_id, uploaded_entries) do
-    transaction_dir = Path.join([@upload_dir, transaction_id])
+  def save_files(pricture_id, uploaded_entries) do
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    pricture_dir = Path.join([upload_dir, pricture_id])
 
     metadata = %{
-      transaction_id: transaction_id,
+      pricture_id: pricture_id,
       timestamp: DateTime.utc_now(),
       files: [],
       file_count: length(uploaded_entries)
@@ -31,7 +31,7 @@ defmodule Core.Pictures do
 
     final_metadata = %{metadata | files: files_metadata}
     # Save metadata as JSON
-    metadata_path = Path.join([transaction_dir, "metadata.json"])
+    metadata_path = Path.join([pricture_dir, "metadata.json"])
     File.mkdir_p!(Path.dirname(metadata_path))
     File.write!(metadata_path, Jason.encode!(final_metadata, pretty: true))
 

@@ -9,7 +9,7 @@ defmodule CoreWeb.PictureLive.Index do
     socket =
       socket
       |> assign(:uploaded_files, [])
-      |> assign(:transaction_id, nil)
+      |> assign(:pricture_id, nil)
       |> assign(:metadata, nil)
       |> assign(:form, to_form(Pictures.change_picture(%Picture{})))
       |> assign(:processing, false)
@@ -43,10 +43,17 @@ defmodule CoreWeb.PictureLive.Index do
     }
 
     {:ok, picture} = Pictures.create_picture(picture)
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        dest = Path.join(["priv/uploads", picture.id, entry.client_name])
+        dest =
+          Path.join([
+            upload_dir,
+            picture.id,
+            entry.client_name
+          ])
+
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
         %{path: dest, client_name: entry.client_name, client_type: entry.client_type}
@@ -77,11 +84,11 @@ defmodule CoreWeb.PictureLive.Index do
   end
 
   @impl true
-  def handle_info({:processing_complete, transaction_id}, socket) do
+  def handle_info({:processing_complete, pricture_id}, socket) do
     socket =
       socket
       |> assign(:processing, false)
-      |> put_flash(:info, "Processing complete! Transaction ID: #{transaction_id}")
+      |> put_flash(:info, "Processing complete! Transaction ID: #{pricture_id}")
 
     {:noreply, socket}
   end

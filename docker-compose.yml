@@ -83,6 +83,26 @@ services:
     networks:
       - micro.converter
 
+
+  core:    
+    container_name: core
+    build: 
+      context: ./core
+      dockerfile: dockerfile
+    environment:
+      - PHX_HOST=localhost
+      - DATABASE_URL=ecto://postgres:mysecretpassword@db:5432/core_dev?sslmode=disable
+      - SECRET_KEY_BASE=hSoZbCN916NS83XIDTve+LyaCziNWkEkIGopWUsfizeLeNZzmbAohzfqNr+FPlK3
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./uploads:/data/uploads  
+    networks:
+      - micro.converter  
+    depends_on:
+      - db
+      - rabbit
+
 networks:
   micro.converter:
     driver: bridge  
