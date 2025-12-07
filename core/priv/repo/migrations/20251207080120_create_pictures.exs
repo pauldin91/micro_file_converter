@@ -7,7 +7,7 @@ defmodule Core.Repo.Migrations.CreatePictures do
       add :name, :string
       add :transform, :string
       add :size, :integer
-      add :batch_id, references(:batches, on_delete: :nothing, type: :binary_id)
+      add :batch_id, references(:batches, on_delete: :delete_all, type: :binary_id)
 
       timestamps(type: :utc_datetime)
     end

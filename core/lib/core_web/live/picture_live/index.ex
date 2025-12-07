@@ -2,6 +2,7 @@ defmodule CoreWeb.PictureLive.Index do
   use CoreWeb, :live_view
 
   alias Core.Items
+  alias Core.Uploads
   alias Core.Items.Picture
 
   @impl true
@@ -9,7 +10,7 @@ defmodule CoreWeb.PictureLive.Index do
     socket =
       socket
       |> assign(:uploaded_files, [])
-      |> assign(:pricture_id, nil)
+      |> assign(:picture_id, nil)
       |> assign(:metadata, nil)
       |> assign(:form, to_form(Items.change_picture(%Picture{})))
       |> assign(:processing, false)
@@ -35,11 +36,12 @@ defmodule CoreWeb.PictureLive.Index do
   @impl true
   def handle_event("save", _params, socket) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    guid = Ecto.UUID.generate()
+
+    {:ok, batch} = Uploads.create_batch(%{id: guid, status: "pending"})
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        guid = Ecto.UUID.generate()
-
         dest =
           Path.join([
             upload_dir,
@@ -50,33 +52,33 @@ defmodule CoreWeb.PictureLive.Index do
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
 
-        picture = %{
-          :id => guid,
-          :status => "uploaded",
-          :name => entry.client_name,
-          :size => File.stat!(dest).size
-        }
+        {:ok, _picture} =
+          Items.create_picture(%{
+            :batch_id => guid,
+            :transform => "rotation_90",
+            :name => entry.client_name,
+            :size => File.stat!(dest).size
+          })
 
-        {:ok, picture} = Items.create_picture(picture)
-
-        {:ok,
-         metadata: %{path: dest, client_name: entry.client_name, client_type: entry.client_type}}
+        {:ok, %{path: dest, client_name: entry.client_name, client_type: entry.client_type}}
       end)
 
+    dbg(uploaded_files)
+
     if uploaded_files != [] do
-      metadata = Uploads.save_files(:pictureid, uploaded_files)
+      metadata = Uploads.save_files(guid, uploaded_files)
 
       # Start async processing
       pid = self()
 
       spawn(fn ->
         Process.sleep(5000)
-        send(pid, {:processing_complete, :pictureid})
+        send(pid, {:processing_complete, guid})
       end)
 
       {:noreply,
        socket
-       |> assign(:picture_id, :pictureid)
+       |> assign(:picture_id, guid)
        |> assign(:metadata, metadata)
        |> assign(:uploaded_files, uploaded_files)
        |> assign(:processing, true)}
@@ -86,11 +88,11 @@ defmodule CoreWeb.PictureLive.Index do
   end
 
   @impl true
-  def handle_info({:processing_complete, pricture_id}, socket) do
+  def handle_info({:processing_complete, picture_id}, socket) do
     socket =
       socket
       |> assign(:processing, false)
-      |> put_flash(:info, "Processing complete! Transaction ID: #{pricture_id}")
+      |> put_flash(:info, "Processing complete! Transaction ID: #{picture_id}")
 
     {:noreply, socket}
   end
