@@ -13,7 +13,6 @@ defmodule Core.UploadsFixtures do
       |> Enum.into(%{
         name: "some name",
         size: 42,
-        status: "some status",
         timestamp: ~U[2025-12-05 17:21:00Z]
       })
       |> Core.Uploads.create_picture()
@@ -22,18 +21,16 @@ defmodule Core.UploadsFixtures do
   end
 
   @doc """
-  Generate a picture.
+  Generate a batch.
   """
-  def picture_fixture(attrs \\ %{}) do
-    {:ok, picture} =
+  def batch_fixture(attrs \\ %{}) do
+    {:ok, batch} =
       attrs
       |> Enum.into(%{
-        name: "some name",
-        size: 42,
         status: "some status"
       })
-      |> Core.Uploads.create_picture()
+      |> Core.Uploads.create_batch()
 
-    picture
+    batch
   end
 end

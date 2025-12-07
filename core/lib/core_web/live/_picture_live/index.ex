@@ -1,8 +1,8 @@
 defmodule CoreWeb.PictureLive.Index do
   use CoreWeb, :live_view
 
-  alias Core.Uploads
-  alias Core.Uploads.Picture
+  alias Core.Items
+  alias Core.Items.Picture
 
   @impl true
   def mount(_params, _session, socket) do
@@ -11,7 +11,7 @@ defmodule CoreWeb.PictureLive.Index do
       |> assign(:uploaded_files, [])
       |> assign(:pricture_id, nil)
       |> assign(:metadata, nil)
-      |> assign(:form, to_form(Pictures.change_picture(%Picture{})))
+      |> assign(:form, to_form(Items.change_picture(%Picture{})))
       |> assign(:processing, false)
       |> allow_upload(:files,
         accept: :any,
@@ -34,47 +34,49 @@ defmodule CoreWeb.PictureLive.Index do
 
   @impl true
   def handle_event("save", _params, socket) do
-    guid = Ecto.UUID.generate()
-
-    picture = %{
-      :guid => guid,
-      :status => "uploaded",
-      :name => "Upload #{guid}"
-    }
-
-    {:ok, picture} = Pictures.create_picture(picture)
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
+        guid = Ecto.UUID.generate()
+
         dest =
           Path.join([
             upload_dir,
-            picture.id,
+            guid,
             entry.client_name
           ])
 
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
 
+        picture = %{
+          :id => guid,
+          :status => "uploaded",
+          :name => entry.client_name,
+          :size => File.stat!(dest).size
+        }
+
+        {:ok, picture} = Items.create_picture(picture)
+
         {:ok,
          metadata: %{path: dest, client_name: entry.client_name, client_type: entry.client_type}}
       end)
 
     if uploaded_files != [] do
-      metadata = Pictures.save_files(picture.id, uploaded_files)
+      metadata = Uploads.save_files(:pictureid, uploaded_files)
 
       # Start async processing
       pid = self()
 
       spawn(fn ->
         Process.sleep(5000)
-        send(pid, {:processing_complete, picture.id})
+        send(pid, {:processing_complete, :pictureid})
       end)
 
       {:noreply,
        socket
-       |> assign(:picture_id, picture.id)
+       |> assign(:picture_id, :pictureid)
        |> assign(:metadata, metadata)
        |> assign(:uploaded_files, uploaded_files)
        |> assign(:processing, true)}

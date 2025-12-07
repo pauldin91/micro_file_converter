@@ -6,7 +6,7 @@ defmodule Core.Uploads do
   import Ecto.Query, warn: false
   alias Core.Repo
 
-  alias Core.Uploads.Picture
+  alias Core.Uploads.Batch
 
   def save_files(pricture_id, uploaded_entries) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
@@ -38,96 +38,96 @@ defmodule Core.Uploads do
   end
 
   @doc """
-  Returns the list of pictures.
+  Returns the list of batches.
 
   ## Examples
 
-      iex> list_pictures()
-      [%Picture{}, ...]
+      iex> list_batches()
+      [%Batch{}, ...]
 
   """
-  def list_pictures do
-    Repo.all(Picture)
+  def list_batches do
+    Repo.all(Batch)
   end
 
   @doc """
-  Gets a single picture.
+  Gets a single batch.
 
-  Raises `Ecto.NoResultsError` if the Picture does not exist.
+  Raises `Ecto.NoResultsError` if the Batch does not exist.
 
   ## Examples
 
-      iex> get_picture!(123)
-      %Picture{}
+      iex> get_batch!(123)
+      %Batch{}
 
-      iex> get_picture!(456)
+      iex> get_batch!(456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_picture!(id), do: Repo.get!(Picture, id)
+  def get_batch!(id), do: Repo.get!(Batch, id)
 
   @doc """
-  Creates a picture.
+  Creates a batch.
 
   ## Examples
 
-      iex> create_picture(%{field: value})
-      {:ok, %Picture{}}
+      iex> create_batch(%{field: value})
+      {:ok, %Batch{}}
 
-      iex> create_picture(%{field: bad_value})
+      iex> create_batch(%{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_picture(attrs \\ %{}) do
-    %Picture{}
-    |> Picture.changeset(attrs)
+  def create_batch(attrs \\ %{}) do
+    %Batch{}
+    |> Batch.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a picture.
+  Updates a batch.
 
   ## Examples
 
-      iex> update_picture(picture, %{field: new_value})
-      {:ok, %Picture{}}
+      iex> update_batch(batch, %{field: new_value})
+      {:ok, %Batch{}}
 
-      iex> update_picture(picture, %{field: bad_value})
+      iex> update_batch(batch, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_picture(%Picture{} = picture, attrs) do
-    picture
-    |> Picture.changeset(attrs)
+  def update_batch(%Batch{} = batch, attrs) do
+    batch
+    |> Batch.changeset(attrs)
     |> Repo.update()
   end
 
   @doc """
-  Deletes a picture.
+  Deletes a batch.
 
   ## Examples
 
-      iex> delete_picture(picture)
-      {:ok, %Picture{}}
+      iex> delete_batch(batch)
+      {:ok, %Batch{}}
 
-      iex> delete_picture(picture)
+      iex> delete_batch(batch)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_picture(%Picture{} = picture) do
-    Repo.delete(picture)
+  def delete_batch(%Batch{} = batch) do
+    Repo.delete(batch)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking picture changes.
+  Returns an `%Ecto.Changeset{}` for tracking batch changes.
 
   ## Examples
 
-      iex> change_picture(picture)
-      %Ecto.Changeset{data: %Picture{}}
+      iex> change_batch(batch)
+      %Ecto.Changeset{data: %Batch{}}
 
   """
-  def change_picture(%Picture{} = picture, attrs \\ %{}) do
-    Picture.changeset(picture, attrs)
+  def change_batch(%Batch{} = batch, attrs \\ %{}) do
+    Batch.changeset(batch, attrs)
   end
 end

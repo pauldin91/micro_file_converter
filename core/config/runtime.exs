@@ -21,7 +21,7 @@ if System.get_env("PHX_SERVER") do
 end
 
 uploads_dir =
-  System.get_env("UPLOADS_DIR") || "priv/uploads"
+  System.get_env("UPLOADS_DIR") || "../uploads"
 
 config :core, :uploads_dir, uploads_dir
 

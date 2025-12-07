@@ -120,4 +120,110 @@ defmodule Core.UploadsTest do
       assert %Ecto.Changeset{} = Uploads.change_picture(picture)
     end
   end
+
+  describe "batches" do
+    alias Core.Uploads.Batch
+
+    import Core.UploadsFixtures
+
+    @invalid_attrs %{}
+
+    test "list_batches/0 returns all batches" do
+      batch = batch_fixture()
+      assert Uploads.list_batches() == [batch]
+    end
+
+    test "get_batch!/1 returns the batch with given id" do
+      batch = batch_fixture()
+      assert Uploads.get_batch!(batch.id) == batch
+    end
+
+    test "create_batch/1 with valid data creates a batch" do
+      valid_attrs = %{}
+
+      assert {:ok, %Batch{} = batch} = Uploads.create_batch(valid_attrs)
+    end
+
+    test "create_batch/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Uploads.create_batch(@invalid_attrs)
+    end
+
+    test "update_batch/2 with valid data updates the batch" do
+      batch = batch_fixture()
+      update_attrs = %{}
+
+      assert {:ok, %Batch{} = batch} = Uploads.update_batch(batch, update_attrs)
+    end
+
+    test "update_batch/2 with invalid data returns error changeset" do
+      batch = batch_fixture()
+      assert {:error, %Ecto.Changeset{}} = Uploads.update_batch(batch, @invalid_attrs)
+      assert batch == Uploads.get_batch!(batch.id)
+    end
+
+    test "delete_batch/1 deletes the batch" do
+      batch = batch_fixture()
+      assert {:ok, %Batch{}} = Uploads.delete_batch(batch)
+      assert_raise Ecto.NoResultsError, fn -> Uploads.get_batch!(batch.id) end
+    end
+
+    test "change_batch/1 returns a batch changeset" do
+      batch = batch_fixture()
+      assert %Ecto.Changeset{} = Uploads.change_batch(batch)
+    end
+  end
+
+  describe "batches" do
+    alias Core.Uploads.Batch
+
+    import Core.UploadsFixtures
+
+    @invalid_attrs %{status: nil}
+
+    test "list_batches/0 returns all batches" do
+      batch = batch_fixture()
+      assert Uploads.list_batches() == [batch]
+    end
+
+    test "get_batch!/1 returns the batch with given id" do
+      batch = batch_fixture()
+      assert Uploads.get_batch!(batch.id) == batch
+    end
+
+    test "create_batch/1 with valid data creates a batch" do
+      valid_attrs = %{status: "some status"}
+
+      assert {:ok, %Batch{} = batch} = Uploads.create_batch(valid_attrs)
+      assert batch.status == "some status"
+    end
+
+    test "create_batch/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Uploads.create_batch(@invalid_attrs)
+    end
+
+    test "update_batch/2 with valid data updates the batch" do
+      batch = batch_fixture()
+      update_attrs = %{status: "some updated status"}
+
+      assert {:ok, %Batch{} = batch} = Uploads.update_batch(batch, update_attrs)
+      assert batch.status == "some updated status"
+    end
+
+    test "update_batch/2 with invalid data returns error changeset" do
+      batch = batch_fixture()
+      assert {:error, %Ecto.Changeset{}} = Uploads.update_batch(batch, @invalid_attrs)
+      assert batch == Uploads.get_batch!(batch.id)
+    end
+
+    test "delete_batch/1 deletes the batch" do
+      batch = batch_fixture()
+      assert {:ok, %Batch{}} = Uploads.delete_batch(batch)
+      assert_raise Ecto.NoResultsError, fn -> Uploads.get_batch!(batch.id) end
+    end
+
+    test "change_batch/1 returns a batch changeset" do
+      batch = batch_fixture()
+      assert %Ecto.Changeset{} = Uploads.change_batch(batch)
+    end
+  end
 end

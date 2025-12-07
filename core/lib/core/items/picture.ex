@@ -1,4 +1,4 @@
-defmodule Core.Uploads.Picture do
+defmodule Core.Items.Picture do
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -7,7 +7,8 @@ defmodule Core.Uploads.Picture do
   schema "pictures" do
     field :name, :string
     field :size, :integer
-    field :status, :string
+    field :transform, :string
+    field :batch_id, :binary_id
 
     timestamps(type: :utc_datetime)
   end
@@ -15,7 +16,7 @@ defmodule Core.Uploads.Picture do
   @doc false
   def changeset(picture, attrs) do
     picture
-    |> cast(attrs, [:name, :status, :size])
-    |> validate_required([:name, :status, :size])
+    |> cast(attrs, [:name, :transform, :size])
+    |> validate_required([:name, :transform, :size])
   end
 end
