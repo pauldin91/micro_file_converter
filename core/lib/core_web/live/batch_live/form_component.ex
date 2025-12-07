@@ -69,20 +69,19 @@ defmodule CoreWeb.BatchLive.FormComponent do
   @impl true
   def handle_event("save", _params, socket) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
-    guid = Ecto.UUID.generate()
 
-    {:ok, batch} = Uploads.create_batch(%{id: guid, status: "pending"})
+    {:ok, batch} = Uploads.create_batch(%{status: "pending"})
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        dest = Path.join([upload_dir, guid, entry.client_name])
+        dest = Path.join([upload_dir, batch.id, entry.client_name])
 
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
 
         {:ok, _picture} =
           Items.create_picture(%{
-            batch_id: guid,
+            batch_id: batch.id,
             transform: "rotation_90",
             name: entry.client_name,
             size: File.stat!(dest).size
@@ -92,18 +91,18 @@ defmodule CoreWeb.BatchLive.FormComponent do
       end)
 
     if uploaded_files != [] do
-      metadata = Uploads.save_files(guid, uploaded_files)
+      metadata = Uploads.save_files(batch.id, uploaded_files)
 
       pid = self()
 
       spawn(fn ->
         Process.sleep(5000)
-        send(pid, {:processing_complete, guid})
+        send(pid, {:processing_complete, batch.id})
       end)
 
       {:noreply,
        socket
-       |> assign(:picture_id, guid)
+       |> assign(:batch_id, batch.id)
        |> assign(:metadata, metadata)
        |> assign(:uploaded_files, uploaded_files)
        |> assign(:processing, true)}
