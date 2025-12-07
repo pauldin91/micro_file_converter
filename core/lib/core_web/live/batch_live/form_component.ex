@@ -2,13 +2,35 @@ defmodule CoreWeb.BatchLive.FormComponent do
   use CoreWeb, :live_component
 
   alias Core.Uploads
+  alias Core.Items
+
+  @impl true
+  def mount(socket) do
+    # LiveComponents mount with a blank socket — no assigns yet.
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(%{batch: batch} = assigns, socket) do
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign_new(:form, fn ->
+       to_form(Uploads.change_batch(batch))
+     end)
+     |> allow_upload(:files,
+       accept: :any,
+       max_entries: 10,
+       max_file_size: 50_000_000
+     )}
+  end
 
   @impl true
   def render(assigns) do
     ~H"""
     <div>
       <.header>
-        {@title}
+        File Upload Form
         <:subtitle>Use this form to manage batch records in your database.</:subtitle>
       </.header>
 
@@ -27,6 +49,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
             </span>
           </label>
         </div>
+
         <:actions>
           <.button phx-disable-with="Saving...">Save Batch</.button>
         </:actions>
@@ -36,52 +59,56 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def update(%{batch: batch} = assigns, socket) do
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_new(:form, fn ->
-       to_form(Uploads.change_batch(batch))
-     end)}
-  end
-
-  @impl true
-  def handle_event("validate", %{"batch" => batch_params}, socket) do
+  def handle_event("validate", params, socket) do
+    batch_params = params["batch"] || %{}
     changeset = Uploads.change_batch(socket.assigns.batch, batch_params)
+
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
-  def handle_event("save", %{"batch" => batch_params}, socket) do
-    save_batch(socket, socket.assigns.action, batch_params)
-  end
+  @impl true
+  def handle_event("save", _params, socket) do
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    guid = Ecto.UUID.generate()
 
-  defp save_batch(socket, :edit, batch_params) do
-    case Uploads.update_batch(socket.assigns.batch, batch_params) do
-      {:ok, batch} ->
-        notify_parent({:saved, batch})
+    {:ok, batch} = Uploads.create_batch(%{id: guid, status: "pending"})
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Batch updated successfully")
-         |> push_patch(to: socket.assigns.patch)}
+    uploaded_files =
+      consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
+        dest = Path.join([upload_dir, guid, entry.client_name])
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
-    end
-  end
+        File.mkdir_p!(Path.dirname(dest))
+        File.cp!(path, dest)
 
-  defp save_batch(socket, :new, batch_params) do
-    case Uploads.create_batch(batch_params) do
-      {:ok, batch} ->
-        notify_parent({:saved, batch})
+        {:ok, _picture} =
+          Items.create_picture(%{
+            batch_id: guid,
+            transform: "rotation_90",
+            name: entry.client_name,
+            size: File.stat!(dest).size
+          })
 
-        {:noreply,
-         socket
-         |> put_flash(:info, "Batch created successfully")
-         |> push_patch(to: socket.assigns.patch)}
+        {:ok, %{path: dest, client_name: entry.client_name, client_type: entry.client_type}}
+      end)
 
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, form: to_form(changeset))}
+    if uploaded_files != [] do
+      metadata = Uploads.save_files(guid, uploaded_files)
+
+      pid = self()
+
+      spawn(fn ->
+        Process.sleep(5000)
+        send(pid, {:processing_complete, guid})
+      end)
+
+      {:noreply,
+       socket
+       |> assign(:picture_id, guid)
+       |> assign(:metadata, metadata)
+       |> assign(:uploaded_files, uploaded_files)
+       |> assign(:processing, true)}
+    else
+      {:noreply, socket}
     end
   end
 
