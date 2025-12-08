@@ -47,9 +47,8 @@ defmodule CoreWeb.BatchLive.Index do
   # end
 
   @impl true
+
   def handle_info({:processing_complete, guid}, socket) do
-    # Example reaction: stop the "processing" UI and show a flash.
-    # You can also fetch updated metadata or mark the batch as processed here.
     {:noreply,
      socket
      |> assign(:processing, false)
@@ -57,10 +56,18 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   # Some code paths send the message wrapped by the component module name:
-  # @impl true
-  # def handle_info({CoreWeb.BatchLive.FormComponent, {:processing_complete, guid}}, socket) do
-  #   handle_info({:processing_complete, guid}, socket)
-  # end
+  @impl true
+  def handle_info({CoreWeb.BatchLive.FormComponent, {:processing_complete, guid}}, socket) do
+    handle_info({:processing_complete, guid}, socket)
+  end
+
+  @impl true
+  def handle_info({CoreWeb.BatchLive.FormComponent, {:close}}, socket) do
+    {:noreply,
+     socket
+     |> assign(:processing, false)
+     |> put_flash(:info, "Processing complete for #{socket.assigns.batch_id}")}
+  end
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do

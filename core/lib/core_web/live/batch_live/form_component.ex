@@ -95,7 +95,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
         <:actions>
           <.button
             type="submit"
-            disabled={@uploads.files.entries == []}
+            disabled={@uploads.files.entries == [] or @processing}
             class="btn btn-primary w-full"
           >
             {if @processing, do: "Processing...", else: "Upload Files"}
@@ -146,6 +146,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
       spawn(fn ->
         Process.sleep(5000)
         send(pid, {:processing_complete, batch.id})
+        notify_parent(:close)
       end)
 
       {:noreply,
@@ -157,16 +158,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
     else
       {:noreply, socket}
     end
-  end
-
-  @impl true
-  def handle_event(:processing_complete, params, socket) do
-    # Example reaction: stop the "processing" UI and show a flash.
-    # You can also fetch updated metadata or mark the batch as processed here.
-    {:noreply,
-     socket
-     |> assign(:processing, false)
-     |> put_flash(:info, "Processing complete for #{params["batch_id"]}")}
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
