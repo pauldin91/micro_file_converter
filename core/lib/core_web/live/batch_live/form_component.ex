@@ -5,12 +5,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Items
 
   @impl true
-  def mount(socket) do
-    # LiveComponents mount with a blank socket — no assigns yet.
-    {:ok, socket}
-  end
-
-  @impl true
   def update(%{batch: batch} = assigns, socket) do
     {:ok,
      socket
@@ -41,17 +35,66 @@ defmodule CoreWeb.BatchLive.FormComponent do
         phx-change="validate"
         phx-submit="save"
       >
-        <div class="mt-4">
-          <.live_file_input upload={@uploads.files} class="sr-only" />
-          <label for={@uploads.files.ref} class="cursor-pointer">
-            <span class="mt-2 block text-sm font-medium text-base-content">
-              Drop files here or click to browse
-            </span>
-          </label>
+        <div class="border-2 border-dashed border-base-300 rounded-lg p-6 mb-4">
+          <div class="text-center">
+            <svg
+              class="mx-auto h-12 w-12 text-base-content/40"
+              stroke="currentColor"
+              fill="none"
+              viewBox="0 0 48 48"
+            >
+              <path
+                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <div class="mt-4">
+              <.live_file_input upload={@uploads.files} class="sr-only" />
+              <label for={@uploads.files.ref} class="cursor-pointer">
+                <span class="mt-2 block text-sm font-medium text-base-content">
+                  Drop files here or click to browse
+                </span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div :for={entry <- @uploads.files.entries} id={"upload-#{entry.ref}"} class="mb-2">
+          <div class="flex items-center justify-between p-3 bg-base-200 rounded">
+            <div class="flex items-center">
+              <div class="text-sm font-medium text-base-content">{entry.client_name}</div>
+              <div class="text-sm text-base-content/70 ml-2">({format_bytes(entry.client_size)})</div>
+            </div>
+
+            <.button
+              type="button"
+              phx-click="cancel-upload"
+              phx-value-ref={entry.ref}
+              class="text-error hover:text-error/80"
+            >
+              ✕
+            </.button>
+          </div>
+
+          <div class="w-full bg-base-300 rounded-full h-2 mt-2">
+            <div class="bg-primary h-2 rounded-full" style={"width: #{entry.progress}%"}></div>
+          </div>
+        </div>
+
+        <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
+          {error_to_string(err)}
         </div>
 
         <:actions>
-          <.button phx-disable-with="Saving...">Save Batch</.button>
+          <.button
+            type="submit"
+            disabled={@uploads.files.entries == [] or @processing}
+            class="btn btn-primary w-full"
+          >
+            {if @processing, do: "Processing...", else: "Upload Files"}
+          </.button>
         </:actions>
       </.simple_form>
     </div>
@@ -112,4 +155,20 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  defp format_bytes(bytes) when is_integer(bytes) do
+    cond do
+      bytes >= 1_073_741_824 -> "#{Float.round(bytes / 1_073_741_824, 2)} GB"
+      bytes >= 1_048_576 -> "#{Float.round(bytes / 1_048_576, 2)} MB"
+      bytes >= 1024 -> "#{Float.round(bytes / 1024, 2)} KB"
+      true -> "#{bytes} B"
+    end
+  end
+
+  defp format_bytes(_), do: "Unknown"
+
+  defp error_to_string(:too_large), do: "File is too large (max 50MB)"
+  defp error_to_string(:too_many_files), do: "Too many files (max 10)"
+  defp error_to_string(:not_accepted), do: "File type not accepted"
+  defp error_to_string(_), do: "Upload error"
 end
