@@ -50,6 +50,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
                 stroke-linejoin="round"
               />
             </svg>
+
             <div class="mt-4">
               <.live_file_input upload={@uploads.files} class="sr-only" />
               <label for={@uploads.files.ref} class="cursor-pointer">
@@ -59,6 +60,10 @@ defmodule CoreWeb.BatchLive.FormComponent do
               </label>
             </div>
           </div>
+        </div>
+
+        <div class="mt-4">
+          <.input field={@form[:transform]} type="text" label="Transform" />
         </div>
 
         <div :for={entry <- @uploads.files.entries} id={"upload-#{entry.ref}"} class="mb-2">
@@ -90,7 +95,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
         <:actions>
           <.button
             type="submit"
-            disabled={@uploads.files.entries == [] or @processing}
+            disabled={@uploads.files.entries == []}
             class="btn btn-primary w-full"
           >
             {if @processing, do: "Processing...", else: "Upload Files"}
@@ -110,7 +115,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def handle_event("save", _params, socket) do
+  def handle_event("save", params, socket) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
 
     {:ok, batch} = Uploads.create_batch(%{status: "pending"})
@@ -125,7 +130,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
         {:ok, _picture} =
           Items.create_picture(%{
             batch_id: batch.id,
-            transform: "rotation_90",
+            transform: params["batch"]["transform"],
             name: entry.client_name,
             size: File.stat!(dest).size
           })
@@ -152,6 +157,16 @@ defmodule CoreWeb.BatchLive.FormComponent do
     else
       {:noreply, socket}
     end
+  end
+
+  @impl true
+  def handle_event(:processing_complete, params, socket) do
+    # Example reaction: stop the "processing" UI and show a flash.
+    # You can also fetch updated metadata or mark the batch as processed here.
+    {:noreply,
+     socket
+     |> assign(:processing, false)
+     |> put_flash(:info, "Processing complete for #{params["batch_id"]}")}
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})

@@ -13,6 +13,7 @@ defmodule CoreWeb.BatchLive.Index do
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
      |> assign(:processing, false)
      |> assign(:metadata, nil)
+     |> assign(:transform, nil)
      |> assign(:batch_id, nil)
      |> assign(:batch, %Batch{})}
   end
