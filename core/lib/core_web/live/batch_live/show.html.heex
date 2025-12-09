@@ -17,13 +17,11 @@
 
   <div class="mt-4">
     <h3 class="font-medium text-success mb-2">Files:</h3>
-    <ul class="space-y-1">
-      <%= for file <- @metadata["files"] do %>
-        <li class="flex justify-between items-center text-sm text-base-content">
-          <span>{file["filename"]}</span>
-          <span class="text-base-content/70">({Uploads.format_bytes(file["size"])})</span>
-        </li>
-      <% end %>
+    <ul :for={file <- @metadata["files"]} class="space-y-1">
+      <li class="flex justify-between items-center text-sm text-base-content">
+        <span>{file["filename"]}</span>
+        <span class="text-base-content/70">({Uploads.format_bytes(file["size"])})</span>
+      </li>
     </ul>
   </div>
 
