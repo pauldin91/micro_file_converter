@@ -8,6 +8,8 @@ defmodule CoreWeb.BatchLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket), do: Uploads.subscribe()
+
     {:ok,
      stream(socket, :batches, Uploads.list_batches())
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
@@ -69,7 +71,21 @@ defmodule CoreWeb.BatchLive.Index do
      |> put_flash(:info, "Processing complete for #{socket.assigns.batch_id}")}
   end
 
+  def handle_info({:batch_created, batch}, socket) do
+    {:noreply, stream_insert(socket, :batches, batch)}
+  end
+
+  def handle_info({:batch_updated, batch}, socket) do
+    {:noreply, stream_insert(socket, :batches, batch)}
+  end
+
+  def handle_info({:batch_deleted, item}, socket) do
+    {:noreply, stream_delete(socket, :batches, item)}
+  end
+
   @impl true
+  @spec handle_event(<<_::48>>, map(), Phoenix.LiveView.Socket.t()) ::
+          {:noreply, Phoenix.LiveView.Socket.t()}
   def handle_event("delete", %{"id" => id}, socket) do
     batch = Uploads.get_batch!(id)
     {:ok, _} = Uploads.delete_batch(batch)

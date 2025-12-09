@@ -118,7 +118,10 @@ defmodule CoreWeb.BatchLive.FormComponent do
   def handle_event("save", params, socket) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
 
-    {:ok, batch} = Uploads.create_batch(%{status: "pending"})
+    {:ok, batch} =
+      Uploads.create_batch(%{status: "pending"})
+
+    {:ok, batch} |> Uploads.broadcast(:batch_created)
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->

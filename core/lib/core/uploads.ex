@@ -82,6 +82,7 @@ defmodule Core.Uploads do
     %Batch{}
     |> Batch.changeset(attrs)
     |> Repo.insert()
+    |> broadcast(:batch_created)
   end
 
   @doc """
@@ -100,6 +101,7 @@ defmodule Core.Uploads do
     batch
     |> Batch.changeset(attrs)
     |> Repo.update()
+    |> broadcast(:batch_updated)
   end
 
   @doc """
@@ -116,6 +118,7 @@ defmodule Core.Uploads do
   """
   def delete_batch(%Batch{} = batch) do
     Repo.delete(batch)
+    |> broadcast(:batch_deleted)
   end
 
   @doc """
@@ -129,5 +132,17 @@ defmodule Core.Uploads do
   """
   def change_batch(%Batch{} = batch, attrs \\ %{}) do
     Batch.changeset(batch, attrs)
+  end
+
+  def broadcast({:error, _reason} = error, _event), do: error
+
+  def broadcast({:ok, post}, event) do
+    Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, post})
+    {:ok, post}
+  end
+
+  @spec subscribe() :: :ok | {:error, {:already_registered, pid()}}
+  def subscribe do
+    Phoenix.PubSub.subscribe(Core.PubSub, "batches")
   end
 end

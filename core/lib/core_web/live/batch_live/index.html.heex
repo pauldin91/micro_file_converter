@@ -21,10 +21,7 @@
     <.link patch={~p"/batches/#{batch}/edit"}>Edit</.link>
   </:action>
   <:action :let={{id, batch}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: batch.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
+    <.link phx-click={JS.push("delete", value: %{id: batch.id}) |> hide("##{id}")}>
       Delete
     </.link>
   </:action>
