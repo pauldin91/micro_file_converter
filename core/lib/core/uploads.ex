@@ -8,12 +8,12 @@ defmodule Core.Uploads do
 
   alias Core.Uploads.Batch
 
-  def save_files(pricture_id, uploaded_entries) do
+  def save_files(batch_id, uploaded_entries) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
-    pricture_dir = Path.join([upload_dir, pricture_id])
+    batch_dir = Path.join([upload_dir, batch_id])
 
     metadata = %{
-      pricture_id: pricture_id,
+      batch_id: batch_id,
       timestamp: DateTime.utc_now(),
       files: [],
       file_count: length(uploaded_entries)
@@ -30,11 +30,20 @@ defmodule Core.Uploads do
 
     final_metadata = %{metadata | files: files_metadata}
     # Save metadata as JSON
-    metadata_path = Path.join([pricture_dir, "metadata.json"])
+    metadata_path = Path.join([batch_dir, "metadata.json"])
     File.mkdir_p!(Path.dirname(metadata_path))
     File.write!(metadata_path, Jason.encode!(final_metadata, pretty: true))
 
     final_metadata
+  end
+
+  def load_metadata(batch_id) do
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    batch_dir = Path.join([upload_dir, batch_id])
+
+    metadata_path = Path.join([batch_dir, "metadata.json"])
+    file_metadata = File.read!(metadata_path)
+    Jason.decode!(file_metadata, pretty: true)
   end
 
   @doc """
@@ -145,4 +154,20 @@ defmodule Core.Uploads do
   def subscribe do
     Phoenix.PubSub.subscribe(Core.PubSub, "batches")
   end
+
+  def format_bytes(bytes) when is_integer(bytes) do
+    cond do
+      bytes >= 1_073_741_824 -> "#{Float.round(bytes / 1_073_741_824, 2)} GB"
+      bytes >= 1_048_576 -> "#{Float.round(bytes / 1_048_576, 2)} MB"
+      bytes >= 1024 -> "#{Float.round(bytes / 1024, 2)} KB"
+      true -> "#{bytes} B"
+    end
+  end
+
+  def format_bytes(_), do: "Unknown"
+
+  def error_to_string(:too_large), do: "File is too large (max 50MB)"
+  def error_to_string(:too_many_files), do: "Too many files (max 10)"
+  def error_to_string(:not_accepted), do: "File type not accepted"
+  def error_to_string(_), do: "Upload error"
 end

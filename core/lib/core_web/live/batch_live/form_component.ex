@@ -70,7 +70,9 @@ defmodule CoreWeb.BatchLive.FormComponent do
           <div class="flex items-center justify-between p-3 bg-base-200 rounded">
             <div class="flex items-center">
               <div class="text-sm font-medium text-base-content">{entry.client_name}</div>
-              <div class="text-sm text-base-content/70 ml-2">({format_bytes(entry.client_size)})</div>
+              <div class="text-sm text-base-content/70 ml-2">
+                ({Uploads.format_bytes(entry.client_size)})
+              </div>
             </div>
 
             <.button
@@ -89,16 +91,16 @@ defmodule CoreWeb.BatchLive.FormComponent do
         </div>
 
         <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
-          {error_to_string(err)}
+          {Uploads.error_to_string(err)}
         </div>
 
         <:actions>
           <.button
             type="submit"
-            disabled={@uploads.files.entries == [] or @processing}
+            disabled={@uploads.files.entries == []}
             class="btn btn-primary w-full"
           >
-            {if @processing, do: "Processing...", else: "Upload Files"}
+            Upload Files
           </.button>
         </:actions>
       </.simple_form>
@@ -120,8 +122,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     {:ok, batch} =
       Uploads.create_batch(%{status: "pending"})
-
-    {:ok, batch} |> Uploads.broadcast(:batch_created)
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
@@ -149,7 +149,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
       spawn(fn ->
         Process.sleep(5000)
         send(pid, {:processing_complete, batch.id})
-        notify_parent(:close)
       end)
 
       {:noreply,
@@ -157,27 +156,11 @@ defmodule CoreWeb.BatchLive.FormComponent do
        |> assign(:batch_id, batch.id)
        |> assign(:metadata, metadata)
        |> assign(:uploaded_files, uploaded_files)
-       |> assign(:processing, true)}
+       |> put_flash(:info, "Files uploaded with batch id #{batch.id}")}
     else
       {:noreply, socket}
     end
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
-
-  defp format_bytes(bytes) when is_integer(bytes) do
-    cond do
-      bytes >= 1_073_741_824 -> "#{Float.round(bytes / 1_073_741_824, 2)} GB"
-      bytes >= 1_048_576 -> "#{Float.round(bytes / 1_048_576, 2)} MB"
-      bytes >= 1024 -> "#{Float.round(bytes / 1024, 2)} KB"
-      true -> "#{bytes} B"
-    end
-  end
-
-  defp format_bytes(_), do: "Unknown"
-
-  defp error_to_string(:too_large), do: "File is too large (max 50MB)"
-  defp error_to_string(:too_many_files), do: "Too many files (max 10)"
-  defp error_to_string(:not_accepted), do: "File type not accepted"
-  defp error_to_string(_), do: "Upload error"
 end

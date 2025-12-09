@@ -13,7 +13,6 @@ defmodule CoreWeb.BatchLive.Index do
     {:ok,
      stream(socket, :batches, Uploads.list_batches())
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
-     |> assign(:processing, false)
      |> assign(:metadata, nil)
      |> assign(:transform, nil)
      |> assign(:batch_id, nil)
@@ -23,6 +22,12 @@ defmodule CoreWeb.BatchLive.Index do
   @impl true
   def handle_params(params, _url, socket) do
     {:noreply, apply_action(socket, socket.assigns.live_action, params)}
+  end
+
+  defp apply_action(socket, :show, %{"id" => id}) do
+    socket
+    |> assign(:page_title, "Batch")
+    |> assign(:batch, Uploads.get_batch!(id))
   end
 
   defp apply_action(socket, :edit, %{"id" => id}) do
@@ -53,22 +58,14 @@ defmodule CoreWeb.BatchLive.Index do
   def handle_info({:processing_complete, guid}, socket) do
     {:noreply,
      socket
-     |> assign(:processing, false)
      |> put_flash(:info, "Processing complete for #{guid}")}
   end
 
   # Some code paths send the message wrapped by the component module name:
   @impl true
   def handle_info({CoreWeb.BatchLive.FormComponent, {:processing_complete, guid}}, socket) do
+    dbg(guid)
     handle_info({:processing_complete, guid}, socket)
-  end
-
-  @impl true
-  def handle_info({CoreWeb.BatchLive.FormComponent, {:close}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:processing, false)
-     |> put_flash(:info, "Processing complete for #{socket.assigns.batch_id}")}
   end
 
   def handle_info({:batch_created, batch}, socket) do
