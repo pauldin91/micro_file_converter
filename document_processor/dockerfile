@@ -1,17 +1,20 @@
-FROM golang:1.24 AS builder
+FROM golang:1.24-bullseye AS build
 WORKDIR /app
 
-COPY . .
+COPY go.mod go.sum app.env ./
 RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd/app/main.go
+COPY . .
+RUN go build -o main ./cmd/app/main.go
 
-FROM alpine:3.21
+FROM ubuntu:24.04
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libreoffice && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+ENV UNO_JAVA_JFW_DISABLE=true
 
 WORKDIR /app
-
-COPY --from=builder /app/main ./main
-COPY --from=builder /app/app.env ./app.env
-
-
+COPY --from=build /app/main  /app/app.env ./
 CMD ["./main"]
