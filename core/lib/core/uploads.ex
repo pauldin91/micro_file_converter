@@ -43,7 +43,7 @@ defmodule Core.Uploads do
 
     metadata_path = Path.join([batch_dir, "metadata.json"])
     file_metadata = File.read!(metadata_path)
-    Jason.decode!(file_metadata, pretty: true)
+    Jason.decode!(file_metadata)
   end
 
   @doc """
