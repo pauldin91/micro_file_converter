@@ -25,6 +25,9 @@ uploads_dir =
 
 config :core, :uploads_dir, uploads_dir
 
+rabbitmq_host = System.get_env("RABBITMQ_HOST") || "amqp://guest:guest@localhost:5672"
+config :core, :rabbitmq_host, rabbitmq_host
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
