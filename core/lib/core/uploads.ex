@@ -8,6 +8,22 @@ defmodule Core.Uploads do
 
   alias Core.Uploads.Batch
 
+  def download_batch(id) do
+    dir = Path.join([Application.fetch_env!(:core, :uploads_dir), id])
+
+    if File.dir?(dir) do
+      files = File.ls!(dir) |> Enum.map(&String.to_charlist/1)
+      zip_filename = String.to_charlist("#{id}.zip")
+
+      case :zip.create(zip_filename, files, cwd: String.to_charlist(dir)) do
+        {:ok, zip_path} -> {:ok, zip_path}
+        {:error, reason} -> {:error, reason}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
   def save_files(batch_id, uploaded_entries) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     batch_dir = Path.join([upload_dir, batch_id])

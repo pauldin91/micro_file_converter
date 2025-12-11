@@ -18,17 +18,21 @@
     <div class="sr-only">
       <.link navigate={~p"/batches/#{batch}"}>Show</.link>
     </div>
-    <.link patch={~p"/batches/#{batch}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{_id, batch}}>
+    <.link phx-click={JS.push("download", value: %{id: batch.id})}>
+      <.icon name="hero-arrow-down-tray" class="w-5 h-5" />
+    </.link>
   </:action>
   <:action :let={{id, batch}}>
     <.link phx-click={JS.push("delete", value: %{id: batch.id}) |> hide("##{id}")}>
-      Delete
+      <.icon name="hero-trash" class="w-5 h-5 text-error" />
     </.link>
   </:action>
 </.table>
 
 <.modal
-  :if={@live_action in [:new, :edit]}
+  :if={@live_action == :new}
   id="batch-modal"
   show
   on_cancel={JS.patch(~p"/batches")}

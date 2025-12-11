@@ -18,19 +18,13 @@
     </div>
 
     <div class="mt-4">
-      <h3 class="font-medium text-success mb-2">Files:</h3>
+      <h3 class="font-medium text-success mb-2"><strong>Files</strong>:</h3>
       <ul :for={file <- @metadata["files"]} class="space-y-1">
         <li class="flex justify-between items-center text-sm text-base-content">
           <span>{file["filename"]}</span>
           <span class="text-base-content/70">({Uploads.format_bytes(file["size"])})</span>
         </li>
       </ul>
-    </div>
-
-    <div class="mt-4 p-3 bg-info/10 border border-info/20 rounded">
-      <p class="text-sm text-info">
-        <strong>Note:</strong> Save your transaction ID to download these files later.
-      </p>
     </div>
   </div>
 </div>

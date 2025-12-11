@@ -24,7 +24,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
     <div>
       <.header>
         File Upload Form
-        <:subtitle>Use this form to manage batch records in your database.</:subtitle>
+        <:subtitle>Use this form to manage batches in your database.</:subtitle>
       </.header>
 
       <.simple_form
@@ -114,5 +114,5 @@ defmodule CoreWeb.BatchLive.FormComponent do
     end
   end
 
-  defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+  # defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end
