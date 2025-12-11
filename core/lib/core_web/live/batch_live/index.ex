@@ -90,7 +90,7 @@ defmodule CoreWeb.BatchLive.Index do
     {:noreply, stream_delete(socket, :batches, batch)}
   end
 
-  def handle_event("download", %{"id" => id}, socket) do
-    {:noreply, socket |> redirect(to: ~p"/download/#{id}")}
-  end
+  # def handle_event("download", %{"id" => id}, socket) do
+  #   {:noreply, socket |> redirect(to: ~p"/download/#{id}")}
+  # end
 end

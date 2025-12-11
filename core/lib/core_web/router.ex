@@ -71,8 +71,9 @@ defmodule CoreWeb.Router do
 
       live "/pictures/:id", PictureLive.Show, :show
       live "/pictures/:id/show/edit", PictureLive.Show, :edit
-      get "/download/:id", DownloadController, :download
     end
+
+    get "/download/:id", DownloadController, :download
 
     post "/users/log_in", UserSessionController, :create
   end

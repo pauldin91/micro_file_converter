@@ -20,7 +20,7 @@
     </div>
   </:action>
   <:action :let={{_id, batch}}>
-    <.link phx-click={JS.push("download", value: %{id: batch.id})}>
+    <.link href={~p"/download/#{batch.id}"}>
       <.icon name="hero-arrow-down-tray" class="w-5 h-5" />
     </.link>
   </:action>
