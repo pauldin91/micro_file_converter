@@ -6,7 +6,7 @@ WORKDIR /workspace
 COPY document_processor/go.work ./document_processor/
 
 # Copy module files
-COPY common/go.mod common/go.sum ./common/
+COPY common ./common
 COPY document_processor/go.mod document_processor/go.sum ./document_processor/
 
 # Run go commands FROM the workspace module directory
@@ -16,8 +16,8 @@ RUN go work sync
 RUN go mod download all
 
 # Copy source
-COPY common ./common
-COPY document_processor ./document_processor
+COPY document_processor ./
+
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o /workspace/main ./cmd/app
@@ -27,9 +27,9 @@ FROM alpine:3.19
 
 RUN apk add --no-cache imagemagick
 
-WORKDIR /app
+WORKDIR /workspace
 
-COPY --from=build /app/main ./
-COPY --from=build /app/document_processor/app.env ./
+COPY --from=build /workspace/main ./
+COPY --from=build /workspace/document_processor/app.env ./
 
 CMD ["./main"]

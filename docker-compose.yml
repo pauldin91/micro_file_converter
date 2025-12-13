@@ -32,8 +32,10 @@ services:
   document_processor:
     container_name: document_processor
     build:
-        context: ./document_processor
-        dockerfile: dockerfile
+      context: .
+      dockerfile: document_processor/dockerfile
+    env_file:
+      - document_processor/app.env
     environment:
       - UPLOAD_DATA_VOLUME=/data/uploads
       - AMQP=amqp://guest:guest@rabbit:5672
@@ -88,7 +90,7 @@ services:
     container_name: core
     build: 
       context: ./core
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     environment:
       - PHX_HOST=localhost
       - DATABASE_URL=ecto://postgres:mysecretpassword@db:5432/core_dev?sslmode=disable

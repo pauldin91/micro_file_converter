@@ -47,7 +47,6 @@ func (w *Converter) convert(batch common.Batch, doneChan chan bool, errs chan er
 		log.Printf("Error reading dir: %s\n", err.Error())
 	}
 
-	var status string = "completed"
 	for _, f := range files {
 		if !f.IsDir() && strings.ToLower(path.Ext(f.Name())) != ".json" {
 			log.Printf("Received a message: %s\n", path.Join(outputDir, f.Name()))
@@ -56,17 +55,13 @@ func (w *Converter) convert(batch common.Batch, doneChan chan bool, errs chan er
 			cmd.Stderr = os.Stderr
 			if err := cmd.Run(); err != nil {
 				log.Printf("Error: %s\n", err.Error())
-				status = "failed"
 				break
 			}
 		}
 
 	}
-	serialized, _ := json.Marshal(common.Batch{
-		Id:     batch.Id,
-		Status: status,
-	})
-	log.Printf("Batch %s converted with status %s\n", batch.Id, status)
+	serialized, _ := json.Marshal(batch)
+	log.Printf("Batch id %s was processed\n", batch.Id)
 
 	err = w.publisher.Publish(serialized)
 	if err != nil {
