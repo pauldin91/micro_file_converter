@@ -1,16 +1,35 @@
 FROM golang:1.24-bullseye AS build
-WORKDIR /app
 
-COPY go.mod go.sum app.env ./
-RUN go mod download
+WORKDIR /workspace
 
-COPY . .
-RUN go build -o main ./cmd/app/main.go
+# Copy workspace file where it actually lives
+COPY document_processor/go.work ./document_processor/
 
+# Copy module files
+COPY common/go.mod common/go.sum ./common/
+COPY document_processor/go.mod document_processor/go.sum ./document_processor/
+
+# Run go commands FROM the workspace module directory
+WORKDIR /workspace/document_processor
+
+RUN go work sync
+RUN go mod download all
+
+# Copy source
+COPY common ./common
+COPY document_processor ./document_processor
+
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -o /workspace/main ./cmd/app
+
+# ---------- runtime stage ----------
 FROM alpine:3.19
 
 RUN apk add --no-cache imagemagick
 
 WORKDIR /app
-COPY --from=build /app/main  /app/app.env ./
+
+COPY --from=build /app/main ./
+COPY --from=build /app/document_processor/app.env ./
+
 CMD ["./main"]
