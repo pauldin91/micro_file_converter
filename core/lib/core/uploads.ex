@@ -31,26 +31,22 @@ defmodule Core.Uploads do
     metadata = %{
       batch_id: batch_id,
       timestamp: DateTime.utc_now(),
-      files: [],
+      files:
+        uploaded_entries
+        |> Enum.map(fn entry ->
+          %{
+            filename: entry.client_name,
+            size: File.stat!(entry.path).size,
+            content_type: entry.client_type
+          }
+        end),
       file_count: length(uploaded_entries)
     }
 
-    files_metadata =
-      Enum.map(uploaded_entries, fn entry ->
-        %{
-          filename: entry.client_name,
-          size: File.stat!(entry.path).size,
-          content_type: entry.client_type
-        }
-      end)
-
-    final_metadata = %{metadata | files: files_metadata}
-    # Save metadata as JSON
     metadata_path = Path.join([batch_dir, "metadata.json"])
     File.mkdir_p!(Path.dirname(metadata_path))
-    File.write!(metadata_path, Jason.encode!(final_metadata, pretty: true))
-
-    final_metadata
+    File.write!(metadata_path, Jason.encode!(metadata, pretty: true))
+    metadata
   end
 
   def load_metadata(batch_id) do

@@ -1,5 +1,4 @@
 defmodule CoreWeb.Router do
-  alias Core.Items.Picture
   use CoreWeb, :router
 
   import CoreWeb.UserAuth

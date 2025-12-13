@@ -28,6 +28,12 @@ config :core, :uploads_dir, uploads_dir
 rabbitmq_host = System.get_env("RABBITMQ_HOST") || "amqp://guest:guest@localhost:5672"
 config :core, :rabbitmq_host, rabbitmq_host
 
+processing_queue = System.get_env("PROCESSING_QUEUE") || "batch-processing"
+config :core, :processing_queue, processing_queue
+
+processed_queue = System.get_env("PROCESSED_QUEUE") || "batch-processed"
+config :core, :processed_queue, processed_queue
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

@@ -97,6 +97,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
       metadata = Uploads.save_files(batch.id, uploaded_files)
 
       pid = self()
+      metadata = %{metadata | pid: pid}
 
       spawn(fn ->
         Process.sleep(5000)
