@@ -97,9 +97,13 @@ defmodule CoreWeb.BatchLive.FormComponent do
       metadata = Uploads.save_files(batch.id, uploaded_files)
 
       pid = self()
-      metadata = %{metadata | pid: pid}
+
+      metadata =
+        metadata
+        |> Map.put(:transform, params["batch"]["transform"])
 
       spawn(fn ->
+        Core.Messages.RabbitPublisher.publish_message(Jason.encode!(metadata))
         Process.sleep(5000)
         send(pid, {:processing_complete, batch.id})
       end)

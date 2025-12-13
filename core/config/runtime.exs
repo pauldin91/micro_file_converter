@@ -31,7 +31,7 @@ config :core, :rabbitmq_host, rabbitmq_host
 processing_queue = System.get_env("PROCESSING_QUEUE") || "batch-processing"
 config :core, :processing_queue, processing_queue
 
-processed_queue = System.get_env("PROCESSED_QUEUE") || "batch-processed"
+processed_queue = System.get_env("PROCESSED_QUEUE") || "batch-processing"
 config :core, :processed_queue, processed_queue
 
 if config_env() == :prod do

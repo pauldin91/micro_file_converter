@@ -12,7 +12,12 @@ defmodule Core.Messages.RabbitSupervisor do
         id: Core.Messages.RabbitPublisher,
         start:
           {Core.Messages.RabbitPublisher, :start_link,
-           [[queue: Application.fetch_env!(:core, :processing_queue)]]},
+           [
+             [
+               queue: Application.fetch_env!(:core, :processing_queue),
+               name: Core.Messages.RabbitPublisher
+             ]
+           ]},
         restart: :permanent,
         shutdown: 10_000
       },
@@ -20,7 +25,12 @@ defmodule Core.Messages.RabbitSupervisor do
         id: Core.Messages.RabbitConsumer,
         start:
           {Core.Messages.RabbitConsumer, :start_link,
-           [[queue: Application.fetch_env!(:core, :processed_queue)]]},
+           [
+             [
+               queue: Application.fetch_env!(:core, :processed_queue),
+               name: Core.Messages.RabbitConsumer
+             ]
+           ]},
         restart: :permanent,
         shutdown: 10_000
       }

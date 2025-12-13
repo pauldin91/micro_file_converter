@@ -5,7 +5,8 @@ defmodule Core.Messages.RabbitPublisher do
 
   def start_link(opts \\ []) do
     queue = Keyword.get(opts, :queue)
-    GenServer.start_link(__MODULE__, queue, name: __MODULE__)
+    name = Keyword.get(opts, :name)
+    GenServer.start_link(__MODULE__, queue, name: name)
   end
 
   def publish_message(message), do: GenServer.cast(__MODULE__, {:publish, message})

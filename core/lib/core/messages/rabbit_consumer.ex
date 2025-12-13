@@ -3,7 +3,8 @@ defmodule Core.Messages.RabbitConsumer do
   require Logger
 
   def start_link(opts) do
-    GenServer.start_link(__MODULE__, opts)
+    name = Keyword.get(opts, :name)
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   @impl true
@@ -45,6 +46,13 @@ defmodule Core.Messages.RabbitConsumer do
   @impl true
   def handle_info({:basic_cancel, _meta}, state) do
     Logger.warning("Consumer cancelled by RabbitMQ")
+    {:noreply, state}
+  end
+
+  @impl true
+  def handle_info({:basic_deliver, payload, meta}, state) do
+    Logger.info("Consumed from RabbitMQ: #{inspect(payload)}")
+    AMQP.Basic.ack(state.chan, meta.delivery_tag)
     {:noreply, state}
   end
 
