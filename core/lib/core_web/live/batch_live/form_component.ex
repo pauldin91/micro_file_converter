@@ -100,11 +100,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
         metadata
         |> Map.put(:transform, params["batch"]["transform"])
 
-      # spawn(fn ->
       Core.Messages.RabbitPublisher.publish_message(Jason.encode!(metadata))
-      #   Process.sleep(5000)
-      #   send(pid, {:processing_complete, batch.id})
-      # end)
 
       {:noreply,
        socket

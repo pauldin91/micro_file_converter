@@ -50,7 +50,8 @@ func (w *Converter) convert(batch common.Batch, doneChan chan bool, errs chan er
 	for _, f := range files {
 		if !f.IsDir() && strings.ToLower(path.Ext(f.Name())) != ".json" {
 			log.Printf("Received a message: %s\n", path.Join(outputDir, f.Name()))
-			cmd := exec.Command("convert", path.Join(dir, f.Name()), path.Join(outputDir, strings.Split(f.Name(), ".")[0]+".pdf"))
+			log.Printf("Converting %s to %s\n", path.Join(dir, f.Name()), path.Join(outputDir, strings.Split(f.Name(), ".")[0]+".pdf"))
+			cmd := exec.Command("magick", path.Join(dir, f.Name()), path.Join(outputDir, strings.Split(f.Name(), ".")[0]+".pdf"))
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			if err := cmd.Run(); err != nil {

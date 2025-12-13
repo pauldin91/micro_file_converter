@@ -25,7 +25,17 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 # ---------- runtime stage ----------
 FROM alpine:3.19
 
-RUN apk add --no-cache imagemagick
+RUN apk add --no-cache \
+    imagemagick \
+    ghostscript \
+    libpng \
+    libjpeg-turbo \
+    freetype
+
+# Enable PDF read/write
+RUN sed -i \
+    's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' \
+    /etc/ImageMagick-*/policy.xml
 
 WORKDIR /workspace
 

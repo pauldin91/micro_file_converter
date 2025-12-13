@@ -41,7 +41,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	batch := common.Batch{Id: "certain_test", Status: "pending"}
+	batch := common.Batch{Id: "certain_test", Timestamp: time.Now()}
 	l, _ := os.Getwd()
 
 	dir := path.Join(filepath.Dir(l), "uploads", "tests", batch.Id)
