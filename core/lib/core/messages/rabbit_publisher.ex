@@ -4,16 +4,16 @@ defmodule Core.Messages.RabbitPublisher do
   ## --- Client API ---
 
   def start_link(opts \\ []) do
-    queue = Keyword.get(opts, :queue)
     name = Keyword.get(opts, :name)
-    GenServer.start_link(__MODULE__, queue, name: name)
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   def publish_message(message), do: GenServer.cast(__MODULE__, {:publish, message})
 
   ## --- Server Callbacks ---
   @impl true
-  def init(queue) do
+  def init(opts) do
+    queue = Keyword.get(opts, :queue)
     {:ok, connection} = AMQP.Connection.open()
     {:ok, channel} = AMQP.Channel.open(connection)
     AMQP.Queue.declare(channel, queue, durable: true)
