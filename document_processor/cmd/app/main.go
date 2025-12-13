@@ -18,7 +18,8 @@ func main() {
 		}
 		log.Panicf("Could not load app.env file in %s\n", filepath.Dir(l))
 	}
-	worker := service.NewWorker(conf)
-	worker.Start()
+	worker := service.NewConverter(conf, service.NewPublisher(conf))
+	subscriber := service.NewSubscriber(conf, worker)
+	subscriber.Start()
 
 }

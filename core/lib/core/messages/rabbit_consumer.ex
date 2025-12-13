@@ -52,7 +52,18 @@ defmodule Core.Messages.RabbitConsumer do
   @impl true
   def handle_info({:basic_deliver, payload, meta}, state) do
     Logger.info("Consumed from RabbitMQ: #{inspect(payload)}")
+    # sim processing
+    Process.sleep(5000)
+
+    :ok =
+      Phoenix.PubSub.broadcast(
+        Core.PubSub,
+        "batch:processed",
+        {:batch_processed, payload}
+      )
+
     AMQP.Basic.ack(state.chan, meta.delivery_tag)
+
     {:noreply, state}
   end
 

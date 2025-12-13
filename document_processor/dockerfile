@@ -7,13 +7,9 @@ RUN go mod download
 COPY . .
 RUN go build -o main ./cmd/app/main.go
 
-FROM ubuntu:24.04
+FROM alpine:3.19
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libreoffice && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-ENV UNO_JAVA_JFW_DISABLE=true
+RUN apk add --no-cache imagemagick
 
 WORKDIR /app
 COPY --from=build /app/main  /app/app.env ./

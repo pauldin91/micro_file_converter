@@ -93,6 +93,8 @@ services:
       - PHX_HOST=localhost
       - DATABASE_URL=ecto://postgres:mysecretpassword@db:5432/core_dev?sslmode=disable
       - SECRET_KEY_BASE=hSoZbCN916NS83XIDTve+LyaCziNWkEkIGopWUsfizeLeNZzmbAohzfqNr+FPlK3
+      - PROCESSING_QUEUE=batch-processing
+      - PROCESSED_QUEUE=batch-processed
     ports:
       - "4000:4000"
     volumes:

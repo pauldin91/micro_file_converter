@@ -8,7 +8,10 @@ defmodule CoreWeb.BatchLive.Index do
 
   @impl true
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Uploads.subscribe()
+    if connected?(socket) do
+      Uploads.subscribe()
+      Phoenix.PubSub.subscribe(Core.PubSub, "batch:processed")
+    end
 
     {:ok,
      stream(socket, :batches, Uploads.list_batches())
@@ -43,7 +46,10 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   @impl true
-  def handle_info({:processing_complete, guid}, socket) do
+  def handle_info({:batch_processed, payload}, socket) do
+    metadata = Jason.decode!(payload)
+    guid = metadata["batch_id"]
+
     {:noreply,
      socket
      |> put_flash(:info, "Processing complete for #{guid}")}
