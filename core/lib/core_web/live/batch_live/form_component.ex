@@ -37,7 +37,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
         <.drag_n_drop files={@uploads.files} />
 
         <div class="mt-4">
-          <.input field={@form[:transform]} type="text" label="Transform" />
+          <.input
+            field={@form[:transform]}
+            type="select"
+            label="Transform"
+            options={@transformations}
+          />
         </div>
 
         <.display_uploads files={@uploads.files} />
@@ -79,13 +84,16 @@ defmodule CoreWeb.BatchLive.FormComponent do
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
         dest = Path.join([upload_dir, batch.id, entry.client_name])
 
+        transform =
+          get_in(params, ["batch", "transform"]) || :rot_90
+
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
 
         {:ok, _picture} =
           Items.create_picture(%{
             batch_id: batch.id,
-            transform: params["batch"]["transform"],
+            transform: transform,
             name: entry.client_name,
             size: File.stat!(dest).size
           })

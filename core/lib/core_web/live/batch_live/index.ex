@@ -6,6 +6,13 @@ defmodule CoreWeb.BatchLive.Index do
   alias Core.Items
   alias Core.Items.Picture
 
+  @transformations [
+    {"90°", :rot_90},
+    {"180°", :rot_180},
+    {"270°", :rot_270},
+    {"Mirror", :mirror}
+  ]
+
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -18,6 +25,7 @@ defmodule CoreWeb.BatchLive.Index do
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
      |> assign(:metadata, nil)
      |> assign(:transform, nil)
+     |> assign(:transformations, @transformations)
      |> assign(:batch_id, nil)
      |> assign(:batch, %Batch{})}
   end
