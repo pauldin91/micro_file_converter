@@ -38,9 +38,9 @@ services:
       - document_processor/app.env
     environment:
       - UPLOAD_DATA_VOLUME=/data/uploads
-      - AMQP=amqp://guest:guest@rabbit:5672
+      - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     volumes:
-      - ./uploads:/data/uploads  
+      - uploads:/data/uploads  
 
     networks:
       - micro.converter
@@ -53,7 +53,7 @@ services:
   image_processor:
     container_name: image_processor
     build: 
-      context: ./image_processor
+      context: image_processor
       dockerfile: dockerfile
     environment:
       AMQP_ADDR: amqp://rabbit:5672/%2f
@@ -65,10 +65,10 @@ services:
   upload_service:
     container_name: upload_service
     build: 
-      context: ./upload_service
+      context: upload_service
       dockerfile: dockerfile
     env_file:
-      - ./upload_service/app.env
+      - upload_service/app.env
     
     depends_on:
       - db
@@ -81,7 +81,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./uploads:/data/uploads  
+      - uploads:/data/uploads  
     networks:
       - micro.converter
 
@@ -91,16 +91,12 @@ services:
     build: 
       context: ./core
       dockerfile: Dockerfile
-    environment:
-      - PHX_HOST=localhost
-      - DATABASE_URL=ecto://postgres:mysecretpassword@db:5432/core_dev?sslmode=disable
-      - SECRET_KEY_BASE=hSoZbCN916NS83XIDTve+LyaCziNWkEkIGopWUsfizeLeNZzmbAohzfqNr+FPlK3
-      - PROCESSING_QUEUE=batch-processing
-      - PROCESSED_QUEUE=batch-processed
+    env_file:
+      - core/app.env
     ports:
       - "4000:4000"
     volumes:
-      - ./uploads:/data/uploads  
+      - uploads:/data/uploads  
     networks:
       - micro.converter  
     depends_on:

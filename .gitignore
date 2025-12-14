@@ -15,3 +15,5 @@ build/
 __debug_*
 
 target/
+app.env
+.env.*
