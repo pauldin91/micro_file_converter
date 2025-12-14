@@ -1,9 +1,5 @@
 import Config
 
-if File.exists?(".env.local") do
-  Dotenv.load(".env.local")
-end
-
 # Configure your database
 config :core, Core.Repo,
   username: "postgres",

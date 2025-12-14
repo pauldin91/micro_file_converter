@@ -1,7 +1,7 @@
 package service
 
 import (
-	"common/pkg/types"
+	"context"
 	"micro_file_converter/internal/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -13,40 +13,55 @@ type Publisher struct {
 	queue string
 }
 
-func NewPublisher(cfg config.Config) *Publisher {
+func NewPublisher(cfg config.Config) (*Publisher, error) {
 	conn, err := amqp.Dial(cfg.RabbitMQHost)
-	types.FailOnError(err, "Failed to connect to RabbitMQ")
+	if err != nil {
+		return nil, err
+	}
 
 	ch, err := conn.Channel()
-	types.FailOnError(err, "Failed to open a channel")
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
 
-	_, err = ch.QueueDeclare(
-		cfg.ProcessedQueue, // name
-		true,               // durable
-		false,              // delete when unused
-		false,              // exclusive
-		false,              // no-wait
-		nil,                // arguments
-	)
-	types.FailOnError(err, "Failed to declare a queue")
+	if _, err := ch.QueueDeclare(
+		cfg.ProcessedQueue,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	); err != nil {
+		ch.Close()
+		conn.Close()
+		return nil, err
+	}
 
 	return &Publisher{
 		conn:  conn,
 		ch:    ch,
 		queue: cfg.ProcessedQueue,
-	}
+	}, nil
 }
 
-func (p *Publisher) Publish(msg []byte) error {
-
-	return p.ch.Publish(
+func (p *Publisher) Publish(body []byte) error {
+	return p.ch.PublishWithContext(
+		context.Background(),
 		"",
 		p.queue,
 		false,
 		false,
 		amqp.Publishing{
 			ContentType: "application/json",
-			Body:        msg,
-		})
+			Body:        body,
+		},
+	)
+}
 
+func (p *Publisher) Close() error {
+	if err := p.ch.Close(); err != nil {
+		return err
+	}
+	return p.conn.Close()
 }

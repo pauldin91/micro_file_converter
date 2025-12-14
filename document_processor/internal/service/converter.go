@@ -1,76 +1,98 @@
 package service
 
 import (
-	"common"
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"micro_file_converter/internal/config"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
-	"sync"
+
+	"common"
 )
 
 type Converter struct {
-	errors    chan error
-	wg        *sync.WaitGroup
 	conf      config.Config
 	uploadDir string
 	publisher *Publisher
 }
 
-func NewConverter(conf config.Config, publisher *Publisher) *Converter {
-	var uploadDir string = conf.UploadData
-	if len(conf.UploadData) == 0 {
-		cwd, _ := os.Getwd()
+func NewConverter(conf config.Config, publisher *Publisher) (*Converter, error) {
+	uploadDir := conf.UploadData
+	if uploadDir == "" {
+		cwd, err := os.Getwd()
+		if err != nil {
+			return nil, err
+		}
 		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
 	}
+
 	return &Converter{
-		errors:    make(chan error),
-		wg:        &sync.WaitGroup{},
 		conf:      conf,
 		uploadDir: uploadDir,
 		publisher: publisher,
-	}
+	}, nil
 }
 
-func (w *Converter) convert(batch common.Batch, doneChan chan bool, errs chan error) {
+func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
+	inputDir := filepath.Join(c.uploadDir, batch.Id)
+	outputDir := filepath.Join(inputDir, "converted")
 
-	dir := path.Join(w.uploadDir, batch.Id)
-	outputDir := path.Join(dir, "converted")
-	os.MkdirAll(outputDir, 0755)
-	files, err := os.ReadDir(dir)
-	if err != nil {
-		w.errors <- err
-		log.Printf("Error reading dir: %s\n", err.Error())
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("create output dir: %w", err)
 	}
 
-	for _, f := range files {
-		if !f.IsDir() && strings.ToLower(path.Ext(f.Name())) != ".json" {
-			log.Printf("Received a message: %s\n", path.Join(outputDir, f.Name()))
-			log.Printf("Converting %s to %s\n", path.Join(dir, f.Name()), path.Join(outputDir, strings.Split(f.Name(), ".")[0]+".pdf"))
-			cmd := exec.Command("magick", path.Join(dir, f.Name()), path.Join(outputDir, strings.Split(f.Name(), ".")[0]+".pdf"))
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			if err := cmd.Run(); err != nil {
-				log.Printf("Error: %s\n", err.Error())
-				break
-			}
+	entries, err := os.ReadDir(inputDir)
+	if err != nil {
+		return fmt.Errorf("read input dir: %w", err)
+	}
+
+	for _, e := range entries {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
 		}
 
-	}
-	serialized, _ := json.Marshal(batch)
-	log.Printf("Batch id %s was processed\n", batch.Id)
+		if e.IsDir() || strings.EqualFold(filepath.Ext(e.Name()), ".json") {
+			continue
+		}
 
-	err = w.publisher.Publish(serialized)
+		if err := c.convertFile(inputDir, outputDir, e.Name()); err != nil {
+			return err
+		}
+	}
+
+	payload, err := json.Marshal(batch)
 	if err != nil {
-		log.Printf("Error publishing message: %s\n", err.Error())
-		doneChan <- false
-		errs <- err
-	} else {
-		doneChan <- true
+		return fmt.Errorf("marshal batch: %w", err)
 	}
 
+	if err := c.publisher.Publish(payload); err != nil {
+		return fmt.Errorf("publish result: %w", err)
+	}
+
+	log.Printf("batch %s processed successfully", batch.Id)
+	return nil
+}
+
+func (c *Converter) convertFile(inputDir, outputDir, filename string) error {
+	src := filepath.Join(inputDir, filename)
+	base := strings.TrimSuffix(filename, filepath.Ext(filename))
+	dst := filepath.Join(outputDir, base+".pdf")
+
+	log.Printf("converting %s -> %s", src, dst)
+
+	cmd := exec.Command("magick", src, dst)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("convert %s: %w", filename, err)
+	}
+
+	return nil
 }

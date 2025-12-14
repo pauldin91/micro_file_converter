@@ -17,3 +17,4 @@ __debug_*
 target/
 app.env
 .env.*
+k8s/

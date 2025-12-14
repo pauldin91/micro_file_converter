@@ -19,7 +19,6 @@ defmodule Core.Messages.RabbitConsumer do
   @impl true
   def handle_info(:connect, state) do
     host = Application.fetch_env!(:core, :rabbitmq_host)
-    {:ok, connection} = AMQP.Connection.open(host)
 
     case AMQP.Connection.open(host) do
       {:ok, conn} ->
