@@ -14,7 +14,8 @@ defmodule Core.Messages.RabbitPublisher do
   @impl true
   def init(opts) do
     queue = Keyword.get(opts, :queue)
-    {:ok, connection} = AMQP.Connection.open()
+    host = Application.fetch_env!(:core, :rabbitmq_host)
+    {:ok, connection} = AMQP.Connection.open(host)
     {:ok, channel} = AMQP.Channel.open(connection)
     AMQP.Queue.declare(channel, queue, durable: true)
 

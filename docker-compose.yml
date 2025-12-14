@@ -40,7 +40,7 @@ services:
       - UPLOAD_DATA_VOLUME=/data/uploads
       - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     volumes:
-      - uploads:/data/uploads  
+      - ./uploads:/data/uploads  
 
     networks:
       - micro.converter
@@ -81,7 +81,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - uploads:/data/uploads  
+      - ./uploads:/data/uploads  
     networks:
       - micro.converter
 
@@ -96,7 +96,7 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - uploads:/data/uploads  
+      - ./uploads:/data/uploads  
     networks:
       - micro.converter  
     depends_on:
