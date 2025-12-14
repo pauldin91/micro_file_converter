@@ -2,7 +2,13 @@
   Listing Batches
   <:actions>
     <.link patch={~p"/batches/new"}>
-      <.button>New Batch</.button>
+      <.icon name="hero-document-plus" class="w-7 h-7" />
+    </.link>
+  </:actions>
+
+  <:actions>
+    <.link phx-click={JS.push("purge")}>
+      <.icon name="hero-trash" class="w-7 h-7" />
     </.link>
   </:actions>
 </.header>

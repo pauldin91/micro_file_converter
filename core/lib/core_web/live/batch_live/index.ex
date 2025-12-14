@@ -68,12 +68,27 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   @impl true
-  @spec handle_event(<<_::48>>, map(), Phoenix.LiveView.Socket.t()) ::
-          {:noreply, Phoenix.LiveView.Socket.t()}
+  def handle_info({:batches_purged, count}, socket) do
+    {:noreply,
+     socket
+     |> put_flash(:info, "#{count} total batches purged")
+     |> stream(:batches, [], reset: true)}
+  end
+
+  @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     batch = Uploads.get_batch!(id)
     {:ok, _} = Uploads.delete_batch(batch)
 
     {:noreply, stream_delete(socket, :batches, batch)}
+  end
+
+  @impl true
+  def handle_event("purge", _params, socket) do
+    {:ok, _} = Uploads.purge_batches()
+
+    {:noreply,
+     socket
+     |> stream(:batches, [])}
   end
 end

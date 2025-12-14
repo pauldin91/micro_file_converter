@@ -24,6 +24,19 @@ defmodule Core.Uploads do
     end
   end
 
+  def purge_batch(id) do
+    dir = Path.join([Application.fetch_env!(:core, :uploads_dir), id])
+
+    if File.dir?(dir) do
+      case File.rm_rf(dir) do
+        {:ok, files_and_dirs} -> {:ok, files_and_dirs}
+        {:error, reason, file} -> {:error, reason, file}
+      end
+    else
+      {:error, :not_found}
+    end
+  end
+
   def save_files(batch_id, uploaded_entries) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     batch_dir = Path.join([upload_dir, batch_id])
@@ -142,6 +155,19 @@ defmodule Core.Uploads do
     |> broadcast(:batch_deleted)
   end
 
+  def purge_batches() do
+    dir = Application.fetch_env!(:core, :uploads_dir)
+    files = File.ls!(dir) |> Enum.map(&String.to_charlist/1)
+
+    Enum.each(
+      files,
+      &File.rm_rf!(Path.join([dir, &1]))
+    )
+
+    Repo.delete_all(Batch)
+    |> broadcast(:batches_purged)
+  end
+
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking batch changes.
 
@@ -160,6 +186,12 @@ defmodule Core.Uploads do
   def broadcast({:ok, post}, event) do
     Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, post})
     {:ok, post}
+  end
+
+  def broadcast({count, nil}, event) do
+    dbg(event)
+    Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, count})
+    {:ok, count}
   end
 
   @spec subscribe() :: :ok | {:error, {:already_registered, pid()}}
