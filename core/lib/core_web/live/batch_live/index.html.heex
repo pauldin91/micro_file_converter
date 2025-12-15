@@ -7,9 +7,13 @@
   </:actions>
 
   <:actions>
-    <.link phx-click={JS.push("purge")}>
+    <.button
+      phx-click="purge"
+      data-confirm="Are you sure you want to delete all batches?"
+      class="bg-red-500 hover:bg-red-500"
+    >
       <.icon name="hero-trash" class="w-7 h-7" />
-    </.link>
+    </.button>
   </:actions>
 </.header>
 
