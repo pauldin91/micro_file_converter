@@ -3,20 +3,20 @@ FROM golang:1.24-bullseye AS build
 WORKDIR /app
 
 # Copy app file where it actually lives
-COPY document_processor/go.work ./document_processor/
+COPY conversion_service/go.work ./conversion_service/
 
 # Copy module files
 COPY common ./common
-COPY document_processor/go.mod document_processor/go.sum ./document_processor/
+COPY conversion_service/go.mod conversion_service/go.sum ./conversion_service/
 
 # Run go commands FROM the app module directory
-WORKDIR /app/document_processor
+WORKDIR /app/conversion_service
 
 RUN go work sync
 RUN go mod download all
 
 # Copy source
-COPY document_processor ./
+COPY conversion_service ./
 
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
@@ -40,6 +40,6 @@ RUN sed -i \
 WORKDIR /app
 
 COPY --from=build /app/main ./
-COPY --from=build /app/document_processor/app.env ./
+COPY --from=build /app/conversion_service/app.env ./
 
 CMD ["./main"]

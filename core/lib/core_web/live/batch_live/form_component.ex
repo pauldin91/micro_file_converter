@@ -35,8 +35,16 @@ defmodule CoreWeb.BatchLive.FormComponent do
         phx-submit="save"
       >
         <.drag_n_drop files={@uploads.files} />
+        <div class="mt-4 space-y-2">
+          <label class="font-medium">Convert to pdf ?</label>
 
-        <div class="mt-4">
+          <div class="mt-4 space-x-4">
+            <input type="radio" name="convert" phx-click={JS.hide(to: "#convert")} /> Yes
+            <input type="radio" name="convert" phx-click={JS.show(to: "#convert")} /> No
+          </div>
+        </div>
+
+        <div id="convert" class="mt-4 hidden">
           <.input
             field={@form[:transform]}
             type="select"
@@ -120,6 +128,4 @@ defmodule CoreWeb.BatchLive.FormComponent do
       {:noreply, socket}
     end
   end
-
-  # defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 end

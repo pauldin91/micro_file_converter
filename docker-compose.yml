@@ -29,13 +29,13 @@ services:
       - micro.converter  
     restart: always
 
-  document_processor:
-    container_name: document_processor
+  conversion_service:
+    container_name: conversion_service
     build:
       context: .
-      dockerfile: document_processor/dockerfile
+      dockerfile: conversion_service/dockerfile
     env_file:
-      - document_processor/app.env
+      - conversion_service/app.env
     environment:
       - UPLOAD_DATA_VOLUME=/data/uploads
       - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
