@@ -1,16 +1,16 @@
 FROM golang:1.24-bullseye AS build
 
-WORKDIR /workspace
+WORKDIR /app
 
-# Copy workspace file where it actually lives
+# Copy app file where it actually lives
 COPY document_processor/go.work ./document_processor/
 
 # Copy module files
 COPY common ./common
 COPY document_processor/go.mod document_processor/go.sum ./document_processor/
 
-# Run go commands FROM the workspace module directory
-WORKDIR /workspace/document_processor
+# Run go commands FROM the app module directory
+WORKDIR /app/document_processor
 
 RUN go work sync
 RUN go mod download all
@@ -20,7 +20,7 @@ COPY document_processor ./
 
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o /workspace/main ./cmd/app
+    go build -o /app/main ./cmd/app
 
 # ---------- runtime stage ----------
 FROM alpine:3.19
@@ -37,9 +37,9 @@ RUN sed -i \
     's/rights="none" pattern="PDF"/rights="read|write" pattern="PDF"/' \
     /etc/ImageMagick-*/policy.xml
 
-WORKDIR /workspace
+WORKDIR /app
 
-COPY --from=build /workspace/main ./
-COPY --from=build /workspace/document_processor/app.env ./
+COPY --from=build /app/main ./
+COPY --from=build /app/document_processor/app.env ./
 
 CMD ["./main"]

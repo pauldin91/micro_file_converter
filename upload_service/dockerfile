@@ -2,11 +2,24 @@ FROM golang:1.24 AS builder
 
 WORKDIR /app
 
-COPY . .
-RUN go mod download
+# Copy app file where it actually lives
+COPY upload_service/go.work ./upload_service/
+
+# Copy module files
+COPY common ./common
+COPY upload_service/go.mod upload_service/go.sum ./upload_service/
+
+# Run go commands FROM the app module directory
+WORKDIR /app/upload_service
+
+RUN go work sync
+RUN go mod download all
+
+# Copy source
+COPY upload_service ./
 
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o main ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /app/main ./cmd/api
 
 FROM alpine:3.21
 
@@ -14,9 +27,9 @@ WORKDIR /app
 
 COPY --from=builder /app/main /app/main
 
-COPY app.env /app/app.env
-COPY internal/db/migrations /app/internal/db/migrations
+COPY ./upload_service/app.env /app/app.env
+COPY ./upload_service/internal/db/migrations /app/internal/db/migrations
 
-COPY docs /app/docs
+COPY ./upload_service/docs /app/docs
 
 CMD ["./main"]
