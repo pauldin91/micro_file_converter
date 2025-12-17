@@ -14,7 +14,6 @@ defmodule Core.Messages.RabbitSupervisor do
           {Core.Messages.RabbitPublisher, :start_link,
            [
              [
-               queue: Application.fetch_env!(:core, :processing_queue),
                name: Core.Messages.RabbitPublisher
              ]
            ]},

@@ -36,11 +36,9 @@ defmodule CoreWeb.BatchLive.FormComponent do
       >
         <.drag_n_drop files={@uploads.files} />
         <div class="mt-4 space-y-2">
-          <label class="font-medium">Convert to pdf ?</label>
-
           <div class="mt-4 space-x-4">
-            <input type="radio" name="convert" phx-click={JS.hide(to: "#convert")} /> Yes
-            <input type="radio" name="convert" phx-click={JS.show(to: "#convert")} /> No
+            <input type="radio" name="convert" phx-click={JS.hide(to: "#convert")} /> Convert
+            <input type="radio" name="convert" phx-click={JS.show(to: "#convert")} /> Transform
           </div>
         </div>
 
@@ -88,12 +86,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
     {:ok, batch} =
       Uploads.create_batch(%{status: "pending"})
 
+    transform =
+      get_in(params, ["batch", "transform"]) || :none
+
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
         dest = Path.join([upload_dir, batch.id, entry.client_name])
-
-        transform =
-          get_in(params, ["batch", "transform"]) || :rot_90
 
         File.mkdir_p!(Path.dirname(dest))
         File.cp!(path, dest)
@@ -116,7 +114,13 @@ defmodule CoreWeb.BatchLive.FormComponent do
         metadata
         |> Map.put(:transform, params["batch"]["transform"])
 
-      Core.Messages.RabbitPublisher.publish_message(Jason.encode!(metadata))
+      queue =
+        cond do
+          transform == :none -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
+          true -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
+        end
+
+      Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(metadata))
 
       {:noreply,
        socket

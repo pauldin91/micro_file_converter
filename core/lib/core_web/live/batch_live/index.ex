@@ -7,6 +7,7 @@ defmodule CoreWeb.BatchLive.Index do
   alias Core.Items.Picture
 
   @transformations [
+    {"None", :none},
     {"90°", :rot_90},
     {"180°", :rot_180},
     {"270°", :rot_270},
