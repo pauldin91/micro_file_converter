@@ -1,8 +1,10 @@
 package main
 
 import (
+	"common"
 	"common/pkg/messages"
 	"context"
+	"encoding/json"
 	"log"
 	"micro_file_converter/internal/config"
 	"micro_file_converter/internal/service"
@@ -34,7 +36,22 @@ func main() {
 	if err != nil {
 		log.Panicf("Could not create converter: %v", err)
 	}
-	subscriber, err := service.NewSubscriber(conf, worker, 3)
+	subscriber, err := messages.NewRabbitMQSubscriber(conf.RabbitMQHost, conf.ConversionQueue, 3, true)
+
+	subscriber.SetConsumeHandler(func(body []byte) error {
+		var batch common.Batch
+		if err := json.Unmarshal(body, &batch); err != nil {
+			log.Printf("failed to deserialize body %s: %v\n", body, err)
+			return err
+		}
+
+		if err := worker.Convert(context, batch); err != nil {
+			log.Printf("batch %s failed: %v", batch.Id, err)
+			return err
+		}
+		return nil
+
+	})
 	if err != nil {
 		log.Panicf("Could not create subscriber: %v", err)
 	}

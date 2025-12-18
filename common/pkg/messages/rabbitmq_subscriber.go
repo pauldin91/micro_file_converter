@@ -16,7 +16,7 @@ type RabbitMQSubscriber struct {
 	handler                func(body []byte) error
 }
 
-func NewRabbitMQSubscriber(addr, queue string, prefetchCount int, requeueMessagesOnError bool, consumeHandler func(body []byte) error) (*RabbitMQSubscriber, error) {
+func NewRabbitMQSubscriber(addr, queue string, prefetchCount int, requeueMessagesOnError bool) (*RabbitMQSubscriber, error) {
 	conn, err := amqp.Dial(addr)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func NewRabbitMQSubscriber(addr, queue string, prefetchCount int, requeueMessage
 		queue:                  queue,
 		prefetchCount:          prefetchCount,
 		requeueMessagesOnError: requeueMessagesOnError,
-		handler:                consumeHandler,
+		handler:                func([]byte) error { return nil },
 	}, nil
 }
 

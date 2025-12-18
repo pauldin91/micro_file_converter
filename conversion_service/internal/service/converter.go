@@ -15,10 +15,9 @@ import (
 )
 
 type Converter struct {
-	conf       config.Config
-	uploadDir  string
-	publisher  messages.Publisher
-	subscriber messages.Subscriber
+	conf      config.Config
+	uploadDir string
+	publisher messages.Publisher
 }
 
 func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter, error) {
