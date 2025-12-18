@@ -50,11 +50,13 @@ services:
       - rabbit 
 
 
-  image_processor:
-    container_name: image_processor
+  image_service:
+    container_name: image_service
     build: 
-      context: image_processor
+      context: image_service
       dockerfile: dockerfile
+    env_file:
+      - image_service/app.env
     environment:
       AMQP_ADDR: amqp://rabbit:5672/%2f
     networks:

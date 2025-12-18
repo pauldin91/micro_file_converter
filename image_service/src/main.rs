@@ -10,9 +10,12 @@ async fn main() {
 
     tracing_subscriber::fmt::init();
 
-    let addr = std::env::var("AMQP_ADDR").unwrap_or_else(|_| "amqp://127.0.0.1:5672/%2f".into());
+    let rabbitmq_host =
+        std::env::var("RABBITMQ_HOST").unwrap_or_else(|_| "amqp://127.0.0.1:5672/%2f".into());
+    let transform_queue =
+        std::env::var("TRANSFORM_QUEUE").unwrap_or_else(|_| "batch.transform".into());
 
-    let conn = Connection::connect(&addr, ConnectionProperties::default())
+    let conn = Connection::connect(&rabbitmq_host, ConnectionProperties::default())
         .await
         .expect("connection error");
 
@@ -26,8 +29,8 @@ async fn main() {
     info!("will consume");
     let mut consumer = channel
         .basic_consume(
-            "batch-processing".into(),
-            "image-processor".into(),
+            &transform_queue,
+            "image_service".into(),
             BasicConsumeOptions::default(),
             FieldTable::default(),
         )
