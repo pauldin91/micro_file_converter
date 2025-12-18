@@ -63,13 +63,6 @@ defmodule CoreWeb.Router do
 
       live "/batches/:id", BatchLive.Show, :show
       live "/batches/:id/show/edit", BatchLive.Show, :edit
-
-      live "/pictures", PictureLive.Index, :index
-      live "/pictures/new", PictureLive.Index, :new
-      live "/pictures/:id/edit", PictureLive.Index, :edit
-
-      live "/pictures/:id", PictureLive.Show, :show
-      live "/pictures/:id/show/edit", PictureLive.Show, :edit
     end
 
     get "/download/:id", DownloadController, :download

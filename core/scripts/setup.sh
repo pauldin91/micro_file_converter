@@ -1,4 +1,5 @@
 #! /bin/bash
 
-mix phx.gen.live Pictures Picture pictures guid:string name:string timestamp:utc_datetime status:string
-mix phx.gen.live Transformers Transform transforms picture_id:references:pictures guid:string type:string exec:boolean 
+mix phx.gen.auth
+mix phx.gen.live Uploads Batch batches status:string --binary-id
+mix phx.gen.live Items Picture pictures  batch_id:references:batch name:string transform:string size:integer --binary-id
