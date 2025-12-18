@@ -15,6 +15,6 @@ build/
 __debug_*
 
 target/
-app.env
 *.env
 k8s/
+upload_service/app.env
