@@ -1,6 +1,7 @@
 package main
 
 import (
+	"common/pkg/messages"
 	"context"
 	"log"
 	"micro_file_converter/internal/config"
@@ -25,7 +26,7 @@ func main() {
 	context, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	publisher, err := service.NewPublisher(conf)
+	publisher, err := messages.NewRabbitMQPublisher(conf.RabbitMQHost, conf.ConversionQueue)
 	if err != nil {
 		log.Panicf("Could not create publisher: %v", err)
 	}

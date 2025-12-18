@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"common/pkg/rabbitmq"
+	"common/pkg/messages"
 	"context"
 	"encoding/json"
 	"io"
@@ -20,14 +20,14 @@ import (
 )
 
 type UploadHandler struct {
-	publisher   *rabbitmq.Publisher
+	publisher   messages.Publisher
 	uploadStore db.UploadStore
 	userStore   db.UserStore
 	fileStore   db.FileStore
 	uploadDir   string
 }
 
-func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
+func NewUploadHandler(cfg config.Config, store db.Store, publisher messages.Publisher) UploadHandler {
 	var uploadDir string = cfg.UploadDir
 	if len(cfg.UploadDir) == 0 {
 		cwd, _ := os.Getwd()
@@ -36,7 +36,7 @@ func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
 
 	log.Info().Msgf("upload path is: %s\n", uploadDir)
 	return UploadHandler{
-		publisher:   rabbitmq.NewPublisher(cfg.RabbitMQHost, cfg.ConversionQueue),
+		publisher:   publisher,
 		uploadStore: store,
 		userStore:   store,
 		fileStore:   store,
@@ -125,8 +125,10 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 		Email: email,
 		Id:    batchId,
 	}
+	searialized, _ := json.Marshal(dto)
+
 	go func() {
-		handler.publisher.Publish(dto)
+		handler.publisher.Publish(searialized)
 	}()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

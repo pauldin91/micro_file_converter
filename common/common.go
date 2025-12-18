@@ -1,9 +1,11 @@
 package common
 
 import (
-	"common/pkg/rabbitmq"
+	"common/pkg/messages"
 	"common/pkg/types"
 )
 
-type Publisher rabbitmq.Publisher
+type RabbitMQSubscriber messages.RabbitMQSubscriber
+type RabbitMQPublisher messages.RabbitMQPublisher
+type Publisher messages.Publisher
 type Batch types.Batch

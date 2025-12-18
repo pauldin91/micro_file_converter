@@ -17,12 +17,6 @@ migrate_version:
 new_migration:
 	migrate create -ext sql -dir  -seq $(name)
 
-docs:
-	dbdocs build doc/db.dbml
-
-gen:
-	sqlc generate
-
 test:
 	go test -v -cover -short ./...
 

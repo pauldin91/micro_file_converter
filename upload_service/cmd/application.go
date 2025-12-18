@@ -1,6 +1,7 @@
 package api
 
 import (
+	"common/pkg/messages"
 	"context"
 	"net/http"
 	"os"
@@ -80,7 +81,11 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 
 	store := db.NewStore(connPool)
 
-	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store)
+	publisher, err := messages.NewRabbitMQPublisher(cfg.RabbitMQHost, cfg.ConversionQueue)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot connect to RabbitMQ")
+	}
+	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store, publisher)
 	router.Post(constants.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
 }

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"common"
+	"common/pkg/messages"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -10,17 +12,16 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-
-	"common"
 )
 
 type Converter struct {
-	conf      config.Config
-	uploadDir string
-	publisher *Publisher
+	conf       config.Config
+	uploadDir  string
+	publisher  messages.Publisher
+	subscriber messages.Subscriber
 }
 
-func NewConverter(conf config.Config, publisher *Publisher) (*Converter, error) {
+func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter, error) {
 	uploadDir := conf.UploadDir
 	if uploadDir == "" {
 		cwd, err := os.Getwd()

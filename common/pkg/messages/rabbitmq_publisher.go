@@ -1,20 +1,19 @@
-package service
+package messages
 
 import (
 	"context"
-	"micro_file_converter/internal/config"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type Publisher struct {
+type RabbitMQPublisher struct {
 	conn  *amqp.Connection
 	ch    *amqp.Channel
 	queue string
 }
 
-func NewPublisher(cfg config.Config) (*Publisher, error) {
-	conn, err := amqp.Dial(cfg.RabbitMQHost)
+func NewRabbitMQPublisher(addr, queue string) (*RabbitMQPublisher, error) {
+	conn, err := amqp.Dial(addr)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +25,7 @@ func NewPublisher(cfg config.Config) (*Publisher, error) {
 	}
 
 	if _, err := ch.QueueDeclare(
-		cfg.ProcessedQueue,
+		queue,
 		true,
 		false,
 		false,
@@ -38,14 +37,14 @@ func NewPublisher(cfg config.Config) (*Publisher, error) {
 		return nil, err
 	}
 
-	return &Publisher{
+	return &RabbitMQPublisher{
 		conn:  conn,
 		ch:    ch,
-		queue: cfg.ProcessedQueue,
+		queue: queue,
 	}, nil
 }
 
-func (p *Publisher) Publish(body []byte) error {
+func (p *RabbitMQPublisher) Publish(body []byte) error {
 	return p.ch.PublishWithContext(
 		context.Background(),
 		"",
@@ -53,13 +52,14 @@ func (p *Publisher) Publish(body []byte) error {
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
+			ContentType:  "application/json",
+			Body:         body,
+			DeliveryMode: amqp.Persistent,
 		},
 	)
 }
 
-func (p *Publisher) Close() error {
+func (p *RabbitMQPublisher) Close() error {
 	if err := p.ch.Close(); err != nil {
 		return err
 	}
