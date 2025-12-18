@@ -33,7 +33,7 @@ func NewSubscriber(cfg config.Config, converter *Converter, workers int) (*Subsc
 	}
 
 	if _, err := ch.QueueDeclare(
-		cfg.PendingQueue,
+		cfg.ConversionQueue,
 		true,
 		false,
 		false,
@@ -54,7 +54,7 @@ func NewSubscriber(cfg config.Config, converter *Converter, workers int) (*Subsc
 	return &Subscriber{
 		conn:      conn,
 		ch:        ch,
-		queue:     cfg.PendingQueue,
+		queue:     cfg.ConversionQueue,
 		workers:   workers,
 		converter: converter,
 	}, nil

@@ -28,15 +28,15 @@ type UploadHandler struct {
 }
 
 func NewUploadHandler(cfg config.Config, store db.Store) UploadHandler {
-	var uploadDir string = cfg.UploadData
-	if len(cfg.UploadData) == 0 {
+	var uploadDir string = cfg.UploadDir
+	if len(cfg.UploadDir) == 0 {
 		cwd, _ := os.Getwd()
 		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
 	}
 
 	log.Info().Msgf("upload path is: %s\n", uploadDir)
 	return UploadHandler{
-		publisher:   rabbitmq.NewPublisher(cfg.Amqp, cfg.BatchQueue),
+		publisher:   rabbitmq.NewPublisher(cfg.RabbitMQHost, cfg.ConversionQueue),
 		uploadStore: store,
 		userStore:   store,
 		fileStore:   store,

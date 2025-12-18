@@ -8,10 +8,10 @@ import (
 )
 
 type Config struct {
-	RabbitMQHost   string `mapstructure:"RABBITMQ_HOST"`
-	PendingQueue   string `mapstructure:"PENDING_QUEUE"`
-	ProcessedQueue string `mapstructure:"PROCESSED_QUEUE"`
-	UploadData     string `mapstructure:"UPLOAD_DATA_VOLUME"`
+	RabbitMQHost    string `mapstructure:"RABBITMQ_HOST"`
+	ConversionQueue string `mapstructure:"CONVERSION_QUEUE"`
+	ProcessedQueue  string `mapstructure:"PROCESSED_QUEUE"`
+	UploadDir       string `mapstructure:"UPLOAD_DIR"`
 }
 
 func LoadConfig() (Config, error) {

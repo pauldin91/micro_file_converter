@@ -1,18 +1,17 @@
-DBSRC=postgresql://postgres:mysecretpassword@localhost:5432/upload_service_dev?sslmode=disable
 include app.env
 
 up:
-	migrate -path $(MIGRATIONS) -database "$(DBSRC)"  up $(times)
+	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)"  up $(times)
 
 down:
-	migrate -path $(MIGRATIONS) -database "$(DBSRC)"  down $(times)  
+	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)"  down $(times)  
 
 dirty:
-	migrate -path $(MIGRATIONS) -database "$(DBSRC)" force $(version)  
+	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)" force $(version)  
 	make down
 
 migrate_version:
-	migrate -path $(MIGRATIONS) -database "$(DBSRC)" version
+	migrate -path $(MIGRATIONS) -database "$(DATABASE_URL)" version
 
 
 new_migration:

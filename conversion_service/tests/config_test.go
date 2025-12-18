@@ -20,7 +20,7 @@ func TestOverwriteCfg(t *testing.T) {
 		log.Println("could load cfg")
 	}
 	if cfg.RabbitMQHost != "amqp://guest:guest@rabbit:5672/" ||
-		cfg.PendingQueue != "Q" {
+		cfg.ConversionQueue != "Q" {
 		t.Errorf("cfg could not be overwritten %s", err)
 	}
 

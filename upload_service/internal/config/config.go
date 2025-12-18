@@ -11,12 +11,12 @@ import (
 
 type Config struct {
 	Environment       string `mapstructure:"ENVIRONMENT"`
-	DbConn            string `mapstructure:"DB_SOURCE"`
+	DbConn            string `mapstructure:"DATABASE_URL"`
 	HttpServerAddress string `mapstructure:"HTTP_SERVER_ADDRESS"`
-	Amqp              string `mapstructure:"AMQP"`
-	BatchQueue        string `mapstructure:"BATCH_QUEUE"`
-	MigrationDest     string `mapstructure:"MIGRATIONS"`
-	UploadData        string `mapstructure:"UPLOAD_DATA_VOLUME"`
+	RabbitMQHost      string `mapstructure:"RABBITMQ_HOST"`
+	ConversionQueue   string `mapstructure:"CONVERSION_QUEUE"`
+	MigrationsDir     string `mapstructure:"MIGRATIONS_DIR"`
+	UploadDir         string `mapstructure:"UPLOAD_DIR"`
 }
 
 func IsUnderDebugger() bool {

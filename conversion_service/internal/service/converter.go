@@ -21,7 +21,7 @@ type Converter struct {
 }
 
 func NewConverter(conf config.Config, publisher *Publisher) (*Converter, error) {
-	uploadDir := conf.UploadData
+	uploadDir := conf.UploadDir
 	if uploadDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {

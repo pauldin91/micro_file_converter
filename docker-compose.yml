@@ -37,7 +37,7 @@ services:
     env_file:
       - conversion_service/app.env
     environment:
-      - UPLOAD_DATA_VOLUME=/data/uploads
+      - UPLOAD_DIR=/data/uploads
       - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     volumes:
       - ./uploads:/data/uploads  
@@ -74,8 +74,8 @@ services:
     env_file:
       - upload_service/app.env
     environment:
-      - UPLOAD_DATA_VOLUME=/data/uploads
-      - AMQP=amqp://guest:guest@rabbit:5672
+      - UPLOAD_DIR=/data/uploads
+      - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     ports:
       - "8080:8080"
     volumes:
