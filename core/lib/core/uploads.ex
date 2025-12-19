@@ -6,6 +6,7 @@ defmodule Core.Uploads do
   import Ecto.Query, warn: false
   alias Core.Repo
   alias Core.Uploads.Batch
+  alias Core.Accounts.User
 
   @doc """
   Returns the list of batches.
@@ -48,9 +49,10 @@ defmodule Core.Uploads do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_batch(attrs \\ %{}) do
+  def create_batch(%User{} = user, attrs \\ %{}) do
     %Batch{}
     |> Batch.changeset(attrs)
+    |> Ecto.build_assoc(:user, user)
     |> Repo.insert()
     |> broadcast(:batch_created)
   end

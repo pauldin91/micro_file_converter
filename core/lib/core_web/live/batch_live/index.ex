@@ -70,25 +70,21 @@ defmodule CoreWeb.BatchLive.Index do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     user = socket.assigns.current_user
 
-    dbg(user)
-    dbg(user.id)
-
     transform =
       get_in(params, ["batch", "transform"]) || :none
 
     {:ok, batch} =
-      Uploads.create_batch(%{
+      Uploads.create_batch(user, %{
         status: "pending",
         transform: transform,
-        id: batch_id,
-        user_id: user.id
+        id: batch_id
       })
 
     Enum.each(uploads, fn entry ->
       dest = Path.join([upload_dir, batch.id, entry.client_name])
 
       {:ok, _picture} =
-        Items.create_picture(%{
+        Items.create_picture(batch, %{
           batch_id: batch_id,
           name: entry.client_name,
           size: File.stat!(dest).size
@@ -96,10 +92,8 @@ defmodule CoreWeb.BatchLive.Index do
     end)
 
     if uploads != [] do
-      metadata = Storage.save_files(batch.id, uploads)
-
       metadata =
-        metadata
+        Storage.save_files(batch.id, uploads)
         |> Map.put(:transform, params["batch"]["transform"])
 
       queue =

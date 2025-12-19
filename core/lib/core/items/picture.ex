@@ -7,7 +7,7 @@ defmodule Core.Items.Picture do
   schema "pictures" do
     field :name, :string
     field :size, :integer
-    field :batch_id, :binary_id
+    belongs_to :batch, Core.Uploads.Batch
 
     timestamps(type: :utc_datetime)
   end
@@ -17,5 +17,6 @@ defmodule Core.Items.Picture do
     picture
     |> cast(attrs, [:name, :batch_id, :size])
     |> validate_required([:name, :batch_id, :size])
+    |> assoc_constraint(:batch)
   end
 end

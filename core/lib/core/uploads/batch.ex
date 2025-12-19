@@ -17,5 +17,6 @@ defmodule Core.Uploads.Batch do
     batch
     |> cast(attrs, [:id, :user_id, :status, :transform])
     |> validate_required([:id, :user_id, :status, :transform])
+    |> assoc_constraint(:user)
   end
 end
