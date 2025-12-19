@@ -65,6 +65,62 @@ defmodule CoreWeb.BatchLive.Index do
      |> put_flash(:info, "Processing complete for #{guid}")}
   end
 
+  @impl true
+  def handle_info({:save_batch, params, batch_id, uploads}, socket) do
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    user = socket.assigns.current_user
+
+    dbg(user)
+    dbg(user.id)
+
+    transform =
+      get_in(params, ["batch", "transform"]) || :none
+
+    {:ok, batch} =
+      Uploads.create_batch(%{
+        status: "pending",
+        transform: transform,
+        id: batch_id,
+        user_id: user.id
+      })
+
+    Enum.each(uploads, fn entry ->
+      dest = Path.join([upload_dir, batch.id, entry.client_name])
+
+      {:ok, _picture} =
+        Items.create_picture(%{
+          batch_id: batch_id,
+          name: entry.client_name,
+          size: File.stat!(dest).size
+        })
+    end)
+
+    if uploads != [] do
+      metadata = Storage.save_files(batch.id, uploads)
+
+      metadata =
+        metadata
+        |> Map.put(:transform, params["batch"]["transform"])
+
+      queue =
+        cond do
+          transform == :none -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
+          true -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
+        end
+
+      Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(metadata))
+
+      {:noreply,
+       socket
+       |> assign(:batch_id, batch.id)
+       |> assign(:metadata, metadata)
+       |> assign(:uploaded_files, uploads)
+       |> put_flash(:info, "Files uploaded with batch id #{batch.id}")}
+    else
+      {:noreply, socket}
+    end
+  end
+
   def handle_info({:batch_created, batch}, socket) do
     {:noreply, stream_insert(socket, :batches, batch)}
   end

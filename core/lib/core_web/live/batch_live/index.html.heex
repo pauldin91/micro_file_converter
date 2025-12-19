@@ -1,5 +1,5 @@
 <.header>
-  Uploads
+  Uploads of {@current_user.email}
   <:actions>
     <.link patch={~p"/batches/new"}>
       <.icon name="hero-document-plus" class="w-7 h-7" />
@@ -9,7 +9,7 @@
   <:actions>
     <.button
       phx-click="purge"
-      data-confirm="Are you sure you want to delete all batches?"
+      data-confirm="Are you sure you want to delete all your batches?"
       class="bg-red-500 hover:bg-red-500"
     >
       <.icon name="hero-trash" class="w-7 h-7" />

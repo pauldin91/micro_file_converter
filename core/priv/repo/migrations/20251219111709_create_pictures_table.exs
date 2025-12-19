@@ -1,11 +1,10 @@
-defmodule Core.Repo.Migrations.CreatePictures do
+defmodule Core.Repo.Migrations.CreatePicturesTable do
   use Ecto.Migration
 
   def change do
     create table(:pictures, primary_key: false) do
       add :id, :binary_id, primary_key: true
       add :name, :string
-      add :transform, :string
       add :size, :integer
       add :batch_id, references(:batches, on_delete: :delete_all, type: :binary_id)
 

@@ -56,16 +56,7 @@ defmodule CoreWeb.Router do
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
-
-      live "/batches", BatchLive.Index, :index
-      live "/batches/new", BatchLive.Index, :new
-      live "/batches/:id/edit", BatchLive.Index, :edit
-
-      live "/batches/:id", BatchLive.Show, :show
-      live "/batches/:id/show/edit", BatchLive.Show, :edit
     end
-
-    get "/download/:id", DownloadController, :download
 
     post "/users/log_in", UserSessionController, :create
   end
@@ -77,7 +68,15 @@ defmodule CoreWeb.Router do
       on_mount: [{CoreWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+      live "/batches", BatchLive.Index, :index
+      live "/batches/new", BatchLive.Index, :new
+      live "/batches/:id/edit", BatchLive.Index, :edit
+
+      live "/batches/:id", BatchLive.Show, :show
+      live "/batches/:id/show/edit", BatchLive.Show, :edit
     end
+
+    get "/download/:id", DownloadController, :download
   end
 
   scope "/", CoreWeb do

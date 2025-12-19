@@ -7,7 +7,6 @@ defmodule Core.Items.Picture do
   schema "pictures" do
     field :name, :string
     field :size, :integer
-    field :transform, :string
     field :batch_id, :binary_id
 
     timestamps(type: :utc_datetime)
@@ -16,7 +15,7 @@ defmodule Core.Items.Picture do
   @doc false
   def changeset(picture, attrs) do
     picture
-    |> cast(attrs, [:name, :transform, :size])
-    |> validate_required([:name, :transform, :size])
+    |> cast(attrs, [:name, :batch_id, :size])
+    |> validate_required([:name, :batch_id, :size])
   end
 end

@@ -5,7 +5,7 @@ defmodule Core.Uploads do
 
   import Ecto.Query, warn: false
   alias Core.Repo
-
+  alias Core.Accounts.User
   alias Core.Uploads.Batch
 
   @doc """
