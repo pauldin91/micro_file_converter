@@ -25,7 +25,6 @@ defmodule CoreWeb.BatchLive.Index do
     {:ok,
      stream(socket, :batches, Uploads.list_batches())
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
-     |> assign(:metadata, nil)
      |> assign(:transform, nil)
      |> assign(:transformations, @transformations)
      |> assign(:batch_id, nil)
@@ -56,64 +55,11 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   @impl true
-  def handle_info({:batch_processed, payload}, socket) do
-    metadata = Jason.decode!(payload)
-    guid = metadata["batch_id"]
-
+  def handle_info({:batch_processed, batch_id}, socket) do
     {:noreply,
      socket
-     |> put_flash(:info, "Processing complete for #{guid}")}
+     |> put_flash(:info, "Processing complete for #{batch_id}")}
   end
-
-  # @impl true
-  # def handle_info({:save_batch, params, batch_id, uploads}, socket) do
-  #   upload_dir = Application.fetch_env!(:core, :uploads_dir)
-  #   user = socket.assigns.current_user
-
-  #   transform =
-  #     get_in(params, ["batch", "transform"]) || :none
-
-  #   {:ok, batch} =
-  #     Uploads.create_batch(user, %{
-  #       status: "pending",
-  #       transform: transform,
-  #       id: batch_id
-  #     })
-
-  #   Enum.each(uploads, fn entry ->
-  #     dest = Path.join([upload_dir, batch.id, entry.client_name])
-
-  #     {:ok, _picture} =
-  #       Items.create_picture(batch, %{
-  #         batch_id: batch_id,
-  #         name: entry.client_name,
-  #         size: File.stat!(dest).size
-  #       })
-  #   end)
-
-  #   if uploads != [] do
-  #     metadata =
-  #       Storage.save_files(batch.id, uploads)
-  #       |> Map.put(:transform, params["batch"]["transform"])
-
-  #     queue =
-  #       cond do
-  #         transform == :none -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
-  #         true -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
-  #       end
-
-  #     Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(metadata))
-
-  #     {:noreply,
-  #      socket
-  #      |> assign(:batch_id, batch.id)
-  #      |> assign(:metadata, metadata)
-  #      |> assign(:uploaded_files, uploads)
-  #      |> put_flash(:info, "Files uploaded with batch id #{batch.id}")}
-  #   else
-  #     {:noreply, socket}
-  #   end
-  # end
 
   def handle_info({:batch_created, batch}, socket) do
     {:noreply, stream_insert(socket, :batches, batch)}

@@ -1,4 +1,9 @@
 defmodule Core.Storage do
+  def get_storage_path(%{batch_id: id, name: filename}) do
+    upload_dir = Application.fetch_env!(:core, :uploads_dir)
+    Path.join([upload_dir, id, filename])
+  end
+
   def purge_uploads() do
     dir = Application.fetch_env!(:core, :uploads_dir)
     files = File.ls!(dir) |> Enum.map(&String.to_charlist/1)
@@ -58,7 +63,7 @@ defmodule Core.Storage do
     end
   end
 
-  def save_files(batch_id, uploaded_entries) do
+  def save_files(uploaded_entries, batch_id) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     batch_dir = Path.join([upload_dir, batch_id])
 
@@ -78,9 +83,9 @@ defmodule Core.Storage do
         uploaded_entries
         |> Enum.map(fn entry ->
           %{
-            filename: entry.client_name,
+            filename: entry.name,
             size: File.stat!(entry.path).size,
-            content_type: entry.client_type
+            content_type: entry.type
           }
         end),
       file_count: length(uploaded_entries)

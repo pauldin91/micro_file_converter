@@ -2,7 +2,7 @@ defmodule Core.Uploads.Batch do
   use Ecto.Schema
   import Ecto.Changeset
 
-  @primary_key {:id, :binary_id, autogenerate: true}
+  @primary_key {:id, :binary_id, autogenerate: false}
   @foreign_key_type :integer
   schema "batches" do
     field :status, :string
@@ -17,7 +17,7 @@ defmodule Core.Uploads.Batch do
   @doc false
   def changeset(batch, attrs) do
     batch
-    |> cast(attrs, [:status, :transform, :user_id])
-    |> validate_required([:status, :user_id])
+    |> cast(attrs, [:id, :status, :transform, :user_id])
+    |> validate_required([:status, :transform, :user_id])
   end
 end
