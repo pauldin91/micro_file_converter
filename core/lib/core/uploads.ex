@@ -6,7 +6,6 @@ defmodule Core.Uploads do
   import Ecto.Query, warn: false
   alias Core.Repo
   alias Core.Uploads.Batch
-  alias Core.Accounts.User
 
   @doc """
   Returns the list of batches.
@@ -17,8 +16,9 @@ defmodule Core.Uploads do
       [%Batch{}, ...]
 
   """
-  def list_batches do
+  def list_batches() do
     Repo.all(Batch)
+    |> Repo.preload(:user)
   end
 
   @doc """
@@ -49,10 +49,9 @@ defmodule Core.Uploads do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_batch(%User{} = user, attrs \\ %{}) do
+  def create_batch(attrs \\ %{}) do
     %Batch{}
     |> Batch.changeset(attrs)
-    |> Ecto.build_assoc(:user, user)
     |> Repo.insert()
     |> broadcast(:batch_created)
   end
@@ -108,7 +107,8 @@ defmodule Core.Uploads do
 
   """
   def change_batch(%Batch{} = batch, attrs \\ %{}) do
-    Batch.changeset(batch, attrs)
+    batch
+    |> Batch.changeset(attrs)
   end
 
   def broadcast({:error, _reason} = error, _event), do: error
@@ -119,7 +119,6 @@ defmodule Core.Uploads do
   end
 
   def broadcast({count, nil}, event) do
-    dbg(event)
     Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, count})
     {:ok, count}
   end

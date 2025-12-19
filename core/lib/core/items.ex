@@ -7,7 +7,6 @@ defmodule Core.Items do
   alias Core.Repo
 
   alias Core.Items.Picture
-  alias Core.Uploads.Batch
 
   @doc """
   Returns the list of pictures.
@@ -50,10 +49,9 @@ defmodule Core.Items do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_picture(%Batch{} = batch, attrs \\ %{}) do
+  def create_picture(attrs \\ %{}) do
     %Picture{}
     |> Picture.changeset(attrs)
-    |> Ecto.build_assoc(:batch, batch)
     |> Repo.insert()
   end
 

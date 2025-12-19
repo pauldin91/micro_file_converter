@@ -8,6 +8,7 @@ defmodule Core.Accounts.User do
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
+    has_many :batches, Core.Uploads.Batch, on_delete: :delete_all
 
     timestamps(type: :utc_datetime)
   end

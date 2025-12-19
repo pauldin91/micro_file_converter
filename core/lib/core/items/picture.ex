@@ -17,6 +17,5 @@ defmodule Core.Items.Picture do
     picture
     |> cast(attrs, [:name, :batch_id, :size])
     |> validate_required([:name, :batch_id, :size])
-    |> assoc_constraint(:batch)
   end
 end
