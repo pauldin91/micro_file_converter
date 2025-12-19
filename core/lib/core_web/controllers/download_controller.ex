@@ -1,9 +1,9 @@
 defmodule CoreWeb.DownloadController do
   use CoreWeb, :controller
-  alias Core.Uploads
+  alias Core.Storage
 
   def download(conn, %{"id" => id}) do
-    case Uploads.download_batch(id) do
+    case Storage.download_batch(id) do
       {:ok, zip_path} ->
         zip_filename = "#{id}.zip"
 

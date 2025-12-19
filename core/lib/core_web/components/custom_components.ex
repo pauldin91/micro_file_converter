@@ -1,7 +1,7 @@
 defmodule CoreWeb.CustomComponents do
   use Phoenix.Component
   import CoreWeb.CoreComponents, only: [button: 1]
-  alias Core.Uploads
+  alias Core.UploadFormatter
 
   attr :files, :any, required: true
 
@@ -13,7 +13,7 @@ defmodule CoreWeb.CustomComponents do
           <div class="flex items-center">
             <div class="text-sm font-medium text-base-content">{entry.client_name}</div>
             <div class="text-sm text-base-content/70 ml-2">
-              ({Uploads.format_bytes(entry.client_size)})
+              ({UploadFormatter.format_bytes(entry.client_size)})
             </div>
           </div>
 

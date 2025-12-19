@@ -22,7 +22,7 @@
       <ul :for={file <- @metadata["files"]} class="space-y-1">
         <li class="flex justify-between items-center text-sm text-base-content">
           <span>{file["filename"]}</span>
-          <span class="text-base-content/70">({Uploads.format_bytes(file["size"])})</span>
+          <span class="text-base-content/70">({UploadFormatter.format_bytes(file["size"])})</span>
         </li>
       </ul>
     </div>

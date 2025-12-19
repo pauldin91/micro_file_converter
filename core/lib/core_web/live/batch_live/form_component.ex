@@ -1,7 +1,9 @@
 defmodule CoreWeb.BatchLive.FormComponent do
   use CoreWeb, :live_component
   alias Core.Uploads
+  alias Core.Storage
   alias Core.Items
+  alias Core.UploadFormatter
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
@@ -55,7 +57,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
       end)
 
     if uploaded_files != [] do
-      metadata = Uploads.save_files(batch.id, uploaded_files)
+      metadata = Storage.save_files(batch.id, uploaded_files)
 
       metadata =
         metadata

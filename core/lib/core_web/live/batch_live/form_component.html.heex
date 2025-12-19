@@ -31,7 +31,7 @@
     <.display_uploads files={@uploads.files} />
 
     <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
-      {Uploads.error_to_string(err)}
+      {UploadFormatter.error_to_string(err)}
     </div>
 
     <:actions>
