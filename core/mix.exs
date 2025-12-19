@@ -59,7 +59,8 @@ defmodule Core.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:amqp, "~> 3.3"}
+      {:amqp, "~> 3.3"},
+      {:ueberauth_github, "~> 0.8"}
     ]
   end
 

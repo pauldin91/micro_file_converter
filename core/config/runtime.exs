@@ -38,6 +38,14 @@ config :core, :processing_queues, processing_queues
 processed_queue = System.get_env("PROCESSED_QUEUE") || "batch.processed"
 config :core, :processed_queue, processed_queue
 
+config :ueberauth, Ueberauth.Strategy.Github.OAuth,
+  client_id:
+    System.get_env("GITHUB_CLIENT_ID") ||
+      raise("Github client_id not found",
+        client_secret:
+          System.get_env("GITHUB_CLIENT_SECRET") || raise("Github client_secret not found")
+      )
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||
