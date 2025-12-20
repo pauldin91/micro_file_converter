@@ -2,7 +2,7 @@ defmodule CoreWeb.BatchLive.Show do
   use CoreWeb, :live_view
 
   alias Core.Uploads
-  alias Core.Storage
+  alias Core.Metadata
   alias Core.UploadFormatter
   on_mount {CoreWeb.Live.EnsureOwner, :default}
 
@@ -11,7 +11,7 @@ defmodule CoreWeb.BatchLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:metadata, Storage.load_metadata(id))
+     |> assign(:metadata, Metadata.load_metadata(id))
      |> assign(:batch, Uploads.get_batch!(id))}
   end
 

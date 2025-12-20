@@ -2,7 +2,7 @@ defmodule CoreWeb.BatchLive.Index do
   use CoreWeb, :live_view
 
   alias Core.Uploads
-  alias Core.Storage
+  alias Core.Handlers
   alias Core.Uploads.Batch
   alias Core.Items
   alias Core.Items.Picture
@@ -100,11 +100,12 @@ defmodule CoreWeb.BatchLive.Index do
 
   @impl true
   def handle_event("purge", _params, socket) do
-    {:ok, _} = Uploads.delete_batches()
-    Storage.purge_uploads()
+    Handlers.purge_user_batches(socket.assigns.current_user.id)
 
-    {:noreply,
-     socket
-     |> stream(:batches, [])}
+    {
+      :noreply,
+      socket
+      |> stream(:batches, [])
+    }
   end
 end

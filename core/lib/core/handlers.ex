@@ -1,4 +1,5 @@
 defmodule Core.Handlers do
+  alias Core.Metadata
   alias Core.Uploads
   alias Core.Storage
   alias Core.Items
@@ -12,22 +13,21 @@ defmodule Core.Handlers do
         user_id: user_id
       })
 
-    Enum.each(files, &handle_upload(&1, batch_id))
+    Enum.each(files, &link_pictures(&1, batch_id))
 
     metadata =
-      Storage.save_files(files, batch.id)
+      Metadata.save_metadata(files, batch.id)
 
-    queue =
-      cond do
-        transform == :none -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
-        true -> Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
-      end
+    queue = get_event_queue(transform)
 
     Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(metadata))
     {:ok, batch.id}
   end
 
-  def handle_upload(%{path: path, name: name}, id) do
+  def get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
+  def get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
+
+  def link_pictures(%{path: path, name: name}, id) do
     with {:ok, %File.Stat{size: size}} <- File.stat(path),
          {:ok, _picture} <-
            Items.create_picture(%{
@@ -43,5 +43,12 @@ defmodule Core.Handlers do
       other ->
         {:error, other}
     end
+  end
+
+  def purge_user_batches(user_id) do
+    Uploads.list_batch_ids_of_user(user_id)
+    |> Storage.purge_uploads_with_ids()
+
+    Uploads.delete_batches_of_user(user_id)
   end
 end

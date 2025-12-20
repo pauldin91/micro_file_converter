@@ -14,13 +14,19 @@ defmodule Core.Storage do
     )
   end
 
-  def load_metadata(batch_id) do
-    upload_dir = Application.fetch_env!(:core, :uploads_dir)
-    batch_dir = Path.join([upload_dir, batch_id])
+  def purge_uploads_with_ids(batch_ids) do
+    dir = Application.fetch_env!(:core, :uploads_dir)
+    batches = MapSet.new(batch_ids)
 
-    metadata_path = Path.join([batch_dir, "metadata.json"])
-    file_metadata = File.read!(metadata_path)
-    Jason.decode!(file_metadata)
+    files =
+      File.ls!(dir)
+      |> Enum.filter(&MapSet.member?(batches, &1))
+      |> Enum.map(&String.to_charlist/1)
+
+    Enum.each(
+      files,
+      &File.rm_rf!(Path.join([dir, &1]))
+    )
   end
 
   def download_batch(id) do
@@ -43,13 +49,6 @@ defmodule Core.Storage do
     end
   end
 
-  @spec purge_batch(
-          binary()
-          | maybe_improper_list(
-              binary() | maybe_improper_list(any(), binary() | []) | char(),
-              binary() | []
-            )
-        ) :: {:error, :not_found} | {:ok, [binary()]} | {:error, atom(), binary()}
   def purge_batch(id) do
     dir = Path.join([Application.fetch_env!(:core, :uploads_dir), id])
 
@@ -61,34 +60,5 @@ defmodule Core.Storage do
     else
       {:error, :not_found}
     end
-  end
-
-  def save_files(uploaded_entries, batch_id) do
-    upload_dir = Application.fetch_env!(:core, :uploads_dir)
-    batch_dir = Path.join([upload_dir, batch_id])
-
-    metadata = create_metadata(batch_id, uploaded_entries)
-
-    metadata_path = Path.join([batch_dir, "metadata.json"])
-    File.mkdir_p!(Path.dirname(metadata_path))
-    File.write!(metadata_path, Jason.encode!(metadata, pretty: true))
-    metadata
-  end
-
-  def create_metadata(batch_id, uploaded_entries) do
-    %{
-      batch_id: batch_id,
-      timestamp: DateTime.utc_now(),
-      files:
-        uploaded_entries
-        |> Enum.map(fn entry ->
-          %{
-            filename: entry.name,
-            size: File.stat!(entry.path).size,
-            content_type: entry.type
-          }
-        end),
-      file_count: length(uploaded_entries)
-    }
   end
 end

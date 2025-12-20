@@ -14,7 +14,7 @@ defmodule CoreWeb.Live.EnsureOwner do
       {:halt,
        socket
        |> put_flash(:error, "You are not authorized to access this resource")
-       |> redirect(to: "/")}
+       |> redirect(to: "/batches")}
     end
   end
 

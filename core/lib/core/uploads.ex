@@ -21,6 +21,13 @@ defmodule Core.Uploads do
     |> Repo.preload(:user)
   end
 
+  def list_batch_ids_of_user(user_id) do
+    Batch
+    |> where(user_id: ^user_id)
+    |> select([b], b.id)
+    |> Repo.all()
+  end
+
   def list_batches_of_user(user_id) do
     Repo.all_by(Batch, user_id: user_id)
     |> Repo.preload(:user)
@@ -95,6 +102,12 @@ defmodule Core.Uploads do
   def delete_batch(%Batch{} = batch) do
     Repo.delete(batch)
     |> broadcast(:batch_deleted)
+  end
+
+  def delete_batches_of_user(user_id) do
+    from(b in Batch, where: b.user_id == ^user_id)
+    |> Repo.delete_all()
+    |> broadcast(:batches_purged)
   end
 
   def delete_batches() do
