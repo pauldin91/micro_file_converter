@@ -21,6 +21,11 @@ defmodule Core.Uploads do
     |> Repo.preload(:user)
   end
 
+  def list_batches_of_user(user_id) do
+    Repo.all_by(Batch, user_id: user_id)
+    |> Repo.preload(:user)
+  end
+
   @doc """
   Gets a single batch.
 

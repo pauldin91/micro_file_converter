@@ -22,8 +22,10 @@ defmodule CoreWeb.BatchLive.Index do
       Phoenix.PubSub.subscribe(Core.PubSub, "batch:processed")
     end
 
+    user = socket.assigns.current_user
+
     {:ok,
-     stream(socket, :batches, Uploads.list_batches())
+     stream(socket, :batches, Uploads.list_batches_of_user(user.id))
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
      |> assign(:transform, nil)
      |> assign(:transformations, @transformations)
@@ -84,9 +86,16 @@ defmodule CoreWeb.BatchLive.Index do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     batch = Uploads.get_batch!(id)
-    {:ok, _} = Uploads.delete_batch(batch)
 
-    {:noreply, stream_delete(socket, :batches, batch)}
+    case batch.user_id == socket.assign.current_user.id do
+      true ->
+        with {:ok, _} <- Uploads.delete_batch(batch) do
+          {:noreply, stream_delete(socket, :batches, batch)}
+        end
+
+      false ->
+        {:noreply, socket |> put_flash(:error, "Invalid operation")}
+    end
   end
 
   @impl true

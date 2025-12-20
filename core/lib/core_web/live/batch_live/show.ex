@@ -4,6 +4,7 @@ defmodule CoreWeb.BatchLive.Show do
   alias Core.Uploads
   alias Core.Storage
   alias Core.UploadFormatter
+  on_mount {CoreWeb.Live.EnsureOwner, :default}
 
   @impl true
   def handle_params(%{"id" => id}, _, socket) do
