@@ -38,35 +38,61 @@ func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter,
 	}, nil
 }
 
-func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
-	inputDir := filepath.Join(c.uploadDir, batch.Id)
+func (c *Converter) getUploadDirectoriesForBatch(batchId string) (string, string) {
+	inputDir := filepath.Join(c.uploadDir, batchId)
 	outputDir := filepath.Join(inputDir, "converted")
+	return inputDir, outputDir
+}
 
+func (c *Converter) fetchBatchFilenames(batchId string) ([]string, error) {
+	inputDir, outputDir := c.getUploadDirectoriesForBatch(batchId)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return fmt.Errorf("create output dir: %w", err)
+		return nil, fmt.Errorf("create output dir: %w", err)
 	}
 
 	entries, err := os.ReadDir(inputDir)
 	if err != nil {
-		return fmt.Errorf("read input dir: %w", err)
+		return nil, fmt.Errorf("read input dir: %w", err)
 	}
-
+	filenames := make([]string, len(entries))
 	for _, e := range entries {
+		if e.IsDir() || strings.EqualFold(filepath.Ext(e.Name()), ".json") {
+			continue
+		}
+		filenames = append(filenames, e.Name())
+	}
+	return filenames, nil
+}
+
+func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
+	inputDir, outputDir := c.getUploadDirectoriesForBatch(batch.Id)
+	filenames, err := c.fetchBatchFilenames(batch.Id)
+	if err != nil {
+		return fmt.Errorf("unable to fetch Batch Filenames %v", err.Error())
+	}
+	for _, e := range filenames {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
 		}
 
-		if e.IsDir() || strings.EqualFold(filepath.Ext(e.Name()), ".json") {
-			continue
-		}
-
-		if err := c.convertFile(inputDir, outputDir, e.Name()); err != nil {
+		if err := c.convertFile(inputDir, outputDir, e); err != nil {
 			return err
 		}
 	}
 
+	err = c.notifyForCompletion(batch)
+	if err != nil {
+		log.Printf("batch %s processed successfully", batch.Id)
+		return fmt.Errorf("unable to publish for batch %s completion: %v", batch.Id, err.Error())
+	}
+	log.Printf("batch %s processed successfully", batch.Id)
+
+	return nil
+}
+
+func (c *Converter) notifyForCompletion(batch common.Batch) error {
 	payload, err := json.Marshal(batch)
 	if err != nil {
 		return fmt.Errorf("marshal batch: %w", err)
@@ -75,8 +101,6 @@ func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
 	if err := c.publisher.Publish(payload); err != nil {
 		return fmt.Errorf("publish result: %w", err)
 	}
-
-	log.Printf("batch %s processed successfully", batch.Id)
 	return nil
 }
 
