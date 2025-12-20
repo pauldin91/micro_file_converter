@@ -28,7 +28,7 @@ WORKDIR /app
 COPY --from=builder /app/main /app/main
 
 COPY ./upload_service/app.env /app/app.env
-COPY ./upload_service/internal/db/migrations /app/internal/db/migrations
+COPY ./upload_service/db/migrations /app/db/migrations
 
 COPY ./upload_service/docs /app/docs
 

@@ -1,6 +1,7 @@
-package config
+package tests
 
 import (
+	"common/pkg/config"
 	"log"
 	"os"
 	"path"
@@ -60,7 +61,7 @@ func extectedLoadHelper(t *testing.T, envFilename string) {
 }
 
 func actualLoadHelper(t *testing.T, envDirectory string) {
-	cfg, err := LoadConfig(envDirectory)
+	cfg, err := config.LoadConfig(envDirectory)
 	if err != nil {
 		log.Println("could load cfg")
 	}

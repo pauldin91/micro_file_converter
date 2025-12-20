@@ -2,12 +2,13 @@ package service
 
 import (
 	"common"
+	config "common/pkg/config"
 	"common/pkg/messages"
 	"context"
 	"encoding/json"
 	"fmt"
 	"log"
-	"micro_file_converter/internal/config"
+	"micro_file_converter/internal/domain"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -21,7 +22,7 @@ type Converter struct {
 }
 
 func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter, error) {
-	uploadDir := conf.UploadDir
+	uploadDir := conf[domain.UploadDir]
 	if uploadDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {

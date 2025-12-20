@@ -1,14 +1,14 @@
 package api
 
 import (
+	"common/pkg/config"
 	"common/pkg/messages"
 	"context"
 	"net/http"
 	"os"
 	"syscall"
-	"webapi/internal/config"
-	"webapi/internal/constants"
-	db "webapi/internal/db/sqlc"
+	db "webapi/db/sqlc"
+	"webapi/internal/domain"
 	"webapi/internal/handlers"
 
 	_ "webapi/docs"
@@ -40,7 +40,7 @@ func NewServer(ctx context.Context, cfg config.Config) *Application {
 	}
 	router := server.registerRoutes(cfg)
 	server.httpServer = &http.Server{
-		Addr:    cfg.HttpServerAddress,
+		Addr:    cfg[domain.HttpServerAddress],
 		Handler: router,
 	}
 	return &server
@@ -68,25 +68,25 @@ func (server *Application) Start() error {
 
 func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 	router := chi.NewMux()
-	router.Get(constants.SwaggerEndpoint, httpSwagger.Handler(
+	router.Get(domain.SwaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
 	))
 
-	connPool, err := pgxpool.New(server.ctx, cfg.DbConn)
+	connPool, err := pgxpool.New(server.ctx, cfg[domain.DbConn])
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	runDBMigration(cfg.DbConn)
+	runDBMigration(cfg[domain.DbConn])
 
 	store := db.NewStore(connPool)
 
-	publisher, err := messages.NewRabbitMQPublisher(cfg.RabbitMQHost, cfg.ConversionQueue)
+	publisher, err := messages.NewRabbitMQPublisher(cfg[domain.RabbitMQHost], cfg[domain.ConversionQueue])
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to RabbitMQ")
 	}
 	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store, publisher)
-	router.Post(constants.UploadEndpoint, uploadHandler.CreateUpload)
+	router.Post(domain.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
 }
 

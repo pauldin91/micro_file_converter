@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
+type Config map[string]string
+
 func LoadConfig(path string) (map[string]string, error) {
 	config := map[string]string{}
 

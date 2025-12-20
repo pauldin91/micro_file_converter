@@ -1,12 +1,12 @@
 package main
 
 import (
+	"common/pkg/config"
 	"context"
 	"fmt"
 	"log"
 	"os/signal"
 	api "webapi/cmd"
-	"webapi/internal/config"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -15,7 +15,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
 	defer stop()
 
-	cfg, err := config.LoadConfig()
+	cfg, err := config.LoadConfig("../../")
 	if err != nil {
 		log.Panicf("unable to read cfg: %s\n", err.Error())
 	}

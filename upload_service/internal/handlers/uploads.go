@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"common/pkg/config"
 	"common/pkg/messages"
 	"context"
 	"encoding/json"
@@ -11,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	"webapi/internal/config"
-	db "webapi/internal/db/sqlc"
+	db "webapi/db/sqlc"
+	"webapi/internal/domain"
 	"webapi/internal/events"
 
 	"github.com/google/uuid"
@@ -28,8 +29,8 @@ type UploadHandler struct {
 }
 
 func NewUploadHandler(cfg config.Config, store db.Store, publisher messages.Publisher) UploadHandler {
-	var uploadDir string = cfg.UploadDir
-	if len(cfg.UploadDir) == 0 {
+	var uploadDir string = cfg[domain.UploadDir]
+	if len(uploadDir) == 0 {
 		cwd, _ := os.Getwd()
 		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
 	}
