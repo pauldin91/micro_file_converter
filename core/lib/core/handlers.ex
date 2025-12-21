@@ -4,7 +4,7 @@ defmodule Core.Handlers do
   alias Core.Storage
   alias Core.Items
 
-  def handle_uploaded_entries(%{path: path, filename: filename, batch_id: uuid, type: type}) do
+  def copy_uploaded_entry(%{path: path, filename: filename, batch_id: uuid, type: type}) do
     dest = Storage.get_storage_path(%{batch_id: uuid, name: filename})
     File.mkdir_p!(Path.dirname(dest))
     File.cp!(path, dest)
@@ -17,7 +17,12 @@ defmodule Core.Handlers do
      }}
   end
 
-  def handle_uploads(%{files: files, transform: transform, id: batch_id, user_id: user_id}) do
+  def register_batch_with_pictures(%{
+        files: files,
+        transform: transform,
+        id: batch_id,
+        user_id: user_id
+      }) do
     {:ok, batch} =
       Uploads.create_batch(%{
         id: batch_id,
