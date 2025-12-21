@@ -4,20 +4,7 @@ defmodule Core.Handlers do
   alias Core.Storage
   alias Core.Items
 
-  def copy_uploaded_entry(%{path: path, filename: filename, batch_id: uuid, type: type}) do
-    dest = Storage.get_storage_path(%{batch_id: uuid, name: filename})
-    File.mkdir_p!(Path.dirname(dest))
-    File.cp!(path, dest)
-
-    {:ok,
-     %{
-       path: dest,
-       name: filename,
-       type: type
-     }}
-  end
-
-  def register_batch_with_pictures(%{
+  def create_batch_with_pictures(%{
         files: files,
         transform: transform,
         id: batch_id,

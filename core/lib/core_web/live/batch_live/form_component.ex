@@ -38,7 +38,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        Handlers.copy_uploaded_entry(%{
+        Storage.store_entry(%{
           path: path,
           filename: entry.client_name,
           type: entry.client_type,
@@ -47,7 +47,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
       end)
 
     {:ok, batch_id} =
-      Handlers.register_batch_with_pictures(%{
+      Handlers.create_batch_with_pictures(%{
         files: uploaded_files,
         transform: transform,
         id: uuid,

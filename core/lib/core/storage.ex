@@ -1,4 +1,17 @@
 defmodule Core.Storage do
+  def store_entry(%{path: path, filename: filename, batch_id: uuid, type: type}) do
+    dest = get_storage_path(%{batch_id: uuid, name: filename})
+    File.mkdir_p!(Path.dirname(dest))
+    File.cp!(path, dest)
+
+    {:ok,
+     %{
+       path: dest,
+       name: filename,
+       type: type
+     }}
+  end
+
   def get_storage_path(%{batch_id: id, name: filename}) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     Path.join([upload_dir, id, filename])
