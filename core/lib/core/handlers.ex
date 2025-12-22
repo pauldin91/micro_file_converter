@@ -18,10 +18,14 @@ defmodule Core.Handlers do
         user_id: user_id
       })
 
-    Enum.each(files, &link_pictures(&1, batch_id))
+    Enum.each(files, &link_pictures(%{&1 | batch_id: batch_id}))
 
     metadata =
-      Metadata.save_metadata(files, batch.id)
+      Metadata.save_metadata(%Core.Mappings.Batch{
+        batch_id: batch.id,
+        transform: transform,
+        files: files
+      })
 
     queue = get_event_queue(transform)
 
@@ -32,9 +36,8 @@ defmodule Core.Handlers do
   def get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
   def get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
 
-  def link_pictures(%{path: path, name: name}, id) do
-    with {:ok, %File.Stat{size: size}} <- File.stat(path),
-         {:ok, _picture} <-
+  def link_pictures(%{name: name, size: size, batch_id: id}) do
+    with {:ok, _picture} <-
            Items.create_picture(%{
              batch_id: id,
              name: name,
@@ -44,9 +47,6 @@ defmodule Core.Handlers do
     else
       {:error, reason} ->
         {:error, reason}
-
-      other ->
-        {:error, other}
     end
   end
 

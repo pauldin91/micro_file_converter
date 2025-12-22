@@ -39,12 +39,17 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        Storage.store_entry(%{
-          path: path,
-          filename: entry.client_name,
-          type: entry.client_type,
-          batch_id: uuid
-        })
+        with {:ok, %File.Stat{size: size}} <- File.stat(path) do
+          Storage.store_entry(%Core.Mappings.Entry{
+            path: path,
+            filename: entry.client_name,
+            content_type: entry.client_type,
+            batch_id: uuid,
+            size: size
+          })
+        else
+          {:error, reason} -> {:error, reason}
+        end
       end)
 
     {:ok, batch_id} =
