@@ -75,4 +75,56 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign(:batch_id, batch_id)
      |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
   end
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div>
+      <.header>
+        File Upload Form
+      </.header>
+
+      <.simple_form
+        for={@form}
+        id="batch-form"
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+      >
+        <.drag_n_drop files={@uploads.files} />
+        <div class="mt-4 space-y-2">
+          <div class="mt-4 space-x-4">
+            <input type="radio" name="convert" phx-click={JS.hide(to: "#convert")} /> Convert
+            <input type="radio" name="convert" phx-click={JS.show(to: "#convert")} /> Transform
+          </div>
+        </div>
+
+        <div id="convert" class="mt-4 hidden">
+          <.input
+            field={@form[:transform]}
+            type="select"
+            label="Transform"
+            options={@transformations}
+          />
+        </div>
+
+        <.display_uploads files={@uploads.files} />
+
+        <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
+          {Formatter.error_to_string(err)}
+        </div>
+
+        <:actions>
+          <.button
+            type="submit"
+            disabled={@uploads.files.entries == []}
+            class="btn btn-primary w-full"
+          >
+            Upload Files
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
+    """
+  end
 end

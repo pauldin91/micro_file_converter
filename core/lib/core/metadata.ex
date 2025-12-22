@@ -26,8 +26,8 @@ defmodule Core.Metadata do
     end
   end
 
-  def save_metadata(%Batch{id: batch_id} = batch),
+  def save_metadata(%Batch{} = batch),
     do:
-      get_metadata_location(batch_id)
+      get_metadata_location(batch.id)
       |> File.write!(Jason.encode!(batch, pretty: true))
 end
