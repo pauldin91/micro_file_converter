@@ -4,6 +4,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.UploadFormatter
   alias Core.Handlers
   alias Core.Storage
+  alias Core.Mappings.Stored
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
@@ -39,26 +40,34 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        with {:ok, %File.Stat{size: size}} <- File.stat(path) do
+        {:ok, ntry} =
           Storage.store_entry(%Core.Mappings.Entry{
             path: path,
             filename: entry.client_name,
             content_type: entry.client_type,
-            batch_id: uuid,
-            size: size
+            batch_id: uuid
           })
+
+        with {:ok, %File.Stat{size: size}} <- File.stat(ntry.path) do
+          %Stored{ntry | size: size}
         else
           {:error, reason} -> {:error, reason}
         end
       end)
 
+    dto = %Core.Mappings.Batch{
+      files: uploaded_files,
+      transform: transform,
+      id: uuid
+    }
+
+    dbg(dto)
+
     {:ok, batch_id} =
-      Handlers.create_batch_with_pictures(%{
-        files: uploaded_files,
-        transform: transform,
-        id: uuid,
-        user_id: user.id
-      })
+      Handlers.create_batch_with_pictures(
+        dto,
+        %{user_id: user.id}
+      )
 
     {:noreply,
      socket

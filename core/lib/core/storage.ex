@@ -1,13 +1,14 @@
 defmodule Core.Storage do
+  alias Core.Mappings.Stored
   alias Core.Mappings.Entry
 
-  def store_entry(%Entry{path: path, filename: filename, batch_id: uuid, content_type: type}) do
+  def store_entry(%Entry{path: path, filename: filename, content_type: type, batch_id: uuid}) do
     dest = get_storage_path(%{batch_id: uuid, name: filename})
     File.mkdir_p!(Path.dirname(dest))
     File.cp!(path, dest)
 
     {:ok,
-     %{
+     %Stored{
        path: dest,
        name: filename,
        type: type

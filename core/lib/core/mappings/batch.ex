@@ -1,3 +1,4 @@
 defmodule Core.Mappings.Batch do
-  defstruct [:batch_id, :files, :timestamp, :transform]
+  @derive Jason.Encoder
+  defstruct [:id, :files, :timestamp, :transform]
 end
