@@ -109,7 +109,7 @@ defmodule CoreWeb.BatchLive.Index do
     }
   end
 
-  @imple true
+  @impl true
   def render(assigns) do
     ~H"""
     <.header>
