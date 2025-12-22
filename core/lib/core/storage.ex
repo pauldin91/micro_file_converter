@@ -3,7 +3,7 @@ defmodule Core.Storage do
   alias Core.Mappings.Entry
 
   def store_entry(%Entry{path: path, filename: filename, content_type: type, batch_id: uuid}) do
-    dest = get_storage_path(%{batch_id: uuid, filename: filename})
+    dest = get_batch_dir(%{batch_id: uuid, filename: filename})
     File.mkdir_p!(Path.dirname(dest))
     File.cp!(path, dest)
 
@@ -15,7 +15,7 @@ defmodule Core.Storage do
      }}
   end
 
-  def get_storage_path(%{batch_id: id, filename: filename}) do
+  def get_batch_dir(%{batch_id: id, filename: filename}) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     Path.join([upload_dir, id, filename])
   end
@@ -49,20 +49,24 @@ defmodule Core.Storage do
     dir = Path.join([Application.fetch_env!(:core, :uploads_dir), id])
 
     if File.dir?(dir) do
-      files =
-        File.ls!(dir)
-        |> Enum.filter(&(!String.ends_with?(&1, ".zip")))
-        |> Enum.map(&String.to_charlist/1)
-
-      zip_filename = String.to_charlist(Path.join([dir, "#{id}.zip"]))
-
-      case :zip.create(zip_filename, files, cwd: String.to_charlist(dir)) do
+      case zip_batch(dir, id) do
         {:ok, zip_path} -> {:ok, zip_path}
         {:error, reason} -> {:error, reason}
       end
     else
       {:error, :not_found}
     end
+  end
+
+  def zip_batch(dir, id) do
+    files =
+      File.ls!(dir)
+      |> Enum.filter(&(!String.ends_with?(&1, ".zip")))
+      |> Enum.map(&String.to_charlist/1)
+
+    zip_filename = String.to_charlist(Path.join([dir, "#{id}.zip"]))
+
+    :zip.create(zip_filename, files, cwd: String.to_charlist(dir))
   end
 
   def purge_batch(id) do

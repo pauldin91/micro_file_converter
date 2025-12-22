@@ -5,27 +5,29 @@ defmodule Core.Metadata do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     batch_dir = Path.join([upload_dir, batch_id])
 
-    metadata_path = Path.join([batch_dir, "metadata.json"])
+    metadata_path = Path.join([batch_dir, "#{batch_id}.json"])
     File.mkdir_p!(Path.dirname(metadata_path))
     metadata_path
   end
 
-  defp get_metadata(batch_id) do
+  defp read_metadata(batch_id) do
     get_metadata_location(batch_id)
     |> File.read!()
   end
 
   def load_metadata(batch_id) do
-    filedata = get_metadata(batch_id)
-    {:ok, map} = Jason.decode(filedata)
-    map
+    with {:ok, map} <-
+           read_metadata(batch_id)
+           |> Jason.decode() do
+      map
+    else
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
-  def save_metadata(%Batch{id: batch_id} = batch) do
-    dbg(batch)
-    dbg(Jason.encode!(batch))
-
-    get_metadata_location(batch_id)
-    |> File.write!(Jason.encode!(batch, pretty: true))
-  end
+  def save_metadata(%Batch{id: batch_id} = batch),
+    do:
+      get_metadata_location(batch_id)
+      |> File.write!(Jason.encode!(batch, pretty: true))
 end
