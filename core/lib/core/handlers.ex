@@ -17,16 +17,11 @@ defmodule Core.Handlers do
 
     Enum.each(batch_dto.files, &link_pictures(&1, batch.id))
 
-    metadata =
-      Metadata.save_metadata(%Core.Mappings.Batch{
-        id: batch.id,
-        transform: batch.transform,
-        files: batch_dto.files
-      })
+    Metadata.save_metadata(batch_dto)
 
     queue = get_event_queue(batch.transform)
 
-    Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(metadata))
+    Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(batch_dto))
     {:ok, batch.id}
   end
 
@@ -34,12 +29,10 @@ defmodule Core.Handlers do
   def get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
 
   def link_pictures(%Stored{} = stored, batch_id) do
-    dbg(stored)
-
     with {:ok, _picture} <-
            Items.create_picture(%{
              batch_id: batch_id,
-             name: stored.name,
+             name: stored.filename,
              size: stored.size
            }) do
       :ok

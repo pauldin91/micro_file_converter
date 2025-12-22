@@ -3,19 +3,19 @@ defmodule Core.Storage do
   alias Core.Mappings.Entry
 
   def store_entry(%Entry{path: path, filename: filename, content_type: type, batch_id: uuid}) do
-    dest = get_storage_path(%{batch_id: uuid, name: filename})
+    dest = get_storage_path(%{batch_id: uuid, filename: filename})
     File.mkdir_p!(Path.dirname(dest))
     File.cp!(path, dest)
 
     {:ok,
      %Stored{
        path: dest,
-       name: filename,
+       filename: filename,
        type: type
      }}
   end
 
-  def get_storage_path(%{batch_id: id, name: filename}) do
+  def get_storage_path(%{batch_id: id, filename: filename}) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     Path.join([upload_dir, id, filename])
   end

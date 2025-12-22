@@ -58,7 +58,8 @@ defmodule CoreWeb.BatchLive.FormComponent do
     dto = %Core.Mappings.Batch{
       files: uploaded_files,
       transform: transform,
-      id: uuid
+      id: uuid,
+      timestamp: DateTime.utc_now()
     }
 
     dbg(dto)
