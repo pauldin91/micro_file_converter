@@ -1,4 +1,4 @@
-defmodule Core.Messages.RabbitConsumer do
+defmodule Core.RabbitMq.Consumer do
   use GenServer
   require Logger
 

@@ -21,7 +21,7 @@ defmodule Core.Handlers do
 
     queue = get_event_queue(batch.transform)
 
-    Core.Messages.RabbitPublisher.publish_message(queue, Jason.encode!(batch_dto))
+    Core.RabbitMq.Publisher.publish_message(queue, Jason.encode!(batch_dto))
     {:ok, batch.id}
   end
 

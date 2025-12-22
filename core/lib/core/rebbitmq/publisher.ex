@@ -1,4 +1,4 @@
-defmodule Core.Messages.RabbitPublisher do
+defmodule Core.RabbitMq.Publisher do
   use GenServer
 
   ## --- Client API ---

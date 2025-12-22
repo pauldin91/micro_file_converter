@@ -1,4 +1,4 @@
-defmodule Core.Messages.RabbitSupervisor do
+defmodule Core.RabbitMq.Supervisor do
   use Supervisor
 
   def start_link(_args) do
@@ -9,25 +9,25 @@ defmodule Core.Messages.RabbitSupervisor do
   def init(:ok) do
     children = [
       %{
-        id: Core.Messages.RabbitPublisher,
+        id: Core.RabbitMq.Publisher,
         start:
-          {Core.Messages.RabbitPublisher, :start_link,
+          {Core.RabbitMq.Publisher, :start_link,
            [
              [
-               name: Core.Messages.RabbitPublisher
+               name: Core.RabbitMq.Publisher
              ]
            ]},
         restart: :permanent,
         shutdown: 10_000
       },
       %{
-        id: Core.Messages.RabbitConsumer,
+        id: Core.RabbitMq.Consumer,
         start:
-          {Core.Messages.RabbitConsumer, :start_link,
+          {Core.RabbitMq.Consumer, :start_link,
            [
              [
                queue: Application.fetch_env!(:core, :processed_queue),
-               name: Core.Messages.RabbitConsumer
+               name: Core.RabbitMq.Consumer
              ]
            ]},
         restart: :permanent,
