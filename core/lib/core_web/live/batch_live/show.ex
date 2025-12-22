@@ -3,7 +3,7 @@ defmodule CoreWeb.BatchLive.Show do
 
   alias Core.Uploads
   alias Core.Metadata
-  alias Core.UploadFormatter
+  alias Core.Uploads.Formatter
   on_mount {CoreWeb.Live.EnsureOwner, :default}
 
   @impl true

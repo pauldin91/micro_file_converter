@@ -1,4 +1,4 @@
-defmodule Core.UploadFormatter do
+defmodule Core.Uploads.Formatter do
   def format_bytes(bytes) when is_integer(bytes) do
     cond do
       bytes >= 1_073_741_824 -> "#{Float.round(bytes / 1_073_741_824, 2)} GB"

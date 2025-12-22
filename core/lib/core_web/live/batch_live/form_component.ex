@@ -1,7 +1,7 @@
 defmodule CoreWeb.BatchLive.FormComponent do
   use CoreWeb, :live_component
   alias Core.Uploads
-  alias Core.UploadFormatter
+  alias Core.Uploads.Formatter
   alias Core.Handlers
   alias Core.Storage
   alias Core.Mappings.Stored

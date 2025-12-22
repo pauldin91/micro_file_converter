@@ -15,7 +15,7 @@ defmodule Core.UploadsFixtures do
         size: 42,
         timestamp: ~U[2025-12-05 17:21:00Z]
       })
-      |> Core.Uploads.create_picture()
+      |> Core.Items.create_picture()
 
     picture
   end
