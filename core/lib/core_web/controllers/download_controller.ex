@@ -4,7 +4,10 @@ defmodule CoreWeb.DownloadController do
   alias Core.Uploads
 
   def download(conn, %{"id" => id}) do
-    with {:ok, _batch} <- fetch_batch(id, conn.assings.current_user),
+    result = fetch_batch(id, conn.assigns.current_user.id)
+    dbg(result)
+
+    with result,
          {:ok, zip_path} <- Storage.download_batch(id) do
       conn
       |> put_resp_header("content-disposition", ~s(attachment; filename="#{id}.zip"))
@@ -35,9 +38,9 @@ defmodule CoreWeb.DownloadController do
     try do
       batch = Uploads.get_batch!(id)
 
-      case batch.user_id do
-        ^user_id -> {:ok, batch}
-        _ -> {:error, :resource_access_denied}
+      cond do
+        user_id == batch.user_id -> {:ok, batch}
+        true -> {:error, :resource_access_denied}
       end
     rescue
       Ecto.NoResultsError -> {:error, :batch_not_found}

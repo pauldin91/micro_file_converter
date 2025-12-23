@@ -48,6 +48,7 @@ defmodule Core.Uploads do
 
   """
   def get_batch!(id), do: Repo.get!(Batch, id)
+  def get_batch(id), do: Repo.get(Batch, id)
 
   @doc """
   Creates a batch.
