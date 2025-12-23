@@ -30,7 +30,10 @@ defmodule Core.RabbitMq.Publisher do
 
   @impl true
   def handle_cast({:publish, queue, message}, %{chan: chan}) do
-    AMQP.Basic.publish(chan, "", queue, message)
-    {:noreply, %{chan: chan}}
+    with :ok <- AMQP.Basic.publish(chan, "", queue, message) do
+      {:noreply, %{chan: chan}}
+    else
+      reason -> reason
+    end
   end
 end

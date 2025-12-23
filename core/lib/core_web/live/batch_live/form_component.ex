@@ -31,8 +31,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
   @impl true
   def handle_event("save", params, socket) do
-    user = socket.assigns.user
-
     transform =
       get_in(params, ["batch", "transform"]) || :none
 
@@ -55,25 +53,20 @@ defmodule CoreWeb.BatchLive.FormComponent do
         end
       end)
 
-    dto = %Core.Mappings.Batch{
-      files: uploaded_files,
-      transform: transform,
-      id: uuid,
-      timestamp: DateTime.utc_now()
-    }
+    case Handlers.handle_upload(socket.assigns.user, %{
+           files: uploaded_files,
+           transform: transform,
+           batch_id: uuid
+         }) do
+      {:ok, batch_id} ->
+        {:noreply,
+         socket
+         |> assign(:batch_id, batch_id)
+         |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
 
-    dbg(dto)
-
-    {:ok, batch_id} =
-      Handlers.create_batch_with_pictures(
-        dto,
-        %{user_id: user.id}
-      )
-
-    {:noreply,
-     socket
-     |> assign(:batch_id, batch_id)
-     |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
+      {:error, reason} ->
+        {:noreply, put_flash(socket, :error, reason)}
+    end
   end
 
   @impl true

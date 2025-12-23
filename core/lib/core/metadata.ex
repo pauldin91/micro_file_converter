@@ -26,8 +26,12 @@ defmodule Core.Metadata do
     end
   end
 
-  def save_metadata(%Batch{} = batch),
-    do:
-      get_metadata_location(batch.id)
-      |> File.write!(Jason.encode!(batch, pretty: true))
+  def save_metadata(%Batch{} = batch) do
+    with {:ok, serialized} <- Jason.encode(batch, pretty: true) do
+      batch_dir = get_metadata_location(batch.id)
+      File.write(batch_dir, serialized)
+    else
+      {:error, reason} -> {:error, reason}
+    end
+  end
 end

@@ -6,29 +6,51 @@ defmodule Core.Handlers do
 
   alias Core.Mappings.Stored
 
-  def create_batch_with_pictures(%Core.Mappings.Batch{} = batch_dto, %{user_id: user_id}) do
-    {:ok, batch} =
-      Uploads.create_batch(%{
-        id: batch_dto.id,
-        status: "pending",
-        transform: batch_dto.transform,
-        user_id: user_id
-      })
+  def handle_upload(user, %{files: files, transform: transform, batch_id: batch_id}) do
+    create_batch_with_pictures(
+      %Core.Mappings.Batch{
+        files: files,
+        transform: transform,
+        id: batch_id,
+        timestamp: DateTime.utc_now()
+      },
+      %{user_id: user.id}
+    )
+  end
 
-    Enum.each(batch_dto.files, &link_pictures(&1, batch.id))
+  defp create_batch_with_pictures(%Core.Mappings.Batch{} = batch_dto, %{user_id: user_id}) do
+    with {:ok, batch} <-
+           Uploads.create_batch(%{
+             id: batch_dto.id,
+             status: "pending",
+             transform: batch_dto.transform,
+             user_id: user_id
+           }),
+         :ok <- link_all_pictures(batch_dto),
+         :ok <- Metadata.save_metadata(batch_dto),
+         :ok <- publish_batch(batch_dto) do
+      {:ok, batch.id}
+    end
+  end
 
-    Metadata.save_metadata(batch_dto)
-
-    queue = get_event_queue(batch.transform)
-
+  defp publish_batch(%Core.Mappings.Batch{} = batch_dto) do
+    queue = get_event_queue(batch_dto.transform)
     Core.RabbitMq.Publisher.publish_message(queue, Jason.encode!(batch_dto))
-    {:ok, batch.id}
   end
 
   def get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
   def get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
 
-  def link_pictures(%Stored{} = stored, batch_id) do
+  def link_all_pictures(batch_dto) do
+    Enum.reduce_while(batch_dto.files, :ok, fn file, :ok ->
+      case link_picture(file, batch_dto.id) do
+        :ok -> {:cont, :ok}
+        {:error, reason} -> {:halt, {:error, reason}}
+      end
+    end)
+  end
+
+  defp link_picture(%Stored{} = stored, batch_id) do
     with {:ok, _picture} <-
            Items.create_picture(%{
              batch_id: batch_id,
