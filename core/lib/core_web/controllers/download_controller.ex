@@ -1,23 +1,46 @@
 defmodule CoreWeb.DownloadController do
   use CoreWeb, :controller
   alias Core.Storage
+  alias Core.Uploads
 
   def download(conn, %{"id" => id}) do
-    user = conn.assigns.current_user
-    dbg(user)
-
-    case Storage.download_batch(id) do
-      {:ok, zip_path} ->
-        zip_filename = "#{id}.zip"
-
+    with {:ok, _batch} <- fetch_batch(id, conn.assings.current_user),
+         {:ok, zip_path} <- Storage.download_batch(id) do
+      conn
+      |> put_resp_header("content-disposition", ~s(attachment; filename="#{id}.zip"))
+      |> send_file(200, List.to_string(zip_path))
+      |> halt()
+    else
+      {:error, :resource_access_denied} ->
         conn
-        |> put_resp_header("content-disposition", "attachment; filename=\"#{zip_filename}\"")
-        |> send_file(200, List.to_string(zip_path))
+        |> put_status(:unathorized)
+        |> text("Insufficient permissions for batch with id #{id}")
+        |> halt()
+
+      {:error, :batch_not_found} ->
+        conn
+        |> put_status(:not_found)
+        |> text("Batch with id #{id} does not exist")
+        |> halt()
 
       {:error, :not_found} ->
         conn
         |> put_status(:not_found)
         |> text("File not found")
+        |> halt()
+    end
+  end
+
+  defp fetch_batch(id, user_id) do
+    try do
+      batch = Uploads.get_batch!(id)
+
+      case batch.user_id do
+        ^user_id -> {:ok, batch}
+        _ -> {:error, :resource_access_denied}
+      end
+    rescue
+      Ecto.NoResultsError -> {:error, :batch_not_found}
     end
   end
 end
