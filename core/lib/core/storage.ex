@@ -2,22 +2,28 @@ defmodule Core.Storage do
   alias Core.Mappings.Stored
   alias Core.Mappings.Entry
 
-  def store_entry(%Entry{path: path, filename: filename, content_type: type, batch_id: uuid}) do
-    dest = get_batch_dir(%{batch_id: uuid, filename: filename})
-    File.mkdir_p!(Path.dirname(dest))
-    File.cp!(path, dest)
-
-    {:ok,
-     %Stored{
-       path: dest,
-       filename: filename,
-       type: type
-     }}
-  end
-
   def get_batch_dir(%{batch_id: id, filename: filename}) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     Path.join([upload_dir, id, filename])
+  end
+
+  def store_entry(%Entry{} = entry) do
+    dest = get_batch_dir(%{batch_id: entry.batch_id, filename: entry.filename})
+
+    with :ok <- File.mkdir_p(Path.dirname(dest)),
+         :ok <- File.cp(entry.path, dest),
+         {:ok, %File.Stat{size: size}} <-
+           File.stat(dest) do
+      {:ok,
+       %Stored{
+         path: dest,
+         filename: entry.filename,
+         type: entry.content_type,
+         size: size
+       }}
+    else
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def purge_uploads() do

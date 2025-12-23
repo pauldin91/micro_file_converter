@@ -4,7 +4,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Uploads.Formatter
   alias Core.Handlers
   alias Core.Storage
-  alias Core.Mappings.Stored
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
@@ -38,19 +37,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     uploaded_files =
       consume_uploaded_entries(socket, :files, fn %{path: path}, entry ->
-        {:ok, ntry} =
-          Storage.store_entry(%Core.Mappings.Entry{
-            path: path,
-            filename: entry.client_name,
-            content_type: entry.client_type,
-            batch_id: uuid
-          })
-
-        with {:ok, %File.Stat{size: size}} <- File.stat(ntry.path) do
-          %Stored{ntry | size: size}
-        else
-          {:error, reason} -> {:error, reason}
-        end
+        Storage.store_entry(%Core.Mappings.Entry{
+          path: path,
+          filename: entry.client_name,
+          content_type: entry.client_type,
+          batch_id: uuid
+        })
       end)
 
     case Handlers.handle_upload(socket.assigns.user, %{
