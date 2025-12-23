@@ -104,6 +104,12 @@ defmodule Core.Uploads do
     |> broadcast(:batch_deleted)
   end
 
+  def delete_batch_for_user(%Batch{user_id: uid} = batch, %Core.Accounts.User{id: uid}) do
+    delete_batch(batch)
+  end
+
+  def delete_batch_for_user(_, _), do: {:error, :unauthorized}
+
   def delete_batches_of_user(user_id) do
     from(b in Batch, where: b.user_id == ^user_id)
     |> Repo.delete_all()

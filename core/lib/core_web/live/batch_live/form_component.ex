@@ -5,11 +5,22 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Handlers
   alias Core.Storage
 
+  @transformations [
+    {"None", :none},
+    {"90°", :rot_90},
+    {"180°", :rot_180},
+    {"270°", :rot_270},
+    {"Mirror", :mirror}
+  ]
   @impl true
   def update(%{batch: batch} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
+     |> assign(mode: "convert")
+     |> assign(transform: "none")
+     |> assign(:transformations, @transformations)
+     |> assign(show_transform: false)
      |> assign_new(:form, fn ->
        to_form(Uploads.change_batch(batch))
      end)
@@ -24,14 +35,19 @@ defmodule CoreWeb.BatchLive.FormComponent do
   def handle_event("validate", params, socket) do
     batch_params = params["batch"] || %{}
     changeset = Uploads.change_batch(socket.assigns.batch, batch_params)
-
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
   @impl true
-  def handle_event("save", params, socket) do
+  def handle_event("toggle_transform", params, socket) do
+    mode = get_in(params, ["mode"])
+    {:noreply, socket |> assign(show_transform: mode == "transform") |> assign(transform: "none")}
+  end
+
+  @impl true
+  def handle_event("save", params, %{assigns: %{user: user}} = socket) do
     transform =
-      get_in(params, ["batch", "transform"]) || :none
+      get_in(params, ["batch", "transform"]) || "none"
 
     uuid = Ecto.UUID.generate()
 
@@ -45,16 +61,22 @@ defmodule CoreWeb.BatchLive.FormComponent do
         })
       end)
 
-    case Handlers.handle_upload(socket.assigns.user, %{
-           files: uploaded_files,
-           transform: transform,
-           batch_id: uuid
-         }) do
+    result =
+      Handlers.handle_upload(user, %{
+        files: uploaded_files,
+        transform: transform,
+        batch_id: uuid
+      })
+
+    case result do
       {:ok, batch_id} ->
         {:noreply,
          socket
          |> assign(:batch_id, batch_id)
          |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "Incognito error")}
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, reason)}
@@ -79,12 +101,13 @@ defmodule CoreWeb.BatchLive.FormComponent do
         <.drag_n_drop files={@uploads.files} />
         <div class="mt-4 space-y-2">
           <div class="mt-4 space-x-4">
-            <input type="radio" name="convert" phx-click={JS.hide(to: "#convert")} /> Convert
-            <input type="radio" name="convert" phx-click={JS.show(to: "#convert")} /> Transform
+            <input type="radio" name="mode" value="convert" phx-change="toggle_transform" /> Convert
+            <input type="radio" name="mode" value="transform" phx-change="toggle_transform" />
+            Transform
           </div>
         </div>
 
-        <div id="convert" class="mt-4 hidden">
+        <div :if={@show_transform} class="mt-4">
           <.input
             field={@form[:transform]}
             type="select"

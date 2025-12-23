@@ -7,14 +7,6 @@ defmodule CoreWeb.BatchLive.Index do
   alias Core.Items
   alias Core.Items.Picture
 
-  @transformations [
-    {"None", :none},
-    {"90°", :rot_90},
-    {"180°", :rot_180},
-    {"270°", :rot_270},
-    {"Mirror", :mirror}
-  ]
-
   @impl true
   def mount(_params, _session, socket) do
     if connected?(socket) do
@@ -27,8 +19,6 @@ defmodule CoreWeb.BatchLive.Index do
     {:ok,
      stream(socket, :batches, Uploads.list_batches_of_user(user.id))
      |> assign(:form, to_form(Items.change_picture(%Picture{})))
-     |> assign(:transform, nil)
-     |> assign(:transformations, @transformations)
      |> assign(:batch_id, nil)
      |> assign(:batch, %Batch{})}
   end
@@ -84,16 +74,16 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, socket) do
+  def handle_event("delete", %{"id" => id}, %{assigns: %{user: current_user}} = socket) do
     batch = Uploads.get_batch!(id)
 
-    case batch.user_id == socket.assign.current_user.id do
-      true ->
-        with {:ok, _} <- Uploads.delete_batch(batch) do
-          {:noreply, stream_delete(socket, :batches, batch)}
-        end
+    with {:ok, _} <- Uploads.delete_batch_for_user(batch, current_user) do
+      {:noreply, stream_delete(socket, :batches, batch)}
+    else
+      {:error, :unauthorized} ->
+        {:noreply, socket |> put_flash(:error, "Unauthorized access to resource")}
 
-      false ->
+      {:error, _reason} ->
         {:noreply, socket |> put_flash(:error, "Invalid operation")}
     end
   end
@@ -165,7 +155,6 @@ defmodule CoreWeb.BatchLive.Index do
         module={CoreWeb.BatchLive.FormComponent}
         id="upload-form"
         batch_id={@batch_id}
-        transformations={@transformations}
         batch={@batch}
         user={@current_user}
       />
