@@ -17,10 +17,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(mode: "convert")
-     |> assign(transform: "none")
+     |> assign_new(:mode, fn -> "convert" end)
+     |> assign_new(:transform, fn ->
+       "none"
+     end)
+     |> assign_new(:show_transform, fn -> false end)
      |> assign(:transformations, @transformations)
-     |> assign(show_transform: false)
      |> assign_new(:form, fn ->
        to_form(Uploads.change_batch(batch))
      end)
@@ -101,9 +103,22 @@ defmodule CoreWeb.BatchLive.FormComponent do
         <.drag_n_drop files={@uploads.files} />
         <div class="mt-4 space-y-2">
           <div class="mt-4 space-x-4">
-            <input type="radio" name="mode" value="convert" phx-change="toggle_transform" /> Convert
-            <input type="radio" name="mode" value="transform" phx-change="toggle_transform" />
-            Transform
+            <input
+              type="radio"
+              name="mode"
+              value="convert"
+              checked={@mode == "convert"}
+              phx-change="toggle_transform"
+              phx-target={@myself}
+            /> Convert
+            <input
+              type="radio"
+              name="mode"
+              value="transform"
+              checked={@mode == "transform"}
+              phx-change="toggle_transform"
+              phx-target={@myself}
+            />Transform
           </div>
         </div>
 

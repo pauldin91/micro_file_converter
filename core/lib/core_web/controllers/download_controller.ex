@@ -5,7 +5,6 @@ defmodule CoreWeb.DownloadController do
 
   def download(conn, %{"id" => id}) do
     result = fetch_batch(id, conn.assigns.current_user.id)
-    dbg(result)
 
     with result,
          {:ok, zip_path} <- Storage.download_batch(id) do

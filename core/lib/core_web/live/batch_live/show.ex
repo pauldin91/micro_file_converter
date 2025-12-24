@@ -30,13 +30,13 @@ defmodule CoreWeb.BatchLive.Show do
 
         <div class="space-y-2 text-sm text-base-content">
           <div>
-            <strong>Transaction ID:</strong>
+            <strong>Batch ID:</strong>
             <code class="bg-base-300 px-2 py-1 rounded text-base-content">{@batch.id}</code>
           </div>
           <div>
             <strong>Timestamp:</strong> {@metadata["timestamp"]}
           </div>
-          <div><strong>Files Uploaded:</strong> {@metadata["file_count"]}</div>
+          <div><strong>Files Uploaded:</strong> {Enum.count(@metadata["files"])}</div>
         </div>
 
         <div class="mt-4">
