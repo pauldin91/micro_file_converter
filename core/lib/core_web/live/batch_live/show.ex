@@ -37,6 +37,12 @@ defmodule CoreWeb.BatchLive.Show do
             <strong>Timestamp:</strong> {@metadata["timestamp"]}
           </div>
           <div><strong>Files Uploaded:</strong> {Enum.count(@metadata["files"])}</div>
+          <div>
+            <strong>Transform:</strong> {cond do
+              @metadata["transform"] == "none" -> "Conversion to pdf"
+              true -> @metadata["transform"]
+            end}
+          </div>
         </div>
 
         <div class="mt-4">
