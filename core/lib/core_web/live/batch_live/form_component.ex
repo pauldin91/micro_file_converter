@@ -34,10 +34,17 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", params, socket) do
-    batch_params = params["batch"] || %{}
-    changeset = Uploads.change_batch(socket.assigns.batch, batch_params)
-    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+  def handle_event("validate", %{"batch" => batch_params}, socket) do
+    changeset =
+      socket.assigns.batch
+      |> Uploads.change_batch(batch_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  def handle_event("validate", _params, socket) do
+    {:noreply, socket}
   end
 
   @impl true
