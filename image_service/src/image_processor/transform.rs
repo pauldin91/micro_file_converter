@@ -1,12 +1,21 @@
+use std::path::Path;
+
 pub trait Transform {
-    pub fn exec();
+    fn exec();
 }
+pub const OUTPUT_DIR: &str = "outputs";
+pub struct Blur {}
+pub struct Brighten {}
+pub struct Crop {}
+pub struct Rotate {}
+pub struct Invert {}
+pub struct Fractal {}
+
 fn get_output_dir(method: &str, inputfile: &str) -> PathBuf {
     let s = method.to_owned() + "_" + inputfile;
     Path::new(OUTPUT_DIR).join(Path::new(s.as_str()))
 }
 
-pub struct Blur {}
 impl Blur for Transform {
     fn exec(infile: String) {
         let img = image::open(&infile).expect("Failed to open INFILE.");
@@ -16,7 +25,6 @@ impl Blur for Transform {
     }
 }
 
-pub struct Brighten {}
 impl Brighten for Transform {
     fn exec(infile: String) {
         let img = image::open(&infile).expect("Failed to open INFILE.");
@@ -26,7 +34,6 @@ impl Brighten for Transform {
     }
 }
 
-pub struct Crop {}
 impl Crop for Transform {
     fn exec(infile: String) {
         let mut img = image::open(&infile).expect("Failed to open INFILE.");
@@ -36,7 +43,6 @@ impl Crop for Transform {
     }
 }
 
-pub struct Rotate {}
 impl Rotate for Transform {
     fn exec(infile: String) {
         let img = image::open(&infile).expect("Failed to open INFILE.");
@@ -46,7 +52,6 @@ impl Rotate for Transform {
     }
 }
 
-pub struct Invert {}
 impl Invert for Transform {
     fn exec(infile: String) {
         let mut img = image::open(&infile).expect("Failed to open INFILE.");
@@ -57,7 +62,6 @@ impl Invert for Transform {
     }
 }
 
-pub struct Fractal {}
 impl Fractal for Transform {
     fn exec(infile: String) {
         let width = 800;

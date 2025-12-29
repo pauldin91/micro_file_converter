@@ -2,6 +2,7 @@ use futures_lite::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use tracing::info;
 
+
 #[tokio::main]
 async fn main() {
     if std::env::var("RUST_LOG").is_err() {
