@@ -1,3 +1,4 @@
+use dotenv::dotenv;
 use futures_lite::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use tracing::info;
@@ -5,6 +6,8 @@ use tracing::info;
 
 #[tokio::main]
 async fn main() {
+
+    dotenv().ok();
     if std::env::var("RUST_LOG").is_err() {
         unsafe { std::env::set_var("RUST_LOG", "info") };
     }
@@ -12,9 +15,11 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let rabbitmq_host =
-        std::env::var("RABBITMQ_HOST").unwrap_or_else(|_| "amqp://127.0.0.1:5672/%2f".into());
+        std::env::var("RABBITMQ_HOST")
+        .expect("env wasn't set");
     let transform_queue =
-        std::env::var("TRANSFORM_QUEUE").unwrap_or_else(|_| "batch.transform".into());
+        std::env::var("TRANSFORM_QUEUE")
+        .expect("env wasn't set");
 
     let conn = Connection::connect(&rabbitmq_host, ConnectionProperties::default())
         .await

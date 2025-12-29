@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 image = "0.24.3"
+dotenv = "0.15.0"
 num-complex = "0.4.2"
 lapin = { version = " 2.5.5" }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
