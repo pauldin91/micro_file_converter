@@ -1,5 +1,5 @@
 pub mod image_processor;
-pub mod transform;
-
+pub mod transforms;
 pub use image_processor::ImageProcessor;
-pub use transform::Transform;
+
+

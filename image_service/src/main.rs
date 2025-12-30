@@ -1,7 +1,7 @@
 use dotenv::dotenv;
 
 use futures_lite::StreamExt;
-use image_service::{Transform, image_processor::transform::Fractal};
+use image_service::image_processor::transforms::{Fractal, Transform};
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use tracing::info;
 
@@ -9,8 +9,8 @@ use tracing::info;
 #[tokio::main]
 async fn main() {
 
-    let tr= Fractal{};
-    tr.exec(String::from("test.jpg"));
+    let tr= Fractal::new();
+    tr.execute(String::from("test.jpg"));
     dotenv().ok();
     if std::env::var("RUST_LOG").is_err() {
         unsafe { std::env::set_var("RUST_LOG", "info") };

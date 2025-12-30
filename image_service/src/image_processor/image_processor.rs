@@ -1,4 +1,6 @@
-use crate::Transform;
+use crate::image_processor::transforms::Transform;
+
+
 pub struct ImageProcessor {
     transformations: Vec<Box<dyn Transform>>,
 }
@@ -16,7 +18,7 @@ impl ImageProcessor {
 
     pub fn run(&self, infile: String) {
         for t in &self.transformations {
-            t.exec(infile.clone());
+            t.execute(infile.clone());
         }
     }
 }
