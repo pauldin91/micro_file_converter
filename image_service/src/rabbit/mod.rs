@@ -1,2 +1,2 @@
-pub mod consumer;
-pub use consumer::Consumer;
+pub mod dispatcher;
+pub use dispatcher::Dispatcher;
