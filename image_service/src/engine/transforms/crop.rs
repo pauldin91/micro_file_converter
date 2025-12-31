@@ -1,5 +1,5 @@
-use crate::image_processor::transforms::{transform::get_output_dir};
-use crate::image_processor::transforms::Rect;
+use crate::engine::transforms::{transform::get_output_dir};
+use crate::engine::transforms::Rect;
 pub struct Crop {
     selection: Rect,
 }
