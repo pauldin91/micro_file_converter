@@ -1,8 +1,7 @@
 use std::path::{Path, PathBuf};
 pub trait Transform {
-    fn new() -> Self where Self: Sized;
-    fn execute(&self, infile: String);
-    fn completed(&self) -> bool;
+    fn apply(&self, infile: String);
+    fn revert(&self) -> bool;
 }
 pub fn get_output_dir(method: &str, inputfile: &str) -> PathBuf {
     let s = method.to_owned() + "_" + inputfile;

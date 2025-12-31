@@ -1,20 +1,26 @@
 use crate::image_processor::transforms::{Transform, transform::get_output_dir};
-
+use crate::image_processor::transforms::Rect;
 pub struct Crop {
     completed: bool,
+    selection: Rect,
 }
-
-impl Transform for Crop {
-    fn new() -> Self {
-        Self { completed: false }
+impl Crop{
+    pub fn new(selection: Rect) -> Self {
+        Self { 
+            completed: false,
+            selection: selection, 
+        }
     }
-    fn execute(&self, infile: String) {
+}
+impl Transform for Crop {
+
+    fn apply(&self, infile: String) {
         let mut img = image::open(&infile).expect("Failed to open INFILE.");
-        let img2 = img.crop(20, 200, 20, 200);
+        let img2 = img.crop(self.selection.x,self.selection.y,self.selection.w,self.selection.h);
         img2.save(get_output_dir("crop", &infile))
             .expect("Failed writing OUTFILE.");
     }
-    fn completed(&self) -> bool {
+    fn revert(&self) -> bool {
         self.completed
     }
 }

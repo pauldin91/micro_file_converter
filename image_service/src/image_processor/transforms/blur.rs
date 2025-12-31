@@ -2,20 +2,26 @@ use crate::image_processor::transforms::{Transform, transform::get_output_dir};
 
 pub struct Blur {
     completed: bool,
+    sigma: f32,
 }
 
-impl Transform for Blur {
-    fn new() -> Self {
-        Self { completed: false }
+impl Blur {
+    pub fn new(sigma:f32) -> Self {
+        Self { completed: false,
+        sigma: sigma, 
+    }
     }
 
-    fn execute(&self, infile: String) {
+}
+impl Transform for Blur {
+
+    fn apply(&self, infile: String) {
         let img = image::open(&infile).expect("Failed to open INFILE.");
-        let img2 = img.blur(5.0);
+        let img2 = img.blur(self.sigma);
         img2.save(get_output_dir("blur", &infile))
             .expect("Failed writing OUTFILE.");
     }
-    fn completed(&self) -> bool {
+    fn revert(&self) -> bool {
         self.completed
     }
 }

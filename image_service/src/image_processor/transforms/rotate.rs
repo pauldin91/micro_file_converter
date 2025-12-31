@@ -1,19 +1,32 @@
 use crate::image_processor::transforms::{Transform, transform::get_output_dir};
 
+
 pub struct Rotate {
     completed: bool,
+    angle: u16, 
 }
-impl Transform for Rotate {
-    fn new() -> Self {
-        Self { completed: false }
+
+impl Rotate {
+    pub fn new(angle: u16) -> Self {
+        Self { 
+            completed: false, 
+            angle: angle,
+        }
     }
-    fn execute(&self, infile: String) {
+}
+
+impl Transform for Rotate {
+    fn apply(&self, infile: String) {
         let img = image::open(&infile).expect("Failed to open INFILE.");
-        let img2 = img.rotate180();
+        let img2 = match self.angle {
+           90=> img.rotate90(),
+           180=> img.rotate180(),
+           _ => img.rotate270(),
+        };
         img2.save(get_output_dir("rotate", &infile))
             .expect("Failed writing OUTFILE.");
     }
-    fn completed(&self) -> bool {
+    fn revert(&self) -> bool {
         self.completed
     }
 }

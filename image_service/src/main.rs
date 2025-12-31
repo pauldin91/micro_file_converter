@@ -10,7 +10,7 @@ use tracing::info;
 async fn main() {
 
     let tr= Fractal::new();
-    tr.execute(String::from("test.jpg"));
+    tr.apply(String::from("test.jpg"));
     dotenv().ok();
     if std::env::var("RUST_LOG").is_err() {
         unsafe { std::env::set_var("RUST_LOG", "info") };
