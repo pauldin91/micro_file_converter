@@ -1,21 +1,14 @@
-use crate::image_processor::transforms::Transform;
 
 pub struct Fractal {
-    completed: bool,
 }
 
 impl Fractal {
     pub fn new() -> Self {
-        Self { completed: false }
+        Self { }
     }
-}
 
-impl Transform for Fractal {
 
-    fn revert(&self) -> bool {
-        self.completed
-    }
-    fn apply(&self, outfile: String) {
+    pub fn apply(&self, outfile: String) {
         let width = 800;
         let height = 800;
 

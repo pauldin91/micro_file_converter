@@ -1,7 +1,7 @@
 use dotenv::dotenv;
 
 use futures_lite::StreamExt;
-use image_service::image_processor::transforms::{Fractal, Transform};
+use image_service::image_processor::transforms::{Fractal};
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use tracing::info;
 

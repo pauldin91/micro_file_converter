@@ -2,7 +2,7 @@ use crate::image_processor::transforms::Transform;
 
 
 pub struct ImageProcessor {
-    transformations: Vec<Box<dyn Transform>>,
+    transformations: Vec<Transform>,
 }
 
 impl ImageProcessor {
@@ -12,7 +12,7 @@ impl ImageProcessor {
         }
     }
 
-    pub fn add_transform(&mut self, transform: Box<dyn Transform>) {
+    pub fn add_transform(&mut self, transform:  Transform) {
         self.transformations.push(transform);
     }
 
