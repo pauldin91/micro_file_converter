@@ -1,0 +1,73 @@
+use futures_lite::StreamExt;
+use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use futures_util::StreamExt;
+use tokio::{sync::Semaphore, task};
+use std::sync::Arc;
+use tracing::info;
+
+pub struct Consumer {
+    host: String,
+    queue: String,
+}
+
+impl Consumer {
+    pub fn new() -> Self {
+        let rabbitmq_host = std::env::var("RABBITMQ_HOST").expect("env wasn't set");
+        let transform_queue = std::env::var("TRANSFORM_QUEUE").expect("env wasn't set");
+        Consumer {
+            host: rabbitmq_host,
+            queue: transform_queue,
+        }
+    }
+
+    pub async fn consume(&self) -> Result<(), ()> {
+        let conn = Connection::connect(&self.host, ConnectionProperties::default())
+            .await
+            .expect("connection error");
+
+        let channel = conn.create_channel().await.expect("create_channel");
+
+        let _ = channel.basic_qos(1, BasicQosOptions::default()).await;
+
+        let mut consumer = channel
+            .basic_consume(
+                &self.queue,
+                "image_service".into(),
+                BasicConsumeOptions::default(),
+                FieldTable::default(),
+            )
+            .await
+            .expect("basic_consume");
+
+        let semaphore = Arc::new(Semaphore::new(16));
+        while let Some(delivery) = consumer.next().await {
+            let delivery = delivery?;
+            let permit = semaphore.clone().acquire_owned().await?;
+
+            task::spawn(async move {
+                let result = self.handle_message(delivery.data.clone()).await;
+
+                match result {
+                    Ok(_) => {
+                        let _ = delivery.ack(BasicAckOptions::default()).await;
+                    }
+                    Err(e) => {
+                        tracing::error!("job failed: ");
+                        let _ = delivery.nack(BasicNackOptions::default()).await;
+                    }
+                }
+
+                drop(permit);
+            });
+        }
+        Ok(())
+    }
+
+    async fn handle_message(&self,data: Vec<u8>) -> Result<(),()> {
+        let body = String::from_utf8(data).unwrap_or_else(|_| "could not consume".into());
+        info!("processing: {body}");
+
+        // dispatch async jobs here
+        Ok(())
+    }
+}
