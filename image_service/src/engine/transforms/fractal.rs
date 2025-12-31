@@ -1,14 +1,17 @@
 
 pub struct Fractal {
+    filename: String,
 }
 
 impl Fractal {
-    pub fn new() -> Self {
-        Self { }
+    pub fn new(filename: String) -> Self {
+        Self { 
+            filename: filename,
+        }
     }
 
 
-    pub fn apply(&self, outfile: String) {
+    pub fn apply(&self) {
         let width = 800;
         let height = 800;
 
@@ -36,6 +39,6 @@ impl Fractal {
             *pixel = image::Rgb([red, green, blue]);
         }
 
-        imgbuf.save(outfile).unwrap();
+        imgbuf.save(&self.filename).unwrap();
     }
 }

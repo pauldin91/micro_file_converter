@@ -9,8 +9,8 @@ use tracing::info;
 #[tokio::main]
 async fn main() {
 
-    let tr= Fractal::new();
-    tr.apply(String::from("test.jpg"));
+    let tr= Fractal::new(String::from("test.jpg"));
+    tr.apply();
     dotenv().ok();
     if std::env::var("RUST_LOG").is_err() {
         unsafe { std::env::set_var("RUST_LOG", "info") };

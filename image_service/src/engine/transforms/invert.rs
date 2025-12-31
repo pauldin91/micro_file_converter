@@ -1,17 +1,18 @@
 use crate::engine::transforms::{ transform::get_output_dir};
 
 pub struct Invert {
+    filename: String
 }
 impl Invert {
-    pub fn new() -> Self {
-        Self {  }
+    pub fn new(filename: String) -> Self {
+        Self { filename: filename }
     }
 
-    pub fn apply(&self, infile: String) {
-        let mut img = image::open(&infile).expect("Failed to open INFILE.");
+    pub fn apply(&self) {
+        let mut img = image::open(&self.filename).expect("Failed to open INFILE.");
         img.invert();
 
-        img.save(get_output_dir("invert", &infile))
+        img.save(get_output_dir("invert", &self.filename))
             .expect("Failed writing OUTFILE.");
     }
 

@@ -16,9 +16,9 @@ impl ImageProcessor {
         self.transformations.push(transform);
     }
 
-    pub fn run(&self, infile: String) {
+    pub fn run(&self) {
         for t in &self.transformations {
-            t.apply(infile.clone());
+            t.apply();
         }
     }
 }

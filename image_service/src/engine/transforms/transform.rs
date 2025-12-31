@@ -14,14 +14,14 @@ pub enum Transform{
 
 
 impl Transform{
-    pub fn apply(&self,infile:String){
+    pub fn apply(&self){
         match self{
-            Transform::Blur(t)=>t.apply(infile),
-            Transform::Brighten(t)=>t.apply(infile),
-            Transform::Crop(t)=>t.apply(infile),
-            Transform::Fractal(t)=>t.apply(infile),
-            Transform::Invert(t)=>t.apply(infile),
-            Transform::Rotate(t)=>t.apply(infile),
+            Transform::Blur(t)=>t.apply(),
+            Transform::Brighten(t)=>t.apply(),
+            Transform::Crop(t)=>t.apply(),
+            Transform::Fractal(t)=>t.apply(),
+            Transform::Invert(t)=>t.apply(),
+            Transform::Rotate(t)=>t.apply(),
         }
     }
     pub fn revert(&self) {
