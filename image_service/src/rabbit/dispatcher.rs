@@ -1,6 +1,6 @@
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
-use std::fs;
+use std::{fs, path::Path};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 
@@ -9,19 +9,24 @@ use crate::rabbit::UploadDto;
 pub struct Dispatcher {
     host: String,
     queue: String,
+    upload_dir: String,
 }
 
 impl Dispatcher {
     pub fn new() -> Self {
         let rabbitmq_host = std::env::var("RABBITMQ_HOST").expect("env wasn't set");
         let transform_queue = std::env::var("TRANSFORM_QUEUE").expect("env wasn't set");
+        let upload_dir = std::env::var("UPLOAD_DIR").expect("env wasn't set");
         Dispatcher {
             host: rabbitmq_host,
             queue: transform_queue,
+            upload_dir: upload_dir,
         }
     }
 
     pub async fn consume(self: Arc<Self>) -> Result<(), ()> {
+        
+
         let conn = Connection::connect(&self.host, ConnectionProperties::default())
             .await
             .expect("connection error");
@@ -87,6 +92,13 @@ impl Dispatcher {
     async fn handle_message(&self, data: Vec<u8>) -> Result<(), serde_json::Error> {
         let upload = serde_json::from_slice::<UploadDto>(&data)?;
         println!("got file: {:?}", upload);
+        let mut i=0;
+        let root = fs::read_dir(self.upload_dir);
+        let upload_dir = Path::join(Path::new(&self.upload_dir),upload.id.into());
+        for f in upload_dir {
+            println!("{}. {}", i,f.unwrap().path().display());
+            i+=1;
+        }
 
 
         Ok(())
