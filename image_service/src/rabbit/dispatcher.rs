@@ -1,11 +1,10 @@
 use futures_util::StreamExt;
-use lapin::{
-    Connection, ConnectionProperties,
-    options::*, types::FieldTable,
-};
+use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use std::fs;
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 
+use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
     host: String,
@@ -23,12 +22,9 @@ impl Dispatcher {
     }
 
     pub async fn consume(self: Arc<Self>) -> Result<(), ()> {
-        let conn = Connection::connect(
-            &self.host,
-            ConnectionProperties::default(),
-        )
-        .await
-        .expect("connection error");
+        let conn = Connection::connect(&self.host, ConnectionProperties::default())
+            .await
+            .expect("connection error");
 
         let channel = conn.create_channel().await.expect("create_channel");
 
@@ -78,7 +74,6 @@ impl Dispatcher {
                     Err(e) => {
                         let _ = delivery.nack(BasicNackOptions::default()).await;
                         eprintln!("Consumer error: {:?}", e);
-                        
                     }
                 }
 
@@ -89,9 +84,11 @@ impl Dispatcher {
         Ok(())
     }
 
-    async fn handle_message(&self, data: Vec<u8>) -> Result<(), ()> {
-        let body = String::from_utf8_lossy(&data);
-        println!("processing: {}",body);
+    async fn handle_message(&self, data: Vec<u8>) -> Result<(), serde_json::Error> {
+        let upload = serde_json::from_slice::<UploadDto>(&data)?;
+        println!("got file: {:?}", upload);
+
+
         Ok(())
     }
 }
