@@ -13,6 +13,7 @@ pub struct FileDto {
 #[derive(Debug, Deserialize)]
 pub struct UploadDto{
     pub id: Uuid,
+    pub transform: String,
     pub timestamp: DateTime<Utc>,
     pub files: Vec<FileDto>,
 }

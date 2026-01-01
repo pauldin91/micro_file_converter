@@ -1,22 +1,26 @@
+use std::path::PathBuf;
+
+use image::{DynamicImage, ImageBuffer, Rgba};
+
 
 pub struct Fractal {
-    filename: String,
+    filename: PathBuf,
 }
 
 impl Fractal {
-    pub fn new(filename: String) -> Self {
+    pub fn new(filename: PathBuf) -> Self {
         Self { 
             filename: filename,
         }
     }
 
 
-    pub fn apply(&self) {
+    pub fn apply(&self)->DynamicImage{
         let width = 800;
         let height = 800;
 
-        let mut imgbuf = image::ImageBuffer::new(width, height);
-
+        let mut  imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> =
+    ImageBuffer::new(width, height);
         let scale_x = 3.0 / width as f32;
         let scale_y = 3.0 / height as f32;
 
@@ -36,9 +40,9 @@ impl Fractal {
                 green += 1;
             }
 
-            *pixel = image::Rgb([red, green, blue]);
+            *pixel = image::Rgba([red, green, blue,0]);
         }
 
-        imgbuf.save(&self.filename).unwrap();
+        DynamicImage::ImageRgba8(imgbuf)
     }
 }

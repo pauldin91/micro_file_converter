@@ -1,23 +1,24 @@
-use crate::engine::transforms::{ transform::get_output_dir};
+use std::path::PathBuf;
+
+use image::DynamicImage;
+
 
 pub struct Blur {
     sigma: f32,
-    filename: String,
+    filename: PathBuf,
 }
 
 impl Blur {
-    pub fn new(filename: String,sigma: f32) -> Self {
+    pub fn new(filename: PathBuf,sigma: f32) -> Self {
         Self {
             filename: filename,
             sigma: sigma,
         }
     }
 
-    pub fn apply(&self) {
+    pub fn apply(&self) -> DynamicImage {
         let img = image::open(&self.filename).expect("Failed to open INFILE.");
-        let img2 = img.blur(self.sigma);
-        img2.save(get_output_dir("blur", &self.filename))
-            .expect("Failed writing OUTFILE.");
+        img.blur(self.sigma)
     }
 
 }

@@ -1,10 +1,10 @@
 use dotenv::dotenv;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 use image_service::{engine::transforms::Fractal, rabbit};
 
 #[tokio::main]
 async fn main() {
-    let tr = Fractal::new(String::from("test.jpeg"));
+    let tr = Fractal::new(PathBuf::from("test.jpeg"));
     tr.apply();
     dotenv().ok();
     tracing_subscriber::fmt::init();

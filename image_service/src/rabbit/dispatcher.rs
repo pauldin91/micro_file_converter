@@ -1,9 +1,10 @@
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
-use std::{fs, path::Path};
 use std::sync::Arc;
+use std::{fs, path::Path};
 use tokio::{sync::Semaphore, task};
 
+use crate::engine::transforms::Transform;
 use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
@@ -25,8 +26,6 @@ impl Dispatcher {
     }
 
     pub async fn consume(self: Arc<Self>) -> Result<(), ()> {
-        
-
         let conn = Connection::connect(&self.host, ConnectionProperties::default())
             .await
             .expect("connection error");
@@ -92,14 +91,17 @@ impl Dispatcher {
     async fn handle_message(&self, data: Vec<u8>) -> Result<(), serde_json::Error> {
         let upload = serde_json::from_slice::<UploadDto>(&data)?;
         println!("got file: {:?}", upload);
-        let mut i=0;
-        let root = fs::read_dir(self.upload_dir);
-        let upload_dir = Path::join(Path::new(&self.upload_dir),upload.id.into());
-        for f in upload_dir {
-            println!("{}. {}", i,f.unwrap().path().display());
-            i+=1;
+        let batch_dir = Path::join(Path::new(&self.upload_dir), upload.id.to_string());
+        for f in fs::read_dir(batch_dir).unwrap() {
+            match f {
+                Ok(name) => if !name.path().ends_with(Path::new(".json")) {
+                    let _ = Transform::apply_raw(name.path().clone(),upload.id.to_string(),&upload.transform);
+                },
+                Err(e) => {
+                    eprintln!("Unable to transform error: {:?}", e);
+                }
+            }
         }
-
 
         Ok(())
     }

@@ -1,19 +1,16 @@
-use crate::engine::transforms::{ transform::get_output_dir};
+use std::path::PathBuf;
+
+use image::DynamicImage;
 
 pub struct Brighten {
-    filename: String,
+    filename: PathBuf,
 }
 impl Brighten {
-    pub fn new(filename: String) -> Self {
-        Self {  
-            filename: filename,
-        }
+    pub fn new(filename: PathBuf) -> Self {
+        Self { filename: filename }
     }
-    pub fn apply(&self) {
+    pub fn apply(&self) -> DynamicImage {
         let img = image::open(&self.filename).expect("Failed to open INFILE.");
-        let img2 = img.brighten(20);
-        img2.save(get_output_dir("brighten", &self.filename))
-            .expect("Failed writing OUTFILE.");
+        img.brighten(20)
     }
-
 }

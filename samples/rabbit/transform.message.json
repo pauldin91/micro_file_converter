@@ -15,5 +15,5 @@
             "path": "../uploads/4536e1fb-82c1-4fb2-a40e-5a46e4254496/demo_2.png"
         }
     ],
-    "transform": "rot_180"
+    "transform": "rotate"
 }

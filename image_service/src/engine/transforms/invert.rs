@@ -1,19 +1,20 @@
-use crate::engine::transforms::{ transform::get_output_dir};
+use std::path::PathBuf;
+
+use image::DynamicImage;
+
 
 pub struct Invert {
-    filename: String
+    filename: PathBuf
 }
 impl Invert {
-    pub fn new(filename: String) -> Self {
+    pub fn new(filename: PathBuf) -> Self {
         Self { filename: filename }
     }
 
-    pub fn apply(&self) {
+    pub fn apply(&self) -> DynamicImage {
         let mut img = image::open(&self.filename).expect("Failed to open INFILE.");
         img.invert();
-
-        img.save(get_output_dir("invert", &self.filename))
-            .expect("Failed writing OUTFILE.");
+        img
     }
 
 }
