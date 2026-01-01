@@ -5,7 +5,7 @@ use lapin::{
 };
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
-use tracing::info;
+
 
 pub struct Dispatcher {
     host: String,
@@ -77,6 +77,8 @@ impl Dispatcher {
                     }
                     Err(e) => {
                         let _ = delivery.nack(BasicNackOptions::default()).await;
+                        eprintln!("Consumer error: {:?}", e);
+                        
                     }
                 }
 
@@ -89,7 +91,7 @@ impl Dispatcher {
 
     async fn handle_message(&self, data: Vec<u8>) -> Result<(), ()> {
         let body = String::from_utf8_lossy(&data);
-        info!("processing: {body}");
+        println!("processing: {}",body);
         Ok(())
     }
 }
