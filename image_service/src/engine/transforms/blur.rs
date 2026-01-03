@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use image::DynamicImage;
 
+use crate::engine::transforms::ImageTransform;
+
 
 pub struct Blur {
     sigma: f32,
@@ -16,9 +18,14 @@ impl Blur {
         }
     }
 
-    pub fn apply(&self) -> DynamicImage {
+}
+impl ImageTransform for Blur{
+    fn filename(&self) -> PathBuf {
+        self.filename.clone()
+    }
+
+    fn apply(&self) -> DynamicImage {
         let img = image::open(&self.filename).expect("Failed to open INFILE.");
         img.blur(self.sigma)
     }
-
 }

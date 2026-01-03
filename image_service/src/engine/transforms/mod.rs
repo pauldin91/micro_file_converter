@@ -6,6 +6,7 @@ pub mod fractal;
 pub mod invert;
 pub mod rotate;
 pub mod transform;
+pub mod image_transform;
 pub mod rect;
 
 pub use blur::Blur;
@@ -16,3 +17,4 @@ pub use fractal::Fractal;
 pub use invert::Invert;
 pub use rotate::Rotate;
 pub use transform::Transform;
+pub use image_transform::ImageTransform;

@@ -1,8 +1,8 @@
-use crate::engine::transforms::Transform;
+use crate::engine::transforms::{ImageTransform, Transform};
 
 
 pub struct ImageProcessor {
-    transformations: Vec<Transform>,
+    transformations: Vec<Box<dyn ImageTransform>>,
 }
 
 impl ImageProcessor {
@@ -12,13 +12,14 @@ impl ImageProcessor {
         }
     }
 
-    pub fn add_transform(&mut self, transform:  Transform) {
+    pub fn add_transform(&mut self, transform:  Box<dyn ImageTransform>) {
         self.transformations.push(transform);
     }
 
     pub fn run(&self) {
         for t in &self.transformations {
-            t.apply();
+            let filename = t.filename();
+            let _ = t.apply_and_save(filename);
         }
     }
 }
