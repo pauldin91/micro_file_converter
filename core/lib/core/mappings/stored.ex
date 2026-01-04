@@ -1,4 +1,4 @@
 defmodule Core.Mappings.Stored do
   @derive Jason.Encoder
-  defstruct [:filename, :type, :path, :size]
+  defstruct [:filename, :type, :size]
 end

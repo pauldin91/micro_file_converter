@@ -5,14 +5,12 @@
         {
             "size": 116328,
             "type": "image/png",
-            "filename": "demo_1.png",
-            "path": "../uploads/4536e1fb-82c1-4fb2-a40e-5a46e4254496/demo_1.png"
+            "filename": "demo_1.png"
         },
         {
             "size": 202553,
             "type": "image/png",
-            "filename": "demo_2.png",
-            "path": "../uploads/4536e1fb-82c1-4fb2-a40e-5a46e4254496/demo_2.png"
+            "filename": "demo_2.png"
         }
     ],
     "transform": "rotate"

@@ -16,7 +16,6 @@ defmodule Core.Storage do
            File.stat(dest) do
       {:ok,
        %Stored{
-         path: dest,
          filename: entry.filename,
          type: entry.content_type,
          size: size
