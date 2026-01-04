@@ -6,7 +6,7 @@ use std::{
 use uuid::Uuid;
 
 use crate::engine::transforms::{
-    Blur, Brighten, Crop, Fractal, ImageTransform, Invert, Rect, Rotate, transform,
+    Blur, Brighten, Crop, Fractal, ImageTransform, Invert, Rect, Rotate,
 };
 
 #[derive(Debug, Copy, Clone)]

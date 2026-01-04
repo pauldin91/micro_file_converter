@@ -21,6 +21,5 @@ async fn main() {
         }
     });
 
-    // Optional: wait forever (consumer is long-lived)
     let _ = handle.await;
 }
