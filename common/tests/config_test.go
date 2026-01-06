@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"common/pkg/config"
+	"common/config"
 	"log"
 	"os"
 	"path"
@@ -11,8 +11,8 @@ import (
 
 var dirs []string = []string{
 	".",
-	"../../../upload_service",
-	"../../../conversion_service",
+	"../../upload_service",
+	"../../conversion_service",
 }
 
 const (
@@ -61,12 +61,13 @@ func extectedLoadHelper(t *testing.T, envFilename string) {
 }
 
 func actualLoadHelper(t *testing.T, envDirectory string) {
-	cfg, err := config.LoadConfig(envDirectory)
+	cfg := config.NewConfig()
+	err := cfg.LoadConfig(envDirectory)
 	if err != nil {
 		log.Println("could load cfg")
 	}
-	if cfg[rabbitHost] != os.Getenv("RABBITMQ_HOST") ||
-		cfg[convQueue] != os.Getenv("CONVERSION_QUEUE") {
+	if cfg.Get(rabbitHost) != os.Getenv("RABBITMQ_HOST") ||
+		cfg.Get(convQueue) != os.Getenv("CONVERSION_QUEUE") {
 		t.Errorf("cfg could not be overwritten %s", err)
 	}
 }

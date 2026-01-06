@@ -1,7 +1,7 @@
 package main
 
 import (
-	"common/pkg/config"
+	"common/config"
 	"context"
 	"fmt"
 	"log"
@@ -14,8 +14,8 @@ import (
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
 	defer stop()
-
-	cfg, err := config.LoadConfig("../../")
+	cfg := config.NewConfig()
+	err := cfg.LoadConfig("../../")
 	if err != nil {
 		log.Panicf("unable to read cfg: %s\n", err.Error())
 	}

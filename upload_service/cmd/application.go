@@ -1,8 +1,8 @@
 package api
 
 import (
-	"common/pkg/config"
-	"common/pkg/messages"
+	"common/config"
+	"common/messages"
 	"context"
 	"net/http"
 	"os"
@@ -40,7 +40,7 @@ func NewServer(ctx context.Context, cfg config.Config) *Application {
 	}
 	router := server.registerRoutes(cfg)
 	server.httpServer = &http.Server{
-		Addr:    cfg[domain.HttpServerAddress],
+		Addr:    cfg.Get(domain.HttpServerAddress),
 		Handler: router,
 	}
 	return &server
@@ -72,16 +72,16 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 		httpSwagger.URL("swagger/doc.json"),
 	))
 
-	connPool, err := pgxpool.New(server.ctx, cfg[domain.DbConn])
+	connPool, err := pgxpool.New(server.ctx, cfg.Get(domain.DbConn))
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	runDBMigration(cfg[domain.DbConn])
+	runDBMigration(cfg.Get(domain.DbConn))
 
 	store := db.NewStore(connPool)
 
-	publisher, err := messages.NewRabbitMQPublisher(cfg[domain.RabbitMQHost], cfg[domain.ConversionQueue])
+	publisher, err := messages.NewRabbitMQPublisher(cfg.Get(domain.RabbitMQHost), cfg.Get(domain.ConversionQueue))
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to RabbitMQ")
 	}

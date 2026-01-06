@@ -2,8 +2,8 @@ package service
 
 import (
 	"common"
-	config "common/pkg/config"
-	"common/pkg/messages"
+	config "common/config"
+	"common/messages"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -22,7 +22,7 @@ type Converter struct {
 }
 
 func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter, error) {
-	uploadDir := conf[domain.UploadDir]
+	uploadDir := conf.Get(domain.UploadDir)
 	if uploadDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {

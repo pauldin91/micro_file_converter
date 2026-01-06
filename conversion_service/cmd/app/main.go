@@ -2,8 +2,8 @@ package main
 
 import (
 	"common"
-	config "common/pkg/config"
-	"common/pkg/messages"
+	config "common/config"
+	"common/messages"
 	"context"
 	"encoding/json"
 	"log"
@@ -16,7 +16,8 @@ import (
 )
 
 func main() {
-	conf, err := config.LoadConfig("../..")
+	conf := config.NewConfig()
+	err := conf.LoadConfig("../..")
 	if err != nil {
 		l, _ := os.Getwd()
 		files, _ := os.ReadDir(l)
@@ -29,7 +30,7 @@ func main() {
 	context, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	publisher, err := messages.NewRabbitMQPublisher(conf[domain.RabbitMQHost], conf[domain.ConversionQueue])
+	publisher, err := messages.NewRabbitMQPublisher(conf.Get(domain.RabbitMQHost), conf.Get(domain.ConversionQueue))
 	if err != nil {
 		log.Panicf("Could not create publisher: %v", err)
 	}
@@ -37,7 +38,7 @@ func main() {
 	if err != nil {
 		log.Panicf("Could not create converter: %v", err)
 	}
-	subscriber, err := messages.NewRabbitMQSubscriber(conf[domain.RabbitMQHost], conf[domain.ConversionQueue], 3, true)
+	subscriber, err := messages.NewRabbitMQSubscriber(conf.Get(domain.RabbitMQHost), conf.Get(domain.ConversionQueue), 3, true)
 
 	subscriber.SetConsumeHandler(func(body []byte) error {
 		var batch common.Batch

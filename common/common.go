@@ -1,9 +1,9 @@
 package common
 
 import (
-	"common/pkg/config"
-	"common/pkg/messages"
-	"common/pkg/types"
+	"common/config"
+	"common/messages"
+	"common/types"
 )
 
 type Config config.Config

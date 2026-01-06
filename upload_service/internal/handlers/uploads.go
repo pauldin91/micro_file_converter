@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"common/pkg/config"
-	"common/pkg/messages"
+	"common/config"
+	"common/messages"
 	"context"
 	"encoding/json"
 	"io"
@@ -29,7 +29,7 @@ type UploadHandler struct {
 }
 
 func NewUploadHandler(cfg config.Config, store db.Store, publisher messages.Publisher) UploadHandler {
-	var uploadDir string = cfg[domain.UploadDir]
+	var uploadDir string = cfg.Get(domain.UploadDir)
 	if len(uploadDir) == 0 {
 		cwd, _ := os.Getwd()
 		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
