@@ -1,14 +1,9 @@
 use serde::Deserialize;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
-#[derive(Debug, Deserialize)]
-pub struct FileDto {
-    pub size: u64,
-    #[serde(rename = "type")]
-    pub content_type: String,
-    pub filename: String,
-    pub path: String,
-}
+
+use crate::rabbit::FileDto;
+
 
 #[derive(Debug, Deserialize)]
 pub struct UploadDto{
