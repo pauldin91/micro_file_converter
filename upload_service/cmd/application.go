@@ -14,7 +14,6 @@ import (
 	_ "webapi/docs"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -77,8 +76,6 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
-	runDBMigration(cfg.Get(domain.DbConn))
-
 	store := db.NewStore(connPool)
 
 	publisher, err := messages.NewRabbitMQPublisher(cfg.Get(domain.RabbitMQHost), cfg.Get(domain.ConversionQueue))
@@ -88,18 +85,4 @@ func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
 	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store, publisher)
 	router.Post(domain.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
-}
-
-func runDBMigration(dbSource string) {
-	migration, err := migrate.New("file://db/migrations", dbSource)
-	if err != nil {
-		log.Error().Err(err).Msg("cannot create new migrate instance")
-		return
-	}
-
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal().Err(err).Msg("failed to run migrate up")
-	}
-
-	log.Info().Msg("db migrated successfully")
 }
