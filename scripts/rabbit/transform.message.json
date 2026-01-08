@@ -13,5 +13,10 @@
             "filename": "demo_2.png"
         }
     ],
-    "transform": "rotate_180"
+    "transform": {
+        "type":"rotate",
+        "props": {
+            "degrees": 180
+        }
+    }
 }
