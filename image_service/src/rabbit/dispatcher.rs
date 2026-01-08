@@ -4,7 +4,7 @@ use std::sync::Arc;
 use std::{fs, path::Path};
 use tokio::{sync::Semaphore, task};
 
-use crate::engine::transforms::Transform;
+use crate::engine::TransformService;
 use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
@@ -95,7 +95,7 @@ impl Dispatcher {
         for f in fs::read_dir(batch_dir).unwrap() {
             match f {
                 Ok(name) => if !name.path().ends_with(Path::new(".json")) {
-                    let _ = Transform::apply_raw(name.path().clone(),upload.id.to_string(),&upload.transform);
+                    let _ = TransformService::apply_raw(name.path().clone(),upload.id.to_string(),&upload.transform.name);
                 },
                 Err(e) => {
                     eprintln!("Unable to transform error: {:?}", e);

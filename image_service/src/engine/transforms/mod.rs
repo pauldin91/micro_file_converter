@@ -5,9 +5,9 @@ pub mod crop;
 pub mod fractal;
 pub mod invert;
 pub mod rotate;
-pub mod transform;
-pub mod image_transform;
 pub mod rect;
+pub mod transform_type;
+pub mod image_transform;
 
 pub use blur::Blur;
 pub use brighten::Brighten;
@@ -16,5 +16,5 @@ pub use rect::Rect;
 pub use fractal::Fractal;
 pub use invert::Invert;
 pub use rotate::Rotate;
-pub use transform::Transform;
+pub use transform_type::TransformType;
 pub use image_transform::ImageTransform;
