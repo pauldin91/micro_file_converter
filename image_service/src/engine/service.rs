@@ -1,7 +1,4 @@
-use std::{
-    path::PathBuf,
-    str::FromStr,
-};
+use std::path::PathBuf;
 
 use uuid::Uuid;
 
@@ -29,11 +26,7 @@ impl TransformService {
         PathBuf::from(filename)
     }
 
-    pub fn apply_raw(
-        filename: PathBuf,
-        batch_id: String,
-        transform: &str,
-    ) -> Result<(), ()> {
+    pub fn apply_raw(filename: PathBuf, batch_id: String, transform: &str) -> Result<(), ()> {
         let kind = transform.parse::<TransformType>()?;
         let save_path = Self::get_save_path(transform, batch_id, &filename);
 
@@ -59,5 +52,3 @@ impl TransformService {
 
     pub fn revert(&self) {}
 }
-
-
