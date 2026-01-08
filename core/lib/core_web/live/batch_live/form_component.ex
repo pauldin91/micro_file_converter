@@ -7,10 +7,15 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
   @transformations [
     {"None", :none},
-    {"90°", :rot_90},
-    {"180°", :rot_180},
-    {"270°", :rot_270},
-    {"Mirror", :mirror}
+    {"90°", :rotate_90},
+    {"180°", :rotate_180},
+    {"270°", :rotate_270},
+    {"Mirror", :mirror},
+    {"Blur", :blur},
+    {"Invert", :invert},
+    {"Crop", :crop},
+    {"Fractal", :fractal},
+    {"Brighten", :brighten},
   ]
   @impl true
   def update(%{batch: batch} = assigns, socket) do

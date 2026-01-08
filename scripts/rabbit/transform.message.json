@@ -13,5 +13,5 @@
             "filename": "demo_2.png"
         }
     ],
-    "transform": "rotate"
+    "transform": "rotate_180"
 }
