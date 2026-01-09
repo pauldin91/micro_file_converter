@@ -4,24 +4,21 @@ use std::sync::Arc;
 use std::{fs, path::Path};
 use tokio::{sync::Semaphore, task};
 
-use crate::engine::TransformService;
+use crate::application::TransformService;
 use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
     host: String,
     queue: String,
-    upload_dir: String,
 }
 
 impl Dispatcher {
     pub fn new() -> Self {
         let rabbitmq_host = std::env::var("RABBITMQ_HOST").expect("env wasn't set");
         let transform_queue = std::env::var("TRANSFORM_QUEUE").expect("env wasn't set");
-        let upload_dir = std::env::var("UPLOAD_DIR").expect("env wasn't set");
         Dispatcher {
             host: rabbitmq_host,
             queue: transform_queue,
-            upload_dir: upload_dir,
         }
     }
 
@@ -89,19 +86,17 @@ impl Dispatcher {
     }
 
     async fn handle_message(&self, data: Vec<u8>) -> Result<(), serde_json::Error> {
-        let upload = serde_json::from_slice::<UploadDto>(&data)?;
-        println!("got file: {:?}", upload);
-        let batch_dir = Path::join(Path::new(&self.upload_dir), upload.id.to_string());
-        for f in fs::read_dir(batch_dir).unwrap() {
-            match f {
-                Ok(name) => if !name.path().ends_with(Path::new(".json")) {
-                    let _ = TransformService::apply_raw(name.path().clone(),upload.id.to_string(),&upload.transform.name);
-                },
+        let upload = serde_json::from_slice::<UploadDto>(&data);
+        
+        match upload {
+                Ok(dto) => 
+                   TransformService::handle(dto.to_map())
+                ,
                 Err(e) => {
                     eprintln!("Unable to transform error: {:?}", e);
                 }
             }
-        }
+        
 
         Ok(())
     }
