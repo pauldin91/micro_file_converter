@@ -1,11 +1,11 @@
-use crate::engine::transforms::ImageTransform;
+use crate::domain::ImageTransform;
 
 
-pub struct ImageProcessor {
+pub struct TransformPipeline {
     transformations: Vec<Box<dyn ImageTransform>>,
 }
 
-impl ImageProcessor {
+impl TransformPipeline {
     pub fn new() -> Self {
         Self {
             transformations: Vec::new(),
@@ -17,9 +17,8 @@ impl ImageProcessor {
     }
 
     pub fn run(&self) {
-        for t in &self.transformations {
-            let filename = t.filename();
-            let _ = t.apply_and_save(filename);
+        for _t in &self.transformations {
+            
         }
     }
 }

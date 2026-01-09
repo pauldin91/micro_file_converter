@@ -1,28 +1,21 @@
-use std::path::PathBuf;
 
 use image::{DynamicImage, ImageBuffer, Rgba};
 
-use crate::engine::transforms::ImageTransform;
+use crate::domain::ImageTransform;
 
-pub struct Fractal {
-    filename: PathBuf
-}
+
+pub struct Fractal;
 
 impl Fractal {
-    pub fn new(filename: PathBuf) -> Self {
-        Fractal {
-            filename: filename
-        }
+    pub fn new() -> Self {
+        Self
     }
 
 
 }
 impl ImageTransform for Fractal{
-    fn filename(&self) -> PathBuf {
-        self.filename.clone()
-    }
 
-    fn apply(&self) -> DynamicImage {
+    fn apply(&self,_img: &[u8]) ->Vec<u8> {
         let width = 800;
         let height = 800;
 
@@ -49,6 +42,6 @@ impl ImageTransform for Fractal{
             *pixel = image::Rgba([red, green, blue, 0]);
         }
 
-        DynamicImage::ImageRgba8(imgbuf)
+        Vec::from(DynamicImage::ImageRgba8(imgbuf).as_bytes())
     }
 }
