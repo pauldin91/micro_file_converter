@@ -1,7 +1,7 @@
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use serde::de::Error;
 use std::sync::Arc;
-use std::{fs, path::Path};
 use tokio::{sync::Semaphore, task};
 
 use crate::application::TransformService;
@@ -85,18 +85,10 @@ impl Dispatcher {
         Ok(())
     }
 
-    async fn handle_message(&self, data: Vec<u8>) -> Result<(), serde_json::Error> {
-        let upload = serde_json::from_slice::<UploadDto>(&data);
-        
-        match upload {
-                Ok(dto) => 
-                   TransformService::handle(dto.to_map())
-                ,
-                Err(e) => {
-                    eprintln!("Unable to transform error: {:?}", e);
-                }
-            }
-        
+    async fn handle_message(&self, data: Vec<u8>) -> Result<(), anyhow::Error> {
+        let dto: UploadDto = serde_json::from_slice(&data)?;
+
+        TransformService::handle(dto.to_map()).map_err(|_| anyhow::anyhow!("transform failed"))?;
 
         Ok(())
     }

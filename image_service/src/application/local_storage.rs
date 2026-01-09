@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{fs::File, io::Write, path::PathBuf};
 
 use uuid::Uuid;
 
@@ -8,17 +8,31 @@ pub struct LocalStorage{
     upload_dir: PathBuf
 }
 
-
+impl LocalStorage {
+    pub fn new() -> Self{
+        let upload_dir= std::env::var("UPLOAD_DIR").expect("env wasn't set");
+        Self{
+            upload_dir: PathBuf::from(upload_dir),
+        }
+    }
+}
 
 
 
 impl Storage for LocalStorage{
-    fn get_file(&self,filename: PathBuf){
-
+    fn get_full_path(&self,filename: PathBuf) -> PathBuf {
+        self.upload_dir.clone().join(filename)
     }
     
     fn store_file(&self,filename: PathBuf,content: Vec<u8> ) {
-        todo!()
+        let created = File::create(filename);
+        match created {
+            Ok(mut file) =>{
+                let _ = file.write(&content);
+            },
+            Err(_) =>(),
+        }
+    
     }
 
     fn get_files(&self,dir: String)-> Vec<String>{
