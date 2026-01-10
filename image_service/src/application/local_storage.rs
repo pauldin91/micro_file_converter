@@ -34,10 +34,14 @@ impl Storage for LocalStorage{
     
     }
 
-    fn get_files(&self,dir: String)-> Vec<String>{
+    fn get_files(&self,dir: String)-> Vec<PathBuf>{
         let filenames= Vec::new();
 
         filenames
+    }
+    
+    fn load(&self,fullpath: PathBuf) {
+        todo!()
     }
 }
 

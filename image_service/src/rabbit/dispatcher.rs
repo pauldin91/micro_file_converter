@@ -30,7 +30,7 @@ impl Dispatcher {
 
         let channel = conn.create_channel().await.expect("create_channel");
 
-        let storage= Box::new(LocalStorage::new()) as Box<dyn Storage>;
+        let storage= Arc::new(LocalStorage::new()) as Arc<dyn Storage>;
         channel
             .basic_qos(16, BasicQosOptions::default())
             .await
@@ -90,7 +90,7 @@ impl Dispatcher {
     async fn handle_message(&self, data: Vec<u8>) -> Result<(), anyhow::Error> {
         let dto: UploadDto = serde_json::from_slice(&data)?;
 
-        TransformService::handle(dto.to_map()).map_err(|_| anyhow::anyhow!("transform failed"))?;
+        // TransformService::handle(dto.to_map()).map_err(|_| anyhow::anyhow!("transform failed"))?;
 
         Ok(())
     }
