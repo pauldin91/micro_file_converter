@@ -1,13 +1,11 @@
+use anyhow::Result;
 use futures_util::StreamExt;
-use lapin::{
-    Connection, ConnectionProperties,
-    options::*,
-    types::FieldTable,
-};
-use tracing::info;
+use futures_util::future::ErrInto;
+use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use serde::de::value::Error;
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
-use anyhow::Result;
+use tracing::info;
 
 use crate::application::{LocalStorage, TransformService};
 use crate::domain::{Storage, constants};
@@ -26,19 +24,17 @@ impl Dispatcher {
     }
 
     pub async fn consume(&self) -> Result<()> {
-        println!("Dispatcher started at : {} and queue : {}",self.host.clone(),self.queue.clone());
+        println!(
+            "Dispatcher started at : {} and queue : {}",
+            self.host.clone(),
+            self.queue.clone()
+        );
 
-        let conn = Connection::connect(
-            &self.host,
-            ConnectionProperties::default(),
-        )
-        .await?;
+        let conn = Connection::connect(&self.host, ConnectionProperties::default()).await?;
 
         let channel = conn.create_channel().await?;
 
-        channel
-            .basic_qos(16, BasicQosOptions::default())
-            .await?;
+        channel.basic_qos(16, BasicQosOptions::default()).await?;
 
         let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
         let service = Arc::new(TransformService::new(storage));
@@ -57,28 +53,29 @@ impl Dispatcher {
         while let Some(delivery) = consumer.next().await {
             let delivery = delivery?;
 
-            let permit = semaphore.clone().acquire_owned().await?;
+            // let permit = semaphore.clone().acquire_owned().await?;
             let service = Arc::clone(&service);
-            let dto: UploadDto = serde_json::from_slice(&delivery.data)?;
-            task::spawn(async move {
-                let result = service.handle(dto.to_map()).await;
+            let msg: Result<UploadDto, serde_json::Error> = serde_json::from_slice(&delivery.data);
+            match msg {
+                Ok(dto) => {
+                    // task::spawn(async move {
+                        let result = service.handle(dto.to_map()).await;
 
-                match result {
-                    Ok(_) => {
-                        let _ = delivery
-                            .ack(BasicAckOptions::default())
-                            .await;
-                    }
-                    Err(e) => {
-                        let _ = delivery
-                            .nack(BasicNackOptions::default())
-                            .await;
-                        tracing::error!("message failed: {e:?}");
-                    }
+                        match result {
+                            Ok(_) => {
+                                let _ = delivery.ack(BasicAckOptions::default()).await;
+                            }
+                            Err(e) => {
+                                let _ = delivery.nack(BasicNackOptions::default()).await;
+                                tracing::error!("message failed: {e:?}");
+                            }
+                        }
+
+                    //     drop(permit);
+                    // });
                 }
-
-                drop(permit);
-            });
+                Err(e) => continue,
+            }
         }
 
         Ok(())

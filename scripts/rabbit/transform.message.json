@@ -4,19 +4,19 @@
     "files": [
         {
             "size": 116328,
-            "type": "image/png",
+            "content_type": "image/png",
             "filename": "demo_1.png"
         },
         {
             "size": 202553,
-            "type": "image/png",
+            "content_type": "image/png",
             "filename": "demo_2.png"
         }
     ],
     "transform": {
         "name":"rotate",
         "props": {
-            "degrees": 180
+            "degrees": "180"
         }
     }
 }

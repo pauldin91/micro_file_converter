@@ -1,6 +1,7 @@
-use std::{collections::HashMap, sync::Arc};
+use anyhow::anyhow;
+use std::path::PathBuf;
 use std::result::Result::Ok;
-use anyhow::{anyhow};
+use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
 use crate::{
@@ -9,16 +10,16 @@ use crate::{
 };
 #[derive(Clone)]
 pub struct TransformService {
-    storage:  Arc<dyn Storage>,
+    storage: Arc<dyn Storage>,
 }
 
 impl TransformService {
-    pub fn new(storage:Arc<dyn Storage>) -> Self {
+    pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
-    pub async  fn handle(&self, instructions: HashMap<String, String>) ->Result<(),anyhow::Error> {
+    pub async fn handle(&self, instructions: HashMap<String, String>) -> Result<(), anyhow::Error> {
         let transform_type = instructions.get_key_value("transform").unwrap();
-        info!("parsed : {:?}",instructions);
+        info!("parsed : {:?}", instructions);
         let parsed_tr = transform_type.1.parse::<TransformType>();
         match parsed_tr {
             Ok(kind) => {
@@ -35,20 +36,27 @@ impl TransformService {
                     TransformType::Invert => Box::new(Invert::new()),
                     TransformType::Rotate => Box::new(Rotate::new(90)),
                 };
-                let filename = self
-                    .storage
-                    .get_files(&instructions.get("id").unwrap());
+                let dir = instructions.get("id").unwrap().clone();
+                let filenames: Vec<String> = self.storage.get_files(&dir)
+                    .iter()
+                    .filter(|s|!s.extension().unwrap().eq(".json"))
+                    .collect();
 
-                for f in filename {
-                    let img = self.storage.load(&f);
-                    let content = op.apply(&img);
-                    let new_filename = self.storage.get_transformed_filename(&f,&transform_type.1);
+                for f in filenames {
+                    let res = self.storage.load(&f);
+                    match res {
+                        Ok(img) => {
+                            let content = op.apply(&img);
+                            let new_filename =
+                                self.storage.get_transformed_filename(&f, &transform_type.1);
 
-                    self.storage.store_file(&new_filename, &content);
-
+                            self.storage.store_file(&new_filename, &content);
+                        }
+                        Err(e) => {eprintln!("error : {}",e);continue},
+                    }
                 }
                 Ok(())
-            },
+            }
             Err(_) => Err(anyhow!("unable to handle batch")),
         }
     }
