@@ -35,9 +35,9 @@ impl Storage for LocalStorage{
     
     }
 
-    fn get_files(&self,dir: String)-> Vec<PathBuf>{
+    fn get_files(&self,dir: &String)-> Vec<PathBuf>{
         let mut filenames= Vec::new();
-        for f in fs::read_dir(self.get_full_path(dir)).unwrap(){
+        for f in fs::read_dir(self.get_full_path(dir.clone())).unwrap(){
             match f {
                 Ok(entry)=>filenames.push(entry.path()),
                 Err(e)=>{eprint!("error {}",e); continue},
@@ -47,7 +47,7 @@ impl Storage for LocalStorage{
         filenames
     }
     
-    fn load(&self,fullpath: PathBuf) -> Vec<u8>{
+    fn load(&self,fullpath: &PathBuf) -> Vec<u8>{
         Vec::from(image::open(fullpath.as_path()).unwrap().as_bytes())
     }
     

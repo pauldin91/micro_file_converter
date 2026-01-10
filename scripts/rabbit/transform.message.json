@@ -14,7 +14,7 @@
         }
     ],
     "transform": {
-        "type":"rotate",
+        "name":"rotate",
         "props": {
             "degrees": 180
         }

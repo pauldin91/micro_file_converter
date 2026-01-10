@@ -1,7 +1,7 @@
-use std::path::PathBuf;
 use std::{collections::HashMap, sync::Arc};
 use std::result::Result::Ok;
 use anyhow::{anyhow};
+use tracing::info;
 
 use crate::{
     Blur, Brighten, Crop, Fractal, Invert, Rotate, TransformType,
@@ -18,6 +18,7 @@ impl TransformService {
     }
     pub async  fn handle(&self, instructions: HashMap<String, String>) ->Result<(),anyhow::Error> {
         let transform_type = instructions.get_key_value("transform").unwrap();
+        info!("parsed : {:?}",instructions);
         let parsed_tr = transform_type.1.parse::<TransformType>();
         match parsed_tr {
             Ok(kind) => {
@@ -36,10 +37,10 @@ impl TransformService {
                 };
                 let filename = self
                     .storage
-                    .get_files(instructions.get("id").unwrap().clone());
+                    .get_files(&instructions.get("id").unwrap());
 
                 for f in filename {
-                    let img = self.storage.load(f.clone());
+                    let img = self.storage.load(&f);
                     let content = op.apply(&img);
                     let new_filename = self.storage.get_transformed_filename(&f,&transform_type.1);
 

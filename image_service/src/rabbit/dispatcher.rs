@@ -4,6 +4,7 @@ use lapin::{
     options::*,
     types::FieldTable,
 };
+use tracing::info;
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use anyhow::Result;
@@ -25,6 +26,8 @@ impl Dispatcher {
     }
 
     pub async fn consume(&self) -> Result<()> {
+        println!("Dispatcher started at : {} and queue : {}",self.host.clone(),self.queue.clone());
+
         let conn = Connection::connect(
             &self.host,
             ConnectionProperties::default(),
