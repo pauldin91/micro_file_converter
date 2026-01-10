@@ -3,8 +3,8 @@ use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 
-use crate::application::TransformService;
-use crate::domain::constants;
+use crate::application::{LocalStorage, TransformService};
+use crate::domain::{Storage, constants};
 use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
@@ -19,6 +19,7 @@ impl Dispatcher {
         Dispatcher {
             host: rabbitmq_host,
             queue: transform_queue,
+            
         }
     }
 
@@ -29,6 +30,7 @@ impl Dispatcher {
 
         let channel = conn.create_channel().await.expect("create_channel");
 
+        let storage= Box::new(LocalStorage::new()) as Box<dyn Storage>;
         channel
             .basic_qos(16, BasicQosOptions::default())
             .await
