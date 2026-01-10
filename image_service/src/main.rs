@@ -1,10 +1,9 @@
 use dotenv::dotenv;
-use image_service::{rabbit};
-use std::{sync::Arc};
+use image_service::rabbit;
+use std::sync::Arc;
 
 #[tokio::main]
 async fn main() {
-    
     dotenv().ok();
     tracing_subscriber::fmt::init();
 
