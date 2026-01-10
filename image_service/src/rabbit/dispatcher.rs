@@ -1,10 +1,10 @@
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
-use serde::de::Error;
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 
 use crate::application::TransformService;
+use crate::domain::constants;
 use crate::rabbit::UploadDto;
 
 pub struct Dispatcher {
@@ -14,8 +14,8 @@ pub struct Dispatcher {
 
 impl Dispatcher {
     pub fn new() -> Self {
-        let rabbitmq_host = std::env::var("RABBITMQ_HOST").expect("env wasn't set");
-        let transform_queue = std::env::var("TRANSFORM_QUEUE").expect("env wasn't set");
+        let rabbitmq_host = dotenv::var(constants::RABBITMQ_HOST).unwrap();
+        let transform_queue = dotenv::var(constants::TRANSFORM_QUEUE).unwrap();
         Dispatcher {
             host: rabbitmq_host,
             queue: transform_queue,

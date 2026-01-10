@@ -2,22 +2,21 @@ use std::{fs::File, io::Write, path::PathBuf};
 
 use uuid::Uuid;
 
-use crate::domain::Storage;
+use crate::domain::{Storage, constants};
 
 pub struct LocalStorage{
     upload_dir: PathBuf
 }
 
 impl LocalStorage {
-    pub fn new() -> Self{
-        let upload_dir= std::env::var("UPLOAD_DIR").expect("env wasn't set");
+    pub fn new() -> Self {
+        let upload_dir = dotenv::var(constants::UPLOAD_DIR).unwrap();
+        
         Self{
             upload_dir: PathBuf::from(upload_dir),
         }
     }
 }
-
-
 
 impl Storage for LocalStorage{
     fn get_full_path(&self,filename: PathBuf) -> PathBuf {
