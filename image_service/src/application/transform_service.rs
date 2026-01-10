@@ -1,10 +1,13 @@
+use std::path::PathBuf;
 use std::{collections::HashMap, sync::Arc};
+use std::result::Result::Ok;
+use anyhow::{anyhow};
 
 use crate::{
     Blur, Brighten, Crop, Fractal, Invert, Rotate, TransformType,
     domain::{ImageTransform, Rect, Storage},
 };
-
+#[derive(Clone)]
 pub struct TransformService {
     storage:  Arc<dyn Storage>,
 }
@@ -13,7 +16,7 @@ impl TransformService {
     pub fn new(storage:Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
-    pub fn handle(&self, instructions: HashMap<String, String>) {
+    pub async  fn handle(&self, instructions: HashMap<String, String>) ->Result<(),anyhow::Error> {
         let transform_type = instructions.get_key_value("transform").unwrap();
         let parsed_tr = transform_type.1.parse::<TransformType>();
         match parsed_tr {
@@ -36,10 +39,16 @@ impl TransformService {
                     .get_files(instructions.get("id").unwrap().clone());
 
                 for f in filename {
-                    let img = self.storage.load(f);
+                    let img = self.storage.load(f.clone());
+                    let content = op.apply(&img);
+                    let new_filename = self.storage.get_transformed_filename(&f,&transform_type.1);
+
+                    self.storage.store_file(&new_filename, &content);
+
                 }
-            }
-            Err(_) => return,
+                Ok(())
+            },
+            Err(_) => Err(anyhow!("unable to handle batch")),
         }
     }
 

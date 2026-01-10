@@ -1,7 +1,12 @@
 use futures_util::StreamExt;
-use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
+use lapin::{
+    Connection, ConnectionProperties,
+    options::*,
+    types::FieldTable,
+};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
+use anyhow::Result;
 
 use crate::application::{LocalStorage, TransformService};
 use crate::domain::{Storage, constants};
@@ -14,27 +19,26 @@ pub struct Dispatcher {
 
 impl Dispatcher {
     pub fn new() -> Self {
-        let rabbitmq_host = dotenv::var(constants::RABBITMQ_HOST).unwrap();
-        let transform_queue = dotenv::var(constants::TRANSFORM_QUEUE).unwrap();
-        Dispatcher {
-            host: rabbitmq_host,
-            queue: transform_queue,
-            
-        }
+        let host = dotenv::var(constants::RABBITMQ_HOST).unwrap();
+        let queue = dotenv::var(constants::TRANSFORM_QUEUE).unwrap();
+        Self { host, queue }
     }
 
-    pub async fn consume(self: Arc<Self>) -> Result<(), ()> {
-        let conn = Connection::connect(&self.host, ConnectionProperties::default())
-            .await
-            .expect("connection error");
+    pub async fn consume(&self) -> Result<()> {
+        let conn = Connection::connect(
+            &self.host,
+            ConnectionProperties::default(),
+        )
+        .await?;
 
-        let channel = conn.create_channel().await.expect("create_channel");
+        let channel = conn.create_channel().await?;
 
-        let storage= Arc::new(LocalStorage::new()) as Arc<dyn Storage>;
         channel
             .basic_qos(16, BasicQosOptions::default())
-            .await
-            .expect("basic_qos");
+            .await?;
+
+        let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
+        let service = Arc::new(TransformService::new(storage));
 
         let mut consumer = channel
             .basic_consume(
@@ -43,54 +47,36 @@ impl Dispatcher {
                 BasicConsumeOptions::default(),
                 FieldTable::default(),
             )
-            .await
-            .expect("basic_consume");
+            .await?;
 
         let semaphore = Arc::new(Semaphore::new(16));
 
         while let Some(delivery) = consumer.next().await {
-            let delivery = match delivery {
-                Ok(d) => d,
-                Err(e) => {
-                    tracing::error!("consumer error: {e}");
-                    continue;
-                }
-            };
+            let delivery = delivery?;
 
-            let permit = match semaphore.clone().acquire_owned().await {
-                Ok(p) => p,
-                Err(e) => {
-                    tracing::error!("failed to acquire semaphore: {e}");
-                    break;
-                }
-            };
-
-            let dispatcher = Arc::clone(&self);
-
+            let permit = semaphore.clone().acquire_owned().await?;
+            let service = Arc::clone(&service);
+            let dto: UploadDto = serde_json::from_slice(&delivery.data)?;
             task::spawn(async move {
-                let result = dispatcher.handle_message(delivery.data.clone()).await;
+                let result = service.handle(dto.to_map()).await;
 
                 match result {
                     Ok(_) => {
-                        let _ = delivery.ack(BasicAckOptions::default()).await;
+                        let _ = delivery
+                            .ack(BasicAckOptions::default())
+                            .await;
                     }
                     Err(e) => {
-                        let _ = delivery.nack(BasicNackOptions::default()).await;
-                        eprintln!("Consumer error: {:?}", e);
+                        let _ = delivery
+                            .nack(BasicNackOptions::default())
+                            .await;
+                        tracing::error!("message failed: {e:?}");
                     }
                 }
 
                 drop(permit);
             });
         }
-
-        Ok(())
-    }
-
-    async fn handle_message(&self, data: Vec<u8>) -> Result<(), anyhow::Error> {
-        let dto: UploadDto = serde_json::from_slice(&data)?;
-
-        // TransformService::handle(dto.to_map()).map_err(|_| anyhow::anyhow!("transform failed"))?;
 
         Ok(())
     }

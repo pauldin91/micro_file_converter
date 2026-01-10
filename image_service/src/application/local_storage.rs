@@ -1,6 +1,4 @@
-use std::{fs::File, io::Write, path::PathBuf};
-
-use uuid::Uuid;
+use std::{fs::{self, File}, io::Write, path::PathBuf};
 
 use crate::domain::{Storage, constants};
 
@@ -16,14 +14,17 @@ impl LocalStorage {
             upload_dir: PathBuf::from(upload_dir),
         }
     }
+    fn get_full_path(&self,dir:String)-> PathBuf{
+        self.upload_dir.join(dir)
+    }
 }
 
 impl Storage for LocalStorage{
-    fn get_full_path(&self,filename: PathBuf) -> PathBuf {
+    fn get_full_path(&self,filename: &PathBuf) -> PathBuf {
         self.upload_dir.clone().join(filename)
     }
     
-    fn store_file(&self,filename: PathBuf,content: Vec<u8> ) {
+    fn store_file(&self,filename: &PathBuf,content:&Vec<u8> ) {
         let created = File::create(filename);
         match created {
             Ok(mut file) =>{
@@ -35,36 +36,24 @@ impl Storage for LocalStorage{
     }
 
     fn get_files(&self,dir: String)-> Vec<PathBuf>{
-        let filenames= Vec::new();
+        let mut filenames= Vec::new();
+        for f in fs::read_dir(self.get_full_path(dir)).unwrap(){
+            match f {
+                Ok(entry)=>filenames.push(entry.path()),
+                Err(e)=>{eprint!("error {}",e); continue},
+            }
+        }
 
         filenames
     }
     
-    fn load(&self,fullpath: PathBuf) {
-        todo!()
-    }
-}
-
-
-impl LocalStorage{
-    fn get_file_location(filename: PathBuf) -> PathBuf{
-        PathBuf::from(Uuid::new_v4().to_string()).join(filename)
-    }
-
-    fn get_save_path(method: &str, batch_id: String, filename: &PathBuf) -> PathBuf {
-        PathBuf::from(batch_id).join(Self::get_transformed_filename(method, filename))
-    }
-
-    fn get_transformed_filename(transform_name: &str, inputfile: &PathBuf) -> PathBuf {
-        let filename = format!(
-            "{}_{}",
-            transform_name,
-            inputfile
-            .file_name()
-            .unwrap()
-            .to_string_lossy()
-        );
-        PathBuf::from(filename)
+    fn load(&self,fullpath: PathBuf) -> Vec<u8>{
+        Vec::from(image::open(fullpath.as_path()).unwrap().as_bytes())
     }
     
+    fn get_transformed_filename(&self,old_filename: &PathBuf,transform_type: &String) -> PathBuf {
+        PathBuf::from(old_filename.as_path().parent().unwrap())
+                                    .join(transform_type)
+                                    .join(old_filename.as_path().file_name().unwrap())
+    }
 }
