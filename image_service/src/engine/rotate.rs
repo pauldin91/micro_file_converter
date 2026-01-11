@@ -1,25 +1,38 @@
+use image::{ImageOutputFormat};
+use std::io::Cursor;
+
 use crate::domain::ImageTransform;
+
 pub struct Rotate {
     angle: u16,
 }
 
 impl Rotate {
-    pub fn new( angle: u16) -> Self {
-        Self {
-            angle: angle,
-        }
+    pub fn new(angle: u16) -> Self {
+        Self { angle }
     }
 }
-impl ImageTransform for Rotate{
 
+impl ImageTransform for Rotate {
+    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError> {
+        let dynamic_img = image::load_from_memory(img)?;
 
-    fn apply(&self,img: &[u8]) -> Vec<u8> {
-        let dynamic_img = image::load_from_memory(img).unwrap();
-        let img2 = match self.angle {
+        let transformed: image::DynamicImage = match self.angle {
             90 => dynamic_img.rotate90(),
             180 => dynamic_img.rotate180(),
-            _ => dynamic_img.rotate270(),
+            270 => dynamic_img.rotate270(),
+            _ => return Err(image::ImageError::Unsupported(
+                image::error::UnsupportedError::from_format_and_kind(
+                    image::error::ImageFormatHint::Unknown,
+                    image::error::UnsupportedErrorKind::GenericFeature(
+                        "invalid rotation angle".into(),
+                    ),
+                ),
+            )),
         };
-        Vec::from(img2.as_bytes())
+
+        let mut out = Vec::new();
+        transformed.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        Ok(out)
     }
 }

@@ -1,3 +1,7 @@
+use std::{io::Cursor, path::PathBuf};
+
+use image::{ImageError, ImageOutputFormat};
+
 use crate::domain::ImageTransform;
 
 pub struct Brighten;
@@ -9,8 +13,11 @@ impl Brighten {
 }
 impl ImageTransform for Brighten {
 
-    fn apply(&self,img: &[u8]) -> Vec<u8> {
+        fn apply(&self, img: &[u8]) ->Result<Vec<u8>,ImageError> {
         let dynamic_img = image::load_from_memory(img).unwrap(); 
-        Vec::from(dynamic_img.brighten(20).as_bytes())
+        dynamic_img.brighten(20);
+        let mut out = Vec::new();
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        Ok(out)
     }
 }

@@ -1,5 +1,8 @@
+use std::io::Cursor;
 
-use crate::{domain::ImageTransform};
+use image::{ImageError, ImageOutputFormat};
+
+use crate::domain::ImageTransform;
 
 pub struct Blur {
     sigma: f32,
@@ -7,16 +10,15 @@ pub struct Blur {
 
 impl Blur {
     pub fn new(sigma: f32) -> Self {
-        Self {
-            sigma: sigma,
-        }
+        Self { sigma: sigma }
     }
-
 }
-impl ImageTransform for Blur{
-
-    fn apply(&self,img: &[u8]) -> Vec<u8> {
+impl ImageTransform for Blur {
+    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
         let dynamic_img = image::load_from_memory(img).unwrap();
-        Vec::from(dynamic_img.blur(self.sigma).as_bytes())
+        dynamic_img.blur(self.sigma);
+        let mut out = Vec::new();
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        Ok(out)
     }
 }

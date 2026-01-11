@@ -1,5 +1,5 @@
 use std::{
-    error::Error, fs::{self, File}, io::{self, Write}, path::PathBuf
+    fs::{self, File}, io::{self, Write}, os, path::PathBuf
 };
 
 use crate::domain::{Storage, constants};
@@ -36,11 +36,11 @@ impl Storage for LocalStorage {
         }
     }
 
-    fn get_files(&self, dir: &String) -> Vec<PathBuf> {
+    fn get_files(&self, dir: &String) -> Vec<String> {
         let mut filenames = Vec::new();
         for f in fs::read_dir(self.get_full_path(dir.clone())).unwrap() {
             match f {
-                Ok(entry) => filenames.push(entry.path()),
+                Ok(entry) => filenames.push(entry.path().to_string_lossy().into_owned()),
                 Err(e) => {
                     eprint!("error {}", e);
                     continue;
@@ -51,13 +51,18 @@ impl Storage for LocalStorage {
         filenames
     }
 
-    fn load(&self, fullpath: &PathBuf) -> io::Result<Vec<u8>>{
+    fn load(&self, fullpath: &String) -> io::Result<Vec<u8>> {
         Ok(fs::read(fullpath)?)
     }
 
-    fn get_transformed_filename(&self, old_filename: &PathBuf, transform_type: &String) -> PathBuf {
-        PathBuf::from(old_filename.as_path().parent().unwrap())
-            .join(transform_type)
-            .join(old_filename.as_path().file_name().unwrap())
+    fn get_transformed_filename(&self, old_filename: &String, transform_type: &String) -> PathBuf {
+        let old_path = PathBuf::from(old_filename);
+        let _ = fs::create_dir(old_path.parent().unwrap().join("transformed").as_path());
+        let filename = old_path.file_name().unwrap().to_str().unwrap();
+        old_path
+            .parent()
+            .unwrap()
+            .join("transformed")
+            .join(format!("{}_{}", transform_type, filename))
     }
 }

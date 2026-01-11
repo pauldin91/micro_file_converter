@@ -1,5 +1,4 @@
 use anyhow::anyhow;
-use std::path::PathBuf;
 use std::result::Result::Ok;
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
@@ -34,25 +33,38 @@ impl TransformService {
                     })),
                     TransformType::Fractal => Box::new(Fractal::new()),
                     TransformType::Invert => Box::new(Invert::new()),
-                    TransformType::Rotate => Box::new(Rotate::new(90)),
+                    TransformType::Rotate => {
+                        let degrees: u16 = instructions
+                            .get_key_value("degrees")
+                            .unwrap()
+                            .1
+                            .parse()
+                            .unwrap();
+                        Box::new(Rotate::new(degrees))
+                    }
                 };
                 let dir = instructions.get("id").unwrap().clone();
-                let filenames: Vec<String> = self.storage.get_files(&dir)
+                let filenames: Vec<String> = self
+                    .storage
+                    .get_files(&dir)
                     .iter()
-                    .filter(|s|!s.extension().unwrap().eq(".json"))
+                    .filter(|s| !s.as_str().ends_with(".json"))
+                    .map(|p| p.clone())
                     .collect();
 
                 for f in filenames {
                     let res = self.storage.load(&f);
                     match res {
                         Ok(img) => {
-                            let content = op.apply(&img);
                             let new_filename =
                                 self.storage.get_transformed_filename(&f, &transform_type.1);
-
-                            self.storage.store_file(&new_filename, &content);
+                            let transformed = op.apply(&img).unwrap();
+                            self.storage.store_file(&new_filename, &transformed);
                         }
-                        Err(e) => {eprintln!("error : {}",e);continue},
+                        Err(e) => {
+                            eprintln!("error : {}", e);
+                            continue;
+                        }
                     }
                 }
                 Ok(())

@@ -1,3 +1,7 @@
+use std::io::Cursor;
+
+use image::ImageOutputFormat;
+
 use crate::domain::{ImageTransform, Rect};
 
 pub struct Crop {
@@ -11,15 +15,16 @@ impl Crop {
     }
 }
 impl ImageTransform for Crop {
-    fn apply(&self, img: &[u8]) -> Vec<u8> {
-        let mut dynamic_img=image::load_from_memory(img).unwrap();
-            Vec::from(dynamic_img
-            .crop(
-                self.selection.x,
-                self.selection.y,
-                self.selection.w,
-                self.selection.h,
-            )
-            .as_bytes())
+    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError> {
+        let mut dynamic_img = image::load_from_memory(img).unwrap();
+        dynamic_img.crop(
+            self.selection.x,
+            self.selection.y,
+            self.selection.w,
+            self.selection.h,
+        );
+        let mut out = Vec::new();
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        Ok(out)
     }
 }

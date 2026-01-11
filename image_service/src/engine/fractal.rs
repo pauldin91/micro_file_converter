@@ -1,8 +1,7 @@
-
-use image::{DynamicImage, ImageBuffer, Rgba};
+use std::{io::Cursor, path::PathBuf};
+use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 
 use crate::domain::ImageTransform;
-
 
 pub struct Fractal;
 
@@ -10,12 +9,9 @@ impl Fractal {
     pub fn new() -> Self {
         Self
     }
-
-
 }
-impl ImageTransform for Fractal{
-
-    fn apply(&self,_img: &[u8]) ->Vec<u8> {
+impl ImageTransform for Fractal {
+    fn apply(&self, img: &[u8])-> Result<Vec<u8>, image::ImageError>  {
         let width = 800;
         let height = 800;
 
@@ -42,6 +38,9 @@ impl ImageTransform for Fractal{
             *pixel = image::Rgba([red, green, blue, 0]);
         }
 
-        Vec::from(DynamicImage::ImageRgba8(imgbuf).as_bytes())
+        let dynamic_img = DynamicImage::ImageRgba8(imgbuf);
+        let mut out = Vec::new();
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        Ok(out)
     }
 }
