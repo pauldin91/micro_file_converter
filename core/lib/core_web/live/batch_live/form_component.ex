@@ -1,5 +1,6 @@
 defmodule CoreWeb.BatchLive.FormComponent do
   use CoreWeb, :live_component
+
   alias Core.Uploads
   alias Core.Uploads.Formatter
   alias Core.Handlers
@@ -7,26 +8,23 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
   @transformations [
     {"None", :none},
-    {"90°", :rotate_90},
-    {"180°", :rotate_180},
-    {"270°", :rotate_270},
+    {"Rotate", :rotate},
     {"Mirror", :mirror},
     {"Blur", :blur},
     {"Invert", :invert},
     {"Crop", :crop},
     {"Fractal", :fractal},
-    {"Brighten", :brighten},
+    {"Brighten", :brighten}
   ]
+
   @impl true
   def update(%{batch: batch} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
      |> assign_new(:mode, fn -> "convert" end)
-     |> assign_new(:transform, fn ->
-       "none"
-     end)
-     |> assign_new(:show_transform, fn -> false end)
+     |> assign_new(:transform, fn -> "none" end)
+     |> assign_new(:props_entries, fn -> [] end)
      |> assign(:transformations, @transformations)
      |> assign_new(:form, fn ->
        to_form(Uploads.change_batch(batch))
@@ -39,30 +37,58 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"batch" => batch_params}, socket) do
+  def handle_event("validate", %{"batch" => batch_params} = params, socket) do
     changeset =
       socket.assigns.batch
       |> Uploads.change_batch(batch_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign(socket, :form, to_form(changeset))}
+    props_entries =
+      params
+      |> Map.get("props", %{})
+      |> Enum.map(fn {id, %{"key" => k, "value" => v}} ->
+        %{id: id, key: k, value: v}
+      end)
+
+    {:noreply,
+     socket
+     |> assign(:form, to_form(changeset))
+     |> assign(:transform, batch_params["transform"] || socket.assigns.transform)
+     |> assign(:props_entries, props_entries)}
   end
 
-  def handle_event("validate", _params, socket) do
-    {:noreply, socket}
+  def handle_event("validate", _params, socket),
+    do: {:noreply, socket}
+
+  @impl true
+  def handle_event("toggle_transform", %{"mode" => mode}, socket) do
+    {:noreply, assign(socket, :mode, mode)}
   end
 
   @impl true
-  def handle_event("toggle_transform", params, socket) do
-    mode = get_in(params, ["mode"])
-    {:noreply, socket |> assign(show_transform: mode == "transform") |> assign(transform: "none")}
+  def handle_event("add_prop", _params, socket) do
+    entry = %{
+      id: Ecto.UUID.generate(),
+      key: "",
+      value: ""
+    }
+
+    {:noreply,
+     update(socket, :props_entries, fn entries ->
+       entries ++ [entry]
+     end)}
   end
 
   @impl true
-  def handle_event("save", params, %{assigns: %{user: user}} = socket) do
-    transform =
-      get_in(params, ["batch", "transform"]) || "none"
+  def handle_event("remove_prop", %{"id" => id}, socket) do
+    {:noreply,
+     update(socket, :props_entries, fn entries ->
+       Enum.reject(entries, &(&1.id == id))
+     end)}
+  end
 
+  @impl true
+  def handle_event("save", _params, %{assigns: %{user: user}} = socket) do
     uuid = Ecto.UUID.generate()
 
     uploaded_files =
@@ -75,10 +101,18 @@ defmodule CoreWeb.BatchLive.FormComponent do
         })
       end)
 
+    props =
+      socket.assigns.props_entries
+      |> Enum.reject(fn %{key: k, value: v} ->
+        k in ["", nil] or v in ["", nil]
+      end)
+      |> Map.new(fn %{key: k, value: v} -> {k, v} end)
+
     result =
       Handlers.handle_upload(user, %{
         files: uploaded_files,
-        transform: transform,
+        transform: socket.assigns.transform,
+        props: props,
         batch_id: uuid
       })
 
@@ -89,77 +123,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
          |> assign(:batch_id, batch_id)
          |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
 
-      :error ->
-        {:noreply, put_flash(socket, :error, "Incognito error")}
-
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, reason)}
+
+      :error ->
+        {:noreply, put_flash(socket, :error, "Incognito error")}
     end
   end
 
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-      <.header>
-        File Upload Form
-      </.header>
-
-      <.simple_form
-        for={@form}
-        id="batch-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.drag_n_drop files={@uploads.files} />
-        <div class="mt-4 space-y-2">
-          <div class="mt-4 space-x-4">
-            <input
-              type="radio"
-              name="mode"
-              value="convert"
-              checked={@mode == "convert"}
-              phx-change="toggle_transform"
-              phx-target={@myself}
-            /> Convert
-            <input
-              type="radio"
-              name="mode"
-              value="transform"
-              checked={@mode == "transform"}
-              phx-change="toggle_transform"
-              phx-target={@myself}
-            />Transform
-          </div>
-        </div>
-
-        <div :if={@show_transform} class="mt-4">
-          <.input
-            field={@form[:transform]}
-            type="select"
-            label="Transform"
-            options={@transformations}
-          />
-        </div>
-
-        <.display_uploads files={@uploads.files} />
-
-        <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
-          {Formatter.error_to_string(err)}
-        </div>
-
-        <:actions>
-          <.button
-            type="submit"
-            disabled={@uploads.files.entries == []}
-            class="btn btn-primary w-full"
-          >
-            Upload Files
-          </.button>
-        </:actions>
-      </.simple_form>
-    </div>
-    """
-  end
 end

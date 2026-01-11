@@ -1,0 +1,107 @@
+
+    <div>
+      <.header>
+        File Upload Form
+      </.header>
+
+      <.simple_form
+        for={@form}
+        id="batch-form"
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+      >
+        <.drag_n_drop files={@uploads.files} />
+
+        <div class="mt-4 space-x-4">
+          <input
+            type="radio"
+            name="mode"
+            value="convert"
+            checked={@mode == "convert"}
+            phx-change="toggle_transform"
+            phx-target={@myself}
+          /> Convert
+
+          <input
+            type="radio"
+            name="mode"
+            value="transform"
+            checked={@mode == "transform"}
+            phx-change="toggle_transform"
+            phx-target={@myself}
+          /> Transform
+        </div>
+
+        <div :if={@mode == "transform"} class="mt-6 space-y-4">
+          <.input
+            field={@form[:transform]}
+            type="select"
+            label="Transform"
+            options={@transformations}
+            value={@transform}
+          />
+
+          <div class="space-y-2">
+            <label class="font-semibold text-sm">Transform Props</label>
+
+            <div
+              :for={entry <- @props_entries}
+              class="flex gap-2 items-center"
+            >
+              <input
+                type="text"
+                name={"props[#{entry.id}][key]"}
+                value={entry.key}
+                placeholder="key (e.g. sigma)"
+                class="input input-bordered w-1/2"
+              />
+
+              <input
+                type="text"
+                name={"props[#{entry.id}][value]"}
+                value={entry.value}
+                placeholder="value (e.g. 0.5)"
+                class="input input-bordered w-1/2"
+              />
+
+              <button
+                type="button"
+                phx-click="remove_prop"
+                phx-value-id={entry.id}
+                phx-target={@myself}
+                class="btn btn-ghost btn-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <button
+              type="button"
+              phx-click="add_prop"
+              phx-target={@myself}
+              class="btn btn-outline btn-sm mt-2"
+            >
+              + Add property
+            </button>
+          </div>
+        </div>
+
+        <.display_uploads files={@uploads.files} />
+
+        <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
+          {Formatter.error_to_string(err)}
+        </div>
+
+        <:actions>
+          <.button
+            type="submit"
+            disabled={@uploads.files.entries == []}
+            class="btn btn-primary w-full"
+          >
+            Upload Files
+          </.button>
+        </:actions>
+      </.simple_form>
+    </div>
+    

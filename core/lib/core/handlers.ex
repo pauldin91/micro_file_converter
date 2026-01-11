@@ -6,12 +6,18 @@ defmodule Core.Handlers do
 
   alias Core.Mappings.Stored
 
-  def handle_upload(user, %{files: files, transform: transform, batch_id: batch_id}) do
+  def handle_upload(
+        user,
+        %{files: files, transform: transform, batch_id: batch_id, props: props}
+      ) do
     create_batch_with_pictures(
       %Core.Mappings.Batch{
-        files: files,
-        transform: transform,
         id: batch_id,
+        files: files,
+        transform: %{
+          name: transform,
+          props: props
+        },
         timestamp: DateTime.utc_now()
       },
       %{user_id: user.id}
@@ -23,7 +29,7 @@ defmodule Core.Handlers do
            Uploads.create_batch(%{
              id: batch_dto.id,
              status: "pending",
-             transform: batch_dto.transform,
+             transform: batch_dto.transform.name,
              user_id: user_id
            }),
          :ok <- link_all_pictures(batch_dto),

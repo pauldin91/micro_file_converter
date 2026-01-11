@@ -17,7 +17,7 @@ defmodule Core.Storage do
       {:ok,
        %Stored{
          filename: entry.filename,
-         type: entry.content_type,
+         content_type:  entry.content_type,
          size: size
        }}
     else
