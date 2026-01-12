@@ -23,14 +23,30 @@ impl TransformService {
         match parsed_tr {
             Ok(kind) => {
                 let op: Box<dyn ImageTransform> = match kind {
-                    TransformType::Blur => Box::new(Blur::new(0.5)),
-                    TransformType::Brighten => Box::new(Brighten::new()),
-                    TransformType::Crop => Box::new(Crop::new(Rect {
-                        x: 20,
-                        y: 20,
-                        w: 200,
-                        h: 200,
-                    })),
+                    TransformType::Blur => {
+                        let sigma: f32 = instructions
+                            .get_key_value("sigma")
+                            .unwrap()
+                            .1
+                            .parse()
+                            .unwrap();
+                        Box::new(Blur::new(sigma))
+                    }
+                    TransformType::Brighten => {
+                        let value: i32 = instructions
+                            .get_key_value("value")
+                            .unwrap()
+                            .1
+                            .parse()
+                            .unwrap();
+                        Box::new(Brighten::new(value))
+                    }
+                    TransformType::Crop => {
+                        let crop_instructions = instructions
+                        .get_key_value("rect")
+                        .unwrap().1;
+                        Box::new(Crop::new(Rect::from(crop_instructions)))
+                    }
                     TransformType::Fractal => Box::new(Fractal::new()),
                     TransformType::Invert => Box::new(Invert::new()),
                     TransformType::Rotate => {
