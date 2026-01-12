@@ -108,6 +108,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
       end)
       |> Map.new(fn %{key: k, value: v} -> {k, v} end)
 
+
     result =
       Handlers.handle_upload(user, %{
         files: uploaded_files,

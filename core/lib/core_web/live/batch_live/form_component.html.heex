@@ -23,7 +23,7 @@
             phx-target={@myself}
           /> Convert
 
-          <input
+          <input 
             type="radio"
             name="mode"
             value="transform"
@@ -43,7 +43,7 @@
           />
 
           <div class="space-y-2">
-            <label class="font-semibold text-sm">Transform Props</label>
+            <label class="font-semibold text-m">Transform Props</label>
 
             <div
               :for={entry <- @props_entries}
@@ -75,12 +75,13 @@
                 ✕
               </button>
             </div>
-
+            <br/>
             <button
               type="button"
+
               phx-click="add_prop"
               phx-target={@myself}
-              class="btn btn-outline btn-sm mt-2"
+              class="btn btn-outline btn-sm"
             >
               + Add property
             </button>
