@@ -1,7 +1,3 @@
-use serde::Deserialize;
-
-#[derive(Debug, Deserialize)]
-
 pub struct Rect {
     pub x: u32,
     pub y: u32,
