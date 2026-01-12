@@ -1,11 +1,8 @@
 use anyhow::Result;
 use futures_util::StreamExt;
-use futures_util::future::ErrInto;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
-use serde::de::value::Error;
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
-use tracing::info;
 
 use crate::application::{LocalStorage, TransformService};
 use crate::domain::{Storage, constants};
@@ -53,12 +50,12 @@ impl Dispatcher {
         while let Some(delivery) = consumer.next().await {
             let delivery = delivery?;
 
-            // let permit = semaphore.clone().acquire_owned().await?;
+            let permit = semaphore.clone().acquire_owned().await?;
             let service = Arc::clone(&service);
             let msg: Result<UploadDto, serde_json::Error> = serde_json::from_slice(&delivery.data);
             match msg {
                 Ok(dto) => {
-                    // task::spawn(async move {
+                    task::spawn(async move {
                         let result = service.handle(dto.to_map()).await;
 
                         match result {
@@ -71,10 +68,10 @@ impl Dispatcher {
                             }
                         }
 
-                    //     drop(permit);
-                    // });
+                        drop(permit);
+                    });
                 }
-                Err(e) => continue,
+                Err(e) => {eprintln!("error deserializing the dto: {}",e);continue},
             }
         }
 

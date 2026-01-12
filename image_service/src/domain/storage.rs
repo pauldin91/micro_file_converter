@@ -1,4 +1,4 @@
-use std::{io, path::{Path, PathBuf}};
+use std::{io, path::{PathBuf}};
 
 pub trait Storage: Send + Sync {
     fn get_full_path(&self,filename: &PathBuf) -> PathBuf;

@@ -1,4 +1,4 @@
-use std::{io::Cursor, path::PathBuf};
+use std::io::Cursor;
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 
 use crate::domain::ImageTransform;
@@ -11,7 +11,7 @@ impl Fractal {
     }
 }
 impl ImageTransform for Fractal {
-    fn apply(&self, img: &[u8])-> Result<Vec<u8>, image::ImageError>  {
+    fn apply(&self, _img: &[u8])-> Result<Vec<u8>, image::ImageError>  {
         let width = 800;
         let height = 800;
 

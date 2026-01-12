@@ -1,4 +1,4 @@
-use std::{io::Cursor, path::PathBuf};
+use std::{io::Cursor};
 
 use image::{ImageError, ImageOutputFormat};
 
