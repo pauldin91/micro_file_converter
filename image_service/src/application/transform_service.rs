@@ -47,7 +47,7 @@ impl TransformService {
                         .unwrap().1;
                         Box::new(Crop::new(Rect::from(crop_instructions)))
                     }
-                    TransformType::Fractal => Box::new(Fractal::new()),
+                    // TransformType::Fractal => Box::new(Fractal::new()),
                     TransformType::Invert => Box::new(Invert::new()),
                     TransformType::Rotate => {
                         let degrees: u16 = instructions

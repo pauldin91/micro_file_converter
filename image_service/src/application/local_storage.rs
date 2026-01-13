@@ -32,7 +32,7 @@ impl Storage for LocalStorage {
             Ok(mut file) => {
                 let _ = file.write(&content);
             }
-            Err(_) => (),
+            Err(e) => eprintln!("could not create file : {}",e),
         }
     }
 

@@ -6,7 +6,7 @@ pub enum TransformType {
     Blur,
     Brighten,
     Crop,
-    Fractal,
+    // Fractal,
     Invert,
     Rotate,
 }
@@ -19,7 +19,7 @@ impl FromStr for TransformType {
             "blur" => Ok(Self::Blur),
             "brighten" => Ok(Self::Brighten),
             "crop" => Ok(Self::Crop),
-            "fractal" => Ok(Self::Fractal),
+            // "fractal" => Ok(Self::Fractal),
             "invert" => Ok(Self::Invert),
             "rotate" => Ok(Self::Rotate),
             _ => Err(()),

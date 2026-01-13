@@ -10,8 +10,8 @@ impl Fractal {
         Self
     }
 }
-impl ImageTransform for Fractal {
-    fn apply(&self, _img: &[u8])-> Result<Vec<u8>, image::ImageError>  {
+impl  Fractal {
+    pub fn apply(&self)-> Result<Vec<u8>, image::ImageError>  {
         let width = 800;
         let height = 800;
 
@@ -40,7 +40,7 @@ impl ImageTransform for Fractal {
 
         let dynamic_img = DynamicImage::ImageRgba8(imgbuf);
         let mut out = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(80))?;
         Ok(out)
     }
 }
