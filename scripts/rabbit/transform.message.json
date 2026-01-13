@@ -1,5 +1,4 @@
 [{
-    "id": "4536e1fb-82c1-4fb2-a40e-5a46e4254496",
     "timestamp": "2026-01-01T09:01:19.493580Z",
     "files": [
         {
@@ -14,14 +13,13 @@
         }
     ],
     "transform": {
-        "name":"rotate",
+        "name":"crop",
         "props": {
-            "degrees": "180"
+            "degrees": "24,24,24,24"
         }
     }
 },
 {
-    "id": "4536e1fb-82c1-4fb2-a40e-5a46e4254496",
     "timestamp": "2026-01-01T09:01:19.493580Z",
     "files": [
         {
