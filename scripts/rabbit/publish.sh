@@ -13,7 +13,7 @@ while IFS= read -r item; do
   
   cp "$sample_dir"/*.png "$upload_dir/"
   echo "$item" > "$upload_dir/$uuid.json"
-  payload="$(echo "$item" | jq --arg id "$uuid" '. + {id: $id}')"
+  payload="$(echo "$item" | jq --arg id "$uuid" '. + {id: $id}+{timestamp: (now|todateiso8601)}')"
 
   docker exec rabbit rabbitmqadmin publish \
     exchange=amq.default \

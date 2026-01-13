@@ -1,42 +1,80 @@
-[{
-    "timestamp": "2026-01-01T09:01:19.493580Z",
-    "files": [
-        {
-            "size": 116328,
-            "content_type": "image/png",
-            "filename": "demo_1.png"
-        },
-        {
-            "size": 202553,
-            "content_type": "image/png",
-            "filename": "demo_2.png"
+[
+    {
+        "files": [
+            {
+                "size": 116328,
+                "content_type": "image/png",
+                "filename": "demo_1.png"
+            },
+            {
+                "size": 202553,
+                "content_type": "image/png",
+                "filename": "demo_2.png"
+            }
+        ],
+        "transform": {
+            "name": "crop",
+            "props": {
+                "rect": "24,24,24,24"
+            }
         }
-    ],
-    "transform": {
-        "name":"crop",
-        "props": {
-            "degrees": "24,24,24,24"
+    },
+    {
+        "files": [
+            {
+                "size": 116328,
+                "content_type": "image/png",
+                "filename": "demo_1.png"
+            },
+            {
+                "size": 202553,
+                "content_type": "image/png",
+                "filename": "demo_2.png"
+            }
+        ],
+        "transform": {
+            "name": "blur",
+            "props": {
+                "sigma": "2.0"
+            }
+        }
+    },
+    {
+        "files": [
+            {
+                "size": 116328,
+                "content_type": "image/png",
+                "filename": "demo_1.png"
+            },
+            {
+                "size": 202553,
+                "content_type": "image/png",
+                "filename": "demo_2.png"
+            }
+        ],
+        "transform": {
+            "name": "invert",
+            "props":{}
+        }
+    },
+    {
+        "files": [
+            {
+                "size": 116328,
+                "content_type": "image/png",
+                "filename": "demo_1.png"
+            },
+            {
+                "size": 202553,
+                "content_type": "image/png",
+                "filename": "demo_2.png"
+            }
+        ],
+        "transform": {
+            "name": "brighten",
+            "props": {
+                "value": "20"
+            }
         }
     }
-},
-{
-    "timestamp": "2026-01-01T09:01:19.493580Z",
-    "files": [
-        {
-            "size": 116328,
-            "content_type": "image/png",
-            "filename": "demo_1.png"
-        },
-        {
-            "size": 202553,
-            "content_type": "image/png",
-            "filename": "demo_2.png"
-        }
-    ],
-    "transform": {
-        "name":"blur",
-        "props": {
-            "sigma": "0.5"
-        }
-    }
-}]
+]
