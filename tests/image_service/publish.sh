@@ -1,11 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 routing_key="$1"
-sample_dir="./scripts/rabbit"
+sample_dir="./samples"
 
 while IFS= read -r item; do
   uuid=$(uuidgen)
-  echo "publishing id=$uuid"
+  echo "id=$uuid"
   upload_dir="./uploads/$uuid"
   
   rm -rf "$upload_dir"
