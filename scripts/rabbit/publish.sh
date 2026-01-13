@@ -11,12 +11,15 @@ mkdir -p "$upload_dir"
 cp "$sample_dir"/*.png "$upload_dir/"
 cp "$sample_dir"/*.json "$upload_dir"
 
-docker exec -i rabbit sh -c '
-  rabbitmqadmin publish \
-    exchange=amq.default \
-    routing_key="$1" \
-    payload="$(cat)"
-' sh "$1" < "$2"
+
+jq -c '.[]' "$sample_dir"*.json | while read -r item; do
+  echo "$item" | docker exec -i rabbit sh -c '
+    rabbitmqadmin publish message \
+      --exchange=amq.default \
+      --routing-key="$1" \
+      --payload="$(cat)"
+  ' sh "$1"
+done
 
 
 

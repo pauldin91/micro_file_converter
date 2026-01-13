@@ -1,4 +1,4 @@
-{
+[{
     "id": "4536e1fb-82c1-4fb2-a40e-5a46e4254496",
     "timestamp": "2026-01-01T09:01:19.493580Z",
     "files": [
@@ -19,4 +19,26 @@
             "degrees": "180"
         }
     }
-}
+},
+{
+    "id": "4536e1fb-82c1-4fb2-a40e-5a46e4254496",
+    "timestamp": "2026-01-01T09:01:19.493580Z",
+    "files": [
+        {
+            "size": 116328,
+            "content_type": "image/png",
+            "filename": "demo_1.png"
+        },
+        {
+            "size": 202553,
+            "content_type": "image/png",
+            "filename": "demo_2.png"
+        }
+    ],
+    "transform": {
+        "name":"blur",
+        "props": {
+            "sigma": "0.5"
+        }
+    }
+}]
