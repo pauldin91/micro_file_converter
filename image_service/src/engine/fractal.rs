@@ -1,30 +1,32 @@
-use std::io::Cursor;
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
+use std::io::Cursor;
 
-use crate::domain::ImageTransform;
-
-pub struct Fractal;
+pub struct Fractal {
+    width: u32,
+    height: u32,
+    scale: f32,
+}
 
 impl Fractal {
-    pub fn new() -> Self {
-        Self
+    pub fn new(width: u32, height: u32,scale:f32) -> Self {
+        Self { width, height,scale }
     }
 }
-impl  Fractal {
-    pub fn apply(&self)-> Result<Vec<u8>, image::ImageError>  {
-        let width = 800;
-        let height = 800;
+impl Fractal {
+    pub fn apply(&self) -> Result<Vec<u8>, image::ImageError> {
 
-        let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(width, height);
-        let scale_x = 3.0 / width as f32;
-        let scale_y = 3.0 / height as f32;
+        let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(self.width, self.height);
+
+
+        let scale_x = self.scale / self.width as f32;
+        let scale_y = self.scale / self.height as f32;
 
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let red = (0.3 * x as f32) as u8;
             let blue = (0.3 * y as f32) as u8;
 
-            let cx = y as f32 * scale_x - 1.5;
-            let cy = x as f32 * scale_y - 1.5;
+            let cx = y as f32 * scale_x - (self.scale/2.0 as f32);
+            let cy = x as f32 * scale_y - (self.scale/2.0 as f32);
 
             let c = num_complex::Complex::new(-0.4, 0.6);
             let mut z = num_complex::Complex::new(cx, cy);
@@ -40,7 +42,7 @@ impl  Fractal {
 
         let dynamic_img = DynamicImage::ImageRgba8(imgbuf);
         let mut out = Vec::new();
-        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(80))?;
+        dynamic_img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))?;
         Ok(out)
     }
 }
