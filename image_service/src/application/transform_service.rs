@@ -4,7 +4,7 @@ use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
 use crate::{
-    Blur, Brighten, Crop, Fractal, Invert, Rotate, TransformType,
+    Blur, Brighten, Crop, Invert, Rotate, TransformType,
     domain::{ImageTransform, Rect, Storage},
 };
 #[derive(Clone)]
