@@ -1,0 +1,20 @@
+[
+    {
+        "files": [
+            {
+                "size": 116328,
+                "content_type": "image/png",
+                "filename": "demo_1.png"
+            },
+            {
+                "size": 202553,
+                "content_type": "image/png",
+                "filename": "demo_2.png"
+            }
+        ],
+        "transform": {
+            "name": "mirror",
+            "props":{}
+        }
+    }
+]

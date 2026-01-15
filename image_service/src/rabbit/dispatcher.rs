@@ -45,16 +45,16 @@ impl Dispatcher {
             )
             .await?;
 
-        let semaphore = Arc::new(Semaphore::new(16));
+        // let semaphore = Arc::new(Semaphore::new(16));
 
         while let Some(delivery) = consumer.next().await {
             let delivery = delivery?;
             let srv = Arc::clone(&service);
-            let permit = semaphore.clone().acquire_owned().await?;
+            // let permit = semaphore.clone().acquire_owned().await?;
             let msg: Result<UploadDto, serde_json::Error> = serde_json::from_slice(&delivery.data);
             match msg {
                 Ok(dto) => {
-                    task::spawn(async move  {
+                    // task::spawn(async move  {
                         let result = srv.handle(dto.to_map());
 
                         match result {
@@ -67,8 +67,7 @@ impl Dispatcher {
                             }
                         }
 
-                        drop(permit);
-                    });
+                        // drop(permit);
                 }
                 Err(e) => {eprintln!("error deserializing the dto: {}",e);continue},
             }

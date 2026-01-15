@@ -2,6 +2,7 @@
 set -euo pipefail
 routing_key="$1"
 sample_dir="./samples"
+json_path="$sample_dir/$2"
 
 while IFS= read -r item; do
   uuid=$(uuidgen)
@@ -19,4 +20,4 @@ while IFS= read -r item; do
     exchange=amq.default \
     routing_key="$routing_key" \
     payload="$payload"
-done < <(jq -c '.[]' "$sample_dir"/*.json)
+done < <(jq -c '.[]' "$json_path")

@@ -19,7 +19,7 @@ impl Transform for Mirror{
 
         let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(dynamic_img.width(), dynamic_img.height());
         for (x, y, pixel) in dynamic_img.pixels() {
-            imgbuf.put_pixel(dynamic_img.width()- x,y, pixel);
+            imgbuf.put_pixel(dynamic_img.width()- x-1,y, pixel);
         }
 
         let img = DynamicImage::ImageRgba8(imgbuf);
