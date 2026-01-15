@@ -7,16 +7,16 @@ async fn main() {
     dotenv().ok();
     tracing_subscriber::fmt::init();
 
-    let consumer = Arc::new(rabbit::Dispatcher::new());
+    let dispatcher = Arc::new(rabbit::Dispatcher::new());
 
     let handle = tokio::spawn({
-        let consumer = Arc::clone(&consumer);
+        let dispatcher = dispatcher.clone();
         async move {
-            if let Err(_) = consumer.start().await {
-                println!("consumer crashed");
+            if let Err(_) = dispatcher.start().await {
+                tracing::error!("consumer crashed");
             }
         }
     });
 
-    let _ = handle.await;
+    handle.await.unwrap();
 }
