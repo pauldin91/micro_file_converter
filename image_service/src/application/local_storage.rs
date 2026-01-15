@@ -22,9 +22,6 @@ impl LocalStorage {
 }
 
 impl Storage for LocalStorage {
-    fn get_full_path(&self, filename: &PathBuf) -> PathBuf {
-        self.upload_dir.clone().join(filename)
-    }
 
     fn store_file(&self, filename: &PathBuf, content: &Vec<u8>) {
         let created = File::create(filename);

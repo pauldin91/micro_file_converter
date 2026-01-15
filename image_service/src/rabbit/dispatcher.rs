@@ -49,14 +49,13 @@ impl Dispatcher {
 
         while let Some(delivery) = consumer.next().await {
             let delivery = delivery?;
-
+            let srv = Arc::clone(&service);
             let permit = semaphore.clone().acquire_owned().await?;
-            let service = Arc::clone(&service);
             let msg: Result<UploadDto, serde_json::Error> = serde_json::from_slice(&delivery.data);
             match msg {
                 Ok(dto) => {
-                    task::spawn(async move {
-                        let result = service.handle(dto.to_map()).await;
+                    task::spawn(async move  {
+                        let result = srv.handle(dto.to_map());
 
                         match result {
                             Ok(_) => {

@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use image::ImageOutputFormat;
 
-use crate::{domain::{ImageTransform, Rect}};
+use crate::{domain::{Transform, Rect}};
 
 pub struct Crop {
     selection: Rect,
@@ -14,7 +14,7 @@ impl Crop {
         }
     }
 }
-impl ImageTransform for Crop {
+impl Transform for Crop {
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError> {
         let mut dynamic_img = image::load_from_memory(img).unwrap();
         let cropped = dynamic_img.crop(

@@ -1,7 +1,7 @@
 use image::{ImageOutputFormat};
 use std::io::Cursor;
 
-use crate::domain::ImageTransform;
+use crate::domain::Transform;
 
 pub struct Rotate {
     angle: u16,
@@ -13,7 +13,7 @@ impl Rotate {
     }
 }
 
-impl ImageTransform for Rotate {
+impl Transform for Rotate {
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError> {
         let dynamic_img = image::load_from_memory(img)?;
 

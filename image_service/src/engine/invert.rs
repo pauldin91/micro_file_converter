@@ -2,7 +2,7 @@ use std::{io::Cursor};
 
 use image::ImageOutputFormat;
 
-use crate::domain::ImageTransform;
+use crate::domain::Transform;
 
 pub struct Invert;
 impl Invert {
@@ -10,7 +10,7 @@ impl Invert {
         Self {}
     }
 }
-impl ImageTransform for Invert {
+impl Transform for Invert {
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError>  {
         let mut dynamic_img = image::load_from_memory(img).unwrap();
         dynamic_img.invert();

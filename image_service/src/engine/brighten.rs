@@ -2,7 +2,7 @@ use std::io::Cursor;
 
 use image::{ImageError, ImageOutputFormat};
 
-use crate::domain::ImageTransform;
+use crate::domain::Transform;
 
 pub struct Brighten {
     value: i32,
@@ -12,7 +12,7 @@ impl Brighten {
         Self { value: value }
     }
 }
-impl ImageTransform for Brighten {
+impl Transform for Brighten {
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
         let dynamic_img = image::load_from_memory(img).unwrap();
         let brightend = dynamic_img.brighten(self.value);

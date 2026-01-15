@@ -5,24 +5,24 @@ use tracing::info;
 
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate, TransformType,
-    domain::{ImageTransform, Rect, Storage},
+    domain::{Transform, Rect, Storage},
 };
 #[derive(Clone)]
 pub struct TransformService {
     storage: Arc<dyn Storage>,
 }
+impl TransformService{
 
-impl TransformService {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
-    pub async fn handle(&self, instructions: HashMap<String, String>) -> Result<(), anyhow::Error> {
+    pub fn handle(&self, instructions: HashMap<String, String>) -> Result<(), anyhow::Error> {
         let transform_type = instructions.get_key_value("transform").unwrap();
         info!("parsed : {:?}", instructions);
         let parsed_tr = transform_type.1.parse::<TransformType>();
         match parsed_tr {
             Ok(kind) => {
-                let op: Box<dyn ImageTransform> = match kind {
+                let op: Box<dyn Transform> = match kind {
                     TransformType::Blur => {
                         let sigma: f32 = instructions
                             .get_key_value("sigma")
@@ -88,6 +88,4 @@ impl TransformService {
             Err(_) => Err(anyhow!("unable to handle batch")),
         }
     }
-
-    pub fn revert(&self) {}
 }

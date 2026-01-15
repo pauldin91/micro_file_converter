@@ -1,8 +1,8 @@
-use crate::domain::ImageTransform;
+use crate::domain::Transform;
 
 
 pub struct TransformPipeline {
-    transformations: Vec<Box<dyn ImageTransform>>,
+    transformations: Vec<Box<dyn Transform>>,
 }
 
 impl TransformPipeline {
@@ -12,7 +12,7 @@ impl TransformPipeline {
         }
     }
 
-    pub fn add_transform(&mut self, transform:  Box<dyn ImageTransform>) {
+    pub fn add_transform(&mut self, transform:  Box<dyn Transform>) {
         self.transformations.push(transform);
     }
 
