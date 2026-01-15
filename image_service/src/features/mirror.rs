@@ -4,6 +4,12 @@ use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba
 
 use crate::domain::Transform;
 
+pub enum MirrorAxis{
+    Vertical,
+    Horizontal,
+    Diagonal
+}
+
 pub struct Mirror;
 impl Mirror {
     pub fn new() -> Self {

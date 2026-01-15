@@ -6,7 +6,8 @@ pub mod storage;
 pub mod constants;
 pub mod generator;
 pub use constants::*;
-
+pub mod dto;
+pub use dto::*;
 pub use generator::Generator;
 pub use storage::Storage;
 pub use rect::Rect;

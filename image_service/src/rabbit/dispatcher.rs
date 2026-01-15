@@ -6,7 +6,7 @@ use tokio::{sync::Semaphore, task};
 
 use crate::application::{LocalStorage, TransformEngine};
 use crate::domain::{Storage, constants};
-use crate::rabbit::UploadDto;
+use crate::domain::UploadDto;
 
 pub struct Dispatcher {
     host: String,

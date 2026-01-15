@@ -34,6 +34,7 @@ impl UploadDto{
 #[derive(Debug, Deserialize)]
 pub struct TransformDto{
     pub name: String,
+    #[serde(default)]
     pub props: HashMap<String,String>
 }
 
