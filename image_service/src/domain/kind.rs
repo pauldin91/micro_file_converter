@@ -6,9 +6,9 @@ pub enum TransformType {
     Blur,
     Brighten,
     Crop,
-    // Fractal,
     Invert,
     Rotate,
+    Mirror
 }
 
 impl FromStr for TransformType {
@@ -19,9 +19,25 @@ impl FromStr for TransformType {
             "blur" => Ok(Self::Blur),
             "brighten" => Ok(Self::Brighten),
             "crop" => Ok(Self::Crop),
-            // "fractal" => Ok(Self::Fractal),
             "invert" => Ok(Self::Invert),
             "rotate" => Ok(Self::Rotate),
+            "mirror"=> Ok(Self::Mirror),
+            _ => Err(()),
+        }
+    }
+}
+
+
+pub enum GeneratorType {
+    Fractal,
+}
+
+impl FromStr for GeneratorType {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "fractal" => Ok(Self::Fractal),
             _ => Err(()),
         }
     }

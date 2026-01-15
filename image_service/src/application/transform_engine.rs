@@ -3,6 +3,7 @@ use std::result::Result::Ok;
 use std::{collections::HashMap, sync::Arc};
 use tracing::info;
 
+use crate::features::Mirror;
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate, TransformType,
     domain::{Transform, Rect, Storage},
@@ -23,6 +24,8 @@ impl TransformEngine{
         match parsed_tr {
             Ok(kind) => {
                 let op: Box<dyn Transform> = match kind {
+                    TransformType::Mirror=>{Box::new(Mirror::new())}
+                    ,
                     TransformType::Blur => {
                         let sigma: f32 = instructions
                             .get_key_value("sigma")
@@ -47,7 +50,6 @@ impl TransformEngine{
                         .unwrap().1;
                         Box::new(Crop::new(Rect::from(crop_instructions)))
                     }
-                    // TransformType::Fractal => Box::new(Fractal::new()),
                     TransformType::Invert => Box::new(Invert::new()),
                     TransformType::Rotate => {
                         let degrees: u16 = instructions

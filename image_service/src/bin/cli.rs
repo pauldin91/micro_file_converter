@@ -1,5 +1,5 @@
 use clap::{Arg, Command, value_parser};
-use image_service::{Fractal, application::LocalStorage, domain::Storage};
+use image_service::{Fractal, application::LocalStorage, domain::{Generator, Storage}};
 use std::{fs, path::PathBuf};
 
 fn main() {
@@ -36,7 +36,7 @@ fn main() {
 
     let storage = Box::new(LocalStorage::new());
     let fractal = Fractal::new(width, height, scale);
-    let img_res = fractal.apply();
+    let img_res = fractal.generate();
 
     match img_res {
         Ok(img) => {

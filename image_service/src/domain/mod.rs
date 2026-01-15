@@ -4,8 +4,10 @@ pub mod pipeline;
 pub mod rect;
 pub mod storage;
 pub mod constants;
+pub mod generator;
 pub use constants::*;
 
+pub use generator::Generator;
 pub use storage::Storage;
 pub use rect::Rect;
 pub use transform::Transform;

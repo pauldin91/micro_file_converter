@@ -1,6 +1,8 @@
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 use std::io::Cursor;
 
+use crate::domain::Generator;
+
 pub struct Fractal {
     width: u32,
     height: u32,
@@ -12,8 +14,8 @@ impl Fractal {
         Self { width, height,scale }
     }
 }
-impl Fractal {
-    pub fn apply(&self) -> Result<Vec<u8>, image::ImageError> {
+impl Generator for Fractal {
+    fn generate(&self) -> Result<Vec<u8>, image::ImageError> {
 
         let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> = ImageBuffer::new(self.width, self.height);
 

@@ -5,8 +5,10 @@ pub mod crop;
 pub mod fractal;
 pub mod invert;
 pub mod rotate;
+pub mod mirror;
 
 
+pub use mirror::Mirror;
 pub use blur::Blur;
 pub use brighten::Brighten;
 pub use crop::Crop;
