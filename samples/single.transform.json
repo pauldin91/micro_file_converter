@@ -14,7 +14,9 @@
         ],
         "transform": {
             "name": "mirror",
-            "props":{}
+            "props": {
+                "axis": "diagonal"
+            }
         }
     }
 ]

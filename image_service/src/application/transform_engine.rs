@@ -24,7 +24,15 @@ impl TransformEngine{
         match parsed_tr {
             Ok(kind) => {
                 let op: Box<dyn Transform> = match kind {
-                    TransformType::Mirror=>{Box::new(Mirror::new())}
+                    TransformType::Mirror=>{
+                        let axis: String = instructions
+                            .get_key_value("axis")
+                            .unwrap()
+                            .1
+                            .parse()
+                            .unwrap();
+                        Box::new(Mirror::new(axis))
+                    }
                     ,
                     TransformType::Blur => {
                         let sigma: f32 = instructions
