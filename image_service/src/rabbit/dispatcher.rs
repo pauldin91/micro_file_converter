@@ -20,7 +20,7 @@ impl Dispatcher {
         Self { host, queue }
     }
 
-    pub async fn consume(&self) -> Result<()> {
+    pub async fn start(&self) -> Result<()> {
         println!(
             "Dispatcher started at : {} and queue : {}",
             self.host.clone(),

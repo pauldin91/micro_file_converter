@@ -12,7 +12,7 @@ async fn main() {
     let handle = tokio::spawn({
         let consumer = Arc::clone(&consumer);
         async move {
-            if let Err(_) = consumer.consume().await {
+            if let Err(_) = consumer.start().await {
                 println!("consumer crashed");
             }
         }
