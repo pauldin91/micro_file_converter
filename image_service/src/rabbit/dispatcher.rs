@@ -4,7 +4,7 @@ use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 
-use crate::application::{LocalStorage, TransformService};
+use crate::application::{LocalStorage, TransformEngine};
 use crate::domain::{Storage, constants};
 use crate::rabbit::UploadDto;
 
@@ -34,7 +34,7 @@ impl Dispatcher {
         channel.basic_qos(16, BasicQosOptions::default()).await?;
 
         let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
-        let service = Arc::new(TransformService::new(storage));
+        let service = Arc::new(TransformEngine::new(storage));
 
         let mut consumer = channel
             .basic_consume(

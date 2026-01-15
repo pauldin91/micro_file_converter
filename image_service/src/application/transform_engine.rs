@@ -8,10 +8,10 @@ use crate::{
     domain::{Transform, Rect, Storage},
 };
 #[derive(Clone)]
-pub struct TransformService {
+pub struct TransformEngine {
     storage: Arc<dyn Storage>,
 }
-impl TransformService{
+impl TransformEngine{
 
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
