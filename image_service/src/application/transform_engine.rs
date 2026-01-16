@@ -1,19 +1,21 @@
 use anyhow::anyhow;
+use std::collections::HashMap;
+use std::default;
 use std::result::Result::Ok;
-use std::{collections::HashMap, sync::Arc};
-use tracing::info;
+use std::str::FromStr;
+use std::sync::Arc;
+use tracing::{error, info};
 
 use crate::features::Mirror;
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate, TransformType,
-    domain::{Transform, Rect, Storage},
+    domain::{Rect, Storage, Transform},
 };
 #[derive(Clone)]
 pub struct TransformEngine {
     storage: Arc<dyn Storage>,
 }
-impl TransformEngine{
-
+impl TransformEngine {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
@@ -24,7 +26,8 @@ impl TransformEngine{
         match parsed_tr {
             Ok(kind) => {
                 let op: Box<dyn Transform> = match kind {
-                    TransformType::Mirror=>{
+                    TransformType::Invert => Box::new(Invert::new()),
+                    TransformType::Mirror => {
                         let axis: String = instructions
                             .get_key_value("axis")
                             .unwrap()
@@ -33,7 +36,6 @@ impl TransformEngine{
                             .unwrap();
                         Box::new(Mirror::new(axis))
                     }
-                    ,
                     TransformType::Blur => {
                         let sigma: f32 = instructions
                             .get_key_value("sigma")
@@ -53,12 +55,9 @@ impl TransformEngine{
                         Box::new(Brighten::new(value))
                     }
                     TransformType::Crop => {
-                        let crop_instructions = instructions
-                        .get_key_value("rect")
-                        .unwrap().1;
+                        let crop_instructions = instructions.get_key_value("rect").unwrap().1;
                         Box::new(Crop::new(Rect::from(crop_instructions)))
                     }
-                    TransformType::Invert => Box::new(Invert::new()),
                     TransformType::Rotate => {
                         let degrees: u16 = instructions
                             .get_key_value("degrees")
@@ -88,14 +87,42 @@ impl TransformEngine{
                             self.storage.store_file(&new_filename, &transformed);
                         }
                         Err(e) => {
-                            eprintln!("error : {}", e);
+                            error!("error : {}, transforming file: {}", e, f);
                             continue;
                         }
                     }
                 }
                 Ok(())
             }
-            Err(_) => Err(anyhow!("unable to handle batch")),
+            Err(e) => {
+                error!("Error: {} invalid transform type", e);
+                Err(anyhow!("invalid transform"))
+            }
         }
     }
+
+    fn try_parse<T>(
+        instructions: &HashMap<String, String>,
+        arg_name: &str,
+    ) -> Result<T, InstructionParseError<T::Err>>
+    where
+        T: FromStr,
+    {
+        let val = instructions
+            .get(arg_name)
+            .ok_or_else(|| InstructionParseError::Missing(arg_name.to_string()))?;
+
+        val.parse().map_err(InstructionParseError::Parse)
+    }
+}
+
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum InstructionParseError<E> {
+    #[error("property not found: {0}")]
+    Missing(String),
+
+    #[error("failed to parse property")]
+    Parse(#[source] E),
 }

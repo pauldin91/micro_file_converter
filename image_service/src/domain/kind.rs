@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::error::Error;
 
 
 #[derive(Debug, Copy, Clone)]
@@ -10,9 +11,16 @@ pub enum TransformType {
     Rotate,
     Mirror
 }
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum TransformParseError {
+    #[error("invalid transform: '{0}'")]
+    Invalid(String),
+}
 
 impl FromStr for TransformType {
-    type Err = ();
+    type Err = TransformParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -21,12 +29,11 @@ impl FromStr for TransformType {
             "crop" => Ok(Self::Crop),
             "invert" => Ok(Self::Invert),
             "rotate" => Ok(Self::Rotate),
-            "mirror"=> Ok(Self::Mirror),
-            _ => Err(()),
+            "mirror" => Ok(Self::Mirror),
+            _ => Err(TransformParseError::Invalid(s.to_owned())),
         }
     }
 }
-
 
 pub enum GeneratorType {
     Fractal,
