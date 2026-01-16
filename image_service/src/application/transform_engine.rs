@@ -6,6 +6,7 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tracing::{error, info};
 
+use crate::domain::InstructionParseError;
 use crate::features::Mirror;
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate, TransformType,
@@ -116,13 +117,3 @@ impl TransformEngine {
     }
 }
 
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum InstructionParseError<E> {
-    #[error("property not found: {0}")]
-    Missing(String),
-
-    #[error("failed to parse property")]
-    Parse(#[source] E),
-}

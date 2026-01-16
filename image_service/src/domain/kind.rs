@@ -1,6 +1,8 @@
 use std::str::FromStr;
 use std::error::Error;
 
+use crate::domain::TransformParseError;
+
 
 #[derive(Debug, Copy, Clone)]
 pub enum TransformType {
@@ -11,13 +13,7 @@ pub enum TransformType {
     Rotate,
     Mirror
 }
-use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum TransformParseError {
-    #[error("invalid transform: '{0}'")]
-    Invalid(String),
-}
 
 impl FromStr for TransformType {
     type Err = TransformParseError;
