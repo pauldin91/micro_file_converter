@@ -3,10 +3,12 @@ use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
+use tracing::{error, info};
+use anyhow::anyhow;
 
 use crate::application::{LocalStorage, TransformEngine};
-use crate::domain::{Storage, constants};
 use crate::domain::UploadDto;
+use crate::domain::{Storage, constants};
 
 pub struct Dispatcher {
     host: String,
@@ -21,58 +23,70 @@ impl Dispatcher {
     }
 
     pub async fn start(&self) -> Result<()> {
-        println!(
-            "Dispatcher started at : {} and queue : {}",
-            self.host.clone(),
-            self.queue.clone()
-        );
+        
+        let conn_res = Connection::connect(&self.host, ConnectionProperties::default()).await;
+        match conn_res {
+            Ok(conn) => {
+                info!(
+                    "Dispatcher started at : {} and queue : {}",
+                    self.host.clone(),
+                    self.queue.clone()
+                );
+                let channel = conn.create_channel().await?;
 
-        let conn = Connection::connect(&self.host, ConnectionProperties::default()).await?;
+                channel.basic_qos(16, BasicQosOptions::default()).await?;
 
-        let channel = conn.create_channel().await?;
+                let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
+                let service = Arc::new(TransformEngine::new(storage));
 
-        channel.basic_qos(16, BasicQosOptions::default()).await?;
+                let mut consumer = channel
+                    .basic_consume(
+                        &self.queue,
+                        "image_service",
+                        BasicConsumeOptions::default(),
+                        FieldTable::default(),
+                    )
+                    .await?;
 
-        let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
-        let service = Arc::new(TransformEngine::new(storage));
+                // let semaphore = Arc::new(Semaphore::new(16));
 
-        let mut consumer = channel
-            .basic_consume(
-                &self.queue,
-                "image_service",
-                BasicConsumeOptions::default(),
-                FieldTable::default(),
-            )
-            .await?;
+                while let Some(delivery) = consumer.next().await {
+                    let delivery = delivery?;
+                    let srv = Arc::clone(&service);
+                    // let permit = semaphore.clone().acquire_owned().await?;
+                    let msg: Result<UploadDto, serde_json::Error> =
+                        serde_json::from_slice(&delivery.data);
+                    match msg {
+                        Ok(dto) => {
+                            // task::spawn(async move  {
+                            let result = srv.handle(dto.to_map());
 
-        // let semaphore = Arc::new(Semaphore::new(16));
-
-        while let Some(delivery) = consumer.next().await {
-            let delivery = delivery?;
-            let srv = Arc::clone(&service);
-            // let permit = semaphore.clone().acquire_owned().await?;
-            let msg: Result<UploadDto, serde_json::Error> = serde_json::from_slice(&delivery.data);
-            match msg {
-                Ok(dto) => {
-                    // task::spawn(async move  {
-                        let result = srv.handle(dto.to_map());
-
-                        match result {
-                            Ok(_) => {
-                                let _ = delivery.ack(BasicAckOptions::default()).await;
+                            match result {
+                                Ok(_) => {
+                                    let _ = delivery.ack(BasicAckOptions::default()).await;
+                                }
+                                Err(e) => {
+                                    let _ = delivery.nack(BasicNackOptions::default()).await;
+                                    error!("message failed: {e:?}");
+                                }
                             }
-                            Err(e) => {
-                                let _ = delivery.nack(BasicNackOptions::default()).await;
-                                tracing::error!("message failed: {e:?}");
-                            }
+
+                            // drop(permit);
                         }
-
-                        // drop(permit);
+                        Err(e) => {
+                            error!("error deserializing the dto: {}", e);
+                            let _ = delivery.ack(BasicAckOptions::default()).await;
+                            continue;
+                        }
+                    }
                 }
-                Err(e) => {eprintln!("error deserializing the dto: {}",e);continue},
+
+                Ok(())
+            }
+            Err(e) => {
+                error!("Connection in {} failed", self.host);
+                Err(anyhow!(format!("Error: {} opening connection",e)))
             }
         }
-
-        Ok(())
     }
 }

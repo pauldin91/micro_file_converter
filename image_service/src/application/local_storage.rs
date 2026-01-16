@@ -1,6 +1,9 @@
 use std::{
-    fs::{self, File}, io::{self, Write}, path::PathBuf
+    fs::{self, File},
+    io::{self, Write},
+    path::PathBuf,
 };
+use tracing::error;
 
 use crate::domain::{Storage, constants};
 
@@ -10,7 +13,7 @@ pub struct LocalStorage {
 
 impl LocalStorage {
     pub fn new() -> Self {
-        let upload_dir = dotenv::var(constants::UPLOAD_DIR).unwrap();
+        let upload_dir = dotenv::var(constants::UPLOAD_DIR).unwrap_or(String::from("../uploads"));
 
         Self {
             upload_dir: PathBuf::from(upload_dir),
@@ -22,30 +25,37 @@ impl LocalStorage {
 }
 
 impl Storage for LocalStorage {
-
     fn store_file(&self, filename: &PathBuf, content: &Vec<u8>) {
         let created = File::create(filename);
         match created {
             Ok(mut file) => {
                 let _ = file.write(&content);
             }
-            Err(e) => eprintln!("could not create file : {}",e),
+            Err(e) => error!("could not create file : {}", e),
         }
     }
 
     fn get_files(&self, dir: &String) -> Vec<String> {
-        let mut filenames = Vec::new();
-        for f in fs::read_dir(self.get_full_path(dir.clone())).unwrap() {
-            match f {
-                Ok(entry) => filenames.push(entry.path().to_string_lossy().into_owned()),
-                Err(e) => {
-                    eprint!("error {}", e);
-                    continue;
+        let location_dir = fs::read_dir(self.get_full_path(dir.clone()));
+        match location_dir {
+            Ok(actual_dir) => {
+                let mut filenames = Vec::new();
+                for f in actual_dir {
+                    match f {
+                        Ok(entry) => filenames.push(entry.path().to_string_lossy().into_owned()),
+                        Err(e) => {
+                            error!("error {}", e);
+                            continue;
+                        }
+                    }
                 }
+                filenames
+            }
+            Err(e) => {
+                error!("Error: {} not a directory",e);
+                Vec::new()
             }
         }
-
-        filenames
     }
 
     fn load(&self, fullpath: &String) -> io::Result<Vec<u8>> {

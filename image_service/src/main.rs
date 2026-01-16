@@ -1,11 +1,13 @@
 use dotenv::dotenv;
 use image_service::rabbit;
 use std::sync::Arc;
-
+use tracing_subscriber::FmtSubscriber;
+use tracing::error;
 #[tokio::main]
 async fn main() {
     dotenv().ok();
-    tracing_subscriber::fmt::init();
+    let subscriber = FmtSubscriber::new();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default failed");
 
     let dispatcher = Arc::new(rabbit::Dispatcher::new());
 
@@ -13,7 +15,7 @@ async fn main() {
         let dispatcher = dispatcher.clone();
         async move {
             if let Err(_) = dispatcher.start().await {
-                tracing::error!("consumer crashed");
+                error!("consumer crashed");
             }
         }
     });
