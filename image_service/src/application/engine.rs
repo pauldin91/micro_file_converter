@@ -3,11 +3,9 @@ use std::result::Result::Ok;
 use std::sync::Arc;
 use tracing::error;
 
-use crate::application::TransformFactory;
 use crate::domain::UploadDto;
-use crate::{ TransformType,
-    domain::{ Storage, Transform},
-};
+use crate::domain::{Storage, Transform};
+use crate::features::TransformFactory;
 #[derive(Clone)]
 pub struct TransformEngine {
     storage: Arc<dyn Storage>,
@@ -17,9 +15,9 @@ impl TransformEngine {
         Self { storage: storage }
     }
     pub fn handle(&self, instructions: UploadDto) -> Result<(), anyhow::Error> {
-        match instructions.transform.name.parse::<TransformType>() {
+        match instructions.transform.name.parse::<TransformFactory>() {
             Ok(kind) => {
-                let op: Box<dyn Transform> = TransformFactory{}.create(&instructions.transform.props,kind);
+                let op: Box<dyn Transform> = kind.create(&instructions.transform.props);
 
                 let filenames: Vec<String> = self
                     .storage
@@ -33,8 +31,9 @@ impl TransformEngine {
                     let res = self.storage.load(&f);
                     match res {
                         Ok(img) => {
-                            let new_filename =
-                                self.storage.get_transformed_filename(&f, &instructions.transform.name);
+                            let new_filename = self
+                                .storage
+                                .get_transformed_filename(&f, &instructions.transform.name);
                             let transformed = op.apply(&img).unwrap();
                             self.storage.store_file(&new_filename, &transformed);
                         }
@@ -52,6 +51,4 @@ impl TransformEngine {
             }
         }
     }
-
-
 }

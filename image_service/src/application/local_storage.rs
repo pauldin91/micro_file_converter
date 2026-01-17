@@ -5,7 +5,7 @@ use std::{
 };
 use tracing::error;
 
-use crate::domain::{Storage, constants};
+use crate::domain::{Storage, config};
 
 pub struct LocalStorage {
     upload_dir: PathBuf,
@@ -13,7 +13,7 @@ pub struct LocalStorage {
 
 impl LocalStorage {
     pub fn new() -> Self {
-        let upload_dir = dotenv::var(constants::UPLOAD_DIR).unwrap_or(String::from("../uploads"));
+        let upload_dir = dotenv::var(config::UPLOAD_DIR).unwrap_or(String::from("../uploads"));
 
         Self {
             upload_dir: PathBuf::from(upload_dir),

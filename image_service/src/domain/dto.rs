@@ -37,7 +37,3 @@ pub struct TransformDto{
     #[serde(default)]
     pub props: HashMap<String,String>
 }
-
-pub trait InstructionsDto{}
-
-

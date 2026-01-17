@@ -1,14 +1,20 @@
-use std::io::Cursor;
+use std::{collections::HashMap, io::Cursor};
 
 use image::{ImageError, ImageOutputFormat};
 
-use crate::domain::Transform;
+use crate::domain::{Instructions, Transform};
 
 pub struct Brighten {
     value: i32,
 }
 impl Brighten {
-    pub fn new(value: i32) -> Self {
+    pub fn new(props: &HashMap<String,String>) -> Self {
+        let value_key = Instructions::parse_properties::<i32>(&props, &"value");
+
+        let value: i32 = match value_key {
+            Some(value) => value,
+            None => 0,
+        };
         Self { value: value }
     }
 }

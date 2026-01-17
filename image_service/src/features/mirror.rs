@@ -1,8 +1,8 @@
-use std::{io::Cursor, str::FromStr};
+use std::{collections::HashMap, io::Cursor, str::FromStr};
 
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba};
 
-use crate::domain::Transform;
+use crate::domain::{Instructions, Transform};
 #[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {
     Vertical,
@@ -26,12 +26,17 @@ pub struct Mirror {
     axis: MirrorAxis,
 }
 impl Mirror {
-    pub fn new(axis: String) -> Self {
-        Self {
-            axis: axis
-                .parse::<MirrorAxis>()
-                .unwrap_or_else(|_| MirrorAxis::Vertical),
-        }
+    pub fn new(props: &HashMap<String, String>) -> Self {
+        let axis_key = Instructions::parse_properties::<String>(&props, &"axis");
+        let axis = match axis_key {
+            Some(axis_type) => match axis_type.parse::<MirrorAxis>() {
+                Ok(axis) => axis,
+                Err(_) => MirrorAxis::Vertical,
+            },
+            None => MirrorAxis::Vertical,
+        };
+
+        Self { axis: axis }
     }
 }
 

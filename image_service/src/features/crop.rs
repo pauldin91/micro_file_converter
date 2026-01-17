@@ -1,14 +1,19 @@
-use std::io::Cursor;
+use std::{collections::HashMap, io::Cursor};
 
 use image::ImageOutputFormat;
 
-use crate::{domain::{Transform, Rect}};
+use crate::domain::{Rect, Transform};
 
 pub struct Crop {
     selection: Rect,
 }
 impl Crop {
-    pub fn new(selection: Rect) -> Self {
+    pub fn new(props: &HashMap<String, String>) -> Self {
+        let crop_instructions = props.get("rect");
+        let selection = match crop_instructions {
+            Some(rect) => Rect::from(rect),
+            None => Rect::from("0,0,0,0"),
+        };
         Self {
             selection: selection,
         }

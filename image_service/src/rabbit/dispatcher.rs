@@ -8,7 +8,7 @@ use anyhow::anyhow;
 
 use crate::application::{LocalStorage, TransformEngine};
 use crate::domain::UploadDto;
-use crate::domain::{Storage, constants};
+use crate::domain::{Storage, config};
 
 pub struct Dispatcher {
     host: String,
@@ -17,8 +17,8 @@ pub struct Dispatcher {
 
 impl Dispatcher {
     pub fn new() -> Self {
-        let host = dotenv::var(constants::RABBITMQ_HOST).unwrap();
-        let queue = dotenv::var(constants::TRANSFORM_QUEUE).unwrap();
+        let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
+        let queue = dotenv::var(config::TRANSFORM_QUEUE).unwrap();
         Self { host, queue }
     }
 

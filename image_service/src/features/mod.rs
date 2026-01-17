@@ -6,8 +6,10 @@ pub mod fractal;
 pub mod invert;
 pub mod rotate;
 pub mod mirror;
+pub mod factory;
 
 
+pub use factory::*;
 pub use mirror::Mirror;
 pub use blur::Blur;
 pub use brighten::Brighten;

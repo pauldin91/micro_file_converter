@@ -1,15 +1,21 @@
-use std::io::Cursor;
+use std::{collections::HashMap, io::Cursor};
 
 use image::{ImageError, ImageOutputFormat};
 
-use crate::domain::Transform;
+use crate::domain::{Instructions, Transform};
 
 pub struct Blur {
     sigma: f32,
 }
 
 impl Blur {
-    pub fn new(sigma: f32) -> Self {
+    pub fn new(props: &HashMap<String,String>) -> Self {
+        let sigma_key = Instructions::parse_properties::<f32>(&props, &"sigma");
+
+        let sigma: f32 = match sigma_key {
+            Some(sigma) => sigma,
+            None => 0.5,
+        };
         Self { sigma: sigma }
     }
 }
