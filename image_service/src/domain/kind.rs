@@ -10,8 +10,8 @@ pub enum TransformType {
     Brighten,
     Crop,
     Invert,
-    Rotate,
-    Mirror
+    Mirror,
+    Rotate
 }
 
 
@@ -24,8 +24,8 @@ impl FromStr for TransformType {
             "brighten" => Ok(Self::Brighten),
             "crop" => Ok(Self::Crop),
             "invert" => Ok(Self::Invert),
-            "rotate" => Ok(Self::Rotate),
             "mirror" => Ok(Self::Mirror),
+            "rotate" => Ok(Self::Rotate),
             _ => Err(TransformParseError::Invalid(s.to_owned())),
         }
     }

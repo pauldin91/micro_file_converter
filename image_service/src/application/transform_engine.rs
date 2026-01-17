@@ -6,8 +6,9 @@ use std::str::FromStr;
 use std::sync::Arc;
 use tracing::{error, info};
 
-use crate::domain::InstructionParseError;
+use crate::domain::{InstructionParseError, TransformParseError};
 use crate::features::Mirror;
+use crate::features::mirror::MirrorAxis;
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate, TransformType,
     domain::{Rect, Storage, Transform},
@@ -28,47 +29,44 @@ impl TransformEngine {
             Ok(kind) => {
                 let op: Box<dyn Transform> = match kind {
                     TransformType::Invert => Box::new(Invert::new()),
-                    TransformType::Mirror => {
-                        let axis: String = instructions
-                            .get_key_value("axis")
-                            .unwrap()
-                            .1
-                            .parse()
-                            .unwrap();
-                        Box::new(Mirror::new(axis))
-                    }
-                    TransformType::Blur => {
-                        let sigma: f32 = instructions
-                            .get_key_value("sigma")
-                            .unwrap()
-                            .1
-                            .parse()
-                            .unwrap();
-                        Box::new(Blur::new(sigma))
-                    }
-                    TransformType::Brighten => {
-                        let value: i32 = instructions
-                            .get_key_value("value")
-                            .unwrap()
-                            .1
-                            .parse()
-                            .unwrap();
-                        Box::new(Brighten::new(value))
-                    }
                     TransformType::Crop => {
                         let crop_instructions = instructions.get_key_value("rect").unwrap().1;
                         Box::new(Crop::new(Rect::from(crop_instructions)))
                     }
+                    TransformType::Mirror => {
+                        let axis_key = TransformEngine::try_parse::<String>(&instructions, &"axis");
+                        match axis_key {
+                            Some(axis) => Box::new(Mirror::new(axis)),
+                            None => Box::new(Mirror::new(String::new())),
+                        }
+                    }
+                    TransformType::Blur => {
+                        let sigma_key = TransformEngine::try_parse::<f32>(&instructions, &"sigma");
+
+                        match sigma_key {
+                            Some(sigma) => Box::new(Blur::new(sigma)),
+                            None => Box::new(Blur::new(0.0)),
+                        }
+                    }
+                    TransformType::Brighten => {
+                        let value_key = TransformEngine::try_parse::<i32>(&instructions, &"value");
+
+                        match value_key {
+                            Some(value) => Box::new(Brighten::new(value)),
+                            None => Box::new(Brighten::new(0)),
+                        }
+                    }
                     TransformType::Rotate => {
-                        let degrees: u16 = instructions
-                            .get_key_value("degrees")
-                            .unwrap()
-                            .1
-                            .parse()
-                            .unwrap();
-                        Box::new(Rotate::new(degrees))
+                        let degrees_key =
+                            TransformEngine::try_parse::<u16>(&instructions, &"degrees");
+
+                        match degrees_key {
+                            Some(degrees) => Box::new(Rotate::new(degrees)),
+                            None => Box::new(Rotate::new(90)),
+                        }
                     }
                 };
+
                 let dir = instructions.get("id").unwrap().clone();
                 let filenames: Vec<String> = self
                     .storage
@@ -102,18 +100,26 @@ impl TransformEngine {
         }
     }
 
-    fn try_parse<T>(
-        instructions: &HashMap<String, String>,
-        arg_name: &str,
-    ) -> Result<T, InstructionParseError<T::Err>>
+    fn try_parse<T>(instructions: &HashMap<String, String>, arg_name: &str) -> Option<T>
     where
         T: FromStr,
     {
         let val = instructions
             .get(arg_name)
-            .ok_or_else(|| InstructionParseError::Missing(arg_name.to_string()))?;
+            .ok_or_else(|| InstructionParseError::Missing::<String>(arg_name.to_string()));
 
-        val.parse().map_err(InstructionParseError::Parse)
+        match val {
+            Ok(res) => match res.parse() {
+                Ok(parsed) => Some(parsed),
+                Err(e) => {
+                    error!("could not parse instruction {}", arg_name);
+                    None
+                }
+            },
+            Err(e) => {
+                error!("could not parse instruction {}", arg_name);
+                None
+            }
+        }
     }
 }
-
