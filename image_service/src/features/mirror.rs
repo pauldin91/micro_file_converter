@@ -3,7 +3,7 @@ use std::{io::Cursor, str::FromStr};
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba};
 
 use crate::domain::Transform;
-
+#[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {
     Vertical,
     Horizontal,

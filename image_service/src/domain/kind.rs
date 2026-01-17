@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::error::Error;
 
 use crate::domain::TransformParseError;
 
@@ -13,6 +12,7 @@ pub enum TransformType {
     Mirror,
     Rotate
 }
+
 
 
 impl FromStr for TransformType {
@@ -32,7 +32,7 @@ impl FromStr for TransformType {
 }
 
 pub enum GeneratorType {
-    Fractal,
+    Fractal
 }
 
 impl FromStr for GeneratorType {

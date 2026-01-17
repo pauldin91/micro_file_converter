@@ -38,3 +38,6 @@ pub struct TransformDto{
     pub props: HashMap<String,String>
 }
 
+pub trait InstructionsDto{}
+
+

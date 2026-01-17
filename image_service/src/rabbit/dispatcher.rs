@@ -59,7 +59,7 @@ impl Dispatcher {
                     match msg {
                         Ok(dto) => {
                             // task::spawn(async move  {
-                            let result = srv.handle(dto.to_map());
+                            let result = srv.handle(dto);
 
                             match result {
                                 Ok(_) => {
