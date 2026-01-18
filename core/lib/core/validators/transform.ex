@@ -1,15 +1,15 @@
 defmodule Core.Validators.Transform do
   @transformations Core.Transforms.transformations()
 
-  @spec validate(atom() | String.t(), map()) ::
+  @spec validate(map(),atom() | String.t()) ::
           {:ok, map()} | {:error, map()}
-  def validate(transform, props) when is_binary(transform) do
-    validate(String.to_existing_atom(transform), props)
+  def validate(props,transform) when is_binary(transform) do
+    validate(props,String.to_existing_atom(transform))
   rescue
     ArgumentError -> {:error, %{transform: "Unknown transform"}}
   end
 
-  def validate(transform, props) when is_atom(transform) do
+  def validate(props,transform) when is_atom(transform) do
     with {:ok, spec} <- fetch_transform(transform),
          {:ok, props} <- normalize_props(props),
          {:ok, validated} <- validate_props(spec.props, props) do

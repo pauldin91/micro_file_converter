@@ -7,7 +7,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Handlers
   alias Core.Storage
   alias Core.Transforms
-  alias Core.Validators.Transform
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
