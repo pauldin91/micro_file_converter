@@ -1,4 +1,5 @@
 defmodule CoreWeb.BatchLive.FormComponent do
+  alias Core.Validators
   use CoreWeb, :live_component
 
   alias Core.Uploads
@@ -6,6 +7,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Handlers
   alias Core.Storage
   alias Core.Transforms
+  alias Core.Validators.Transform
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
@@ -90,26 +92,32 @@ defmodule CoreWeb.BatchLive.FormComponent do
       socket.assigns.props_entries
       |> Map.new(fn %{key: k, value: v} -> {k, v} end)
 
-    result =
-      Handlers.handle_upload(user, %{
-        files: uploaded_files,
-        transform: socket.assigns.transform,
-        props: props,
-        batch_id: uuid
-      })
+    case Validators.Transform.validate(props, socket.assigns.transform) do
+      {:ok, _spec} ->
+        result =
+          Handlers.handle_upload(user, %{
+            files: uploaded_files,
+            transform: socket.assigns.transform,
+            props: props,
+            batch_id: uuid
+          })
 
-    case result do
-      {:ok, batch_id} ->
-        {:noreply,
-         socket
-         |> assign(:batch_id, batch_id)
-         |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
+        case result do
+          {:ok, batch_id} ->
+            {:noreply,
+             socket
+             |> assign(:batch_id, batch_id)
+             |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
+
+          {:error, reason} ->
+            {:noreply, put_flash(socket, :error, reason)}
+
+          :error ->
+            {:noreply, put_flash(socket, :error, "Incognito error")}
+        end
 
       {:error, reason} ->
         {:noreply, put_flash(socket, :error, reason)}
-
-      :error ->
-        {:noreply, put_flash(socket, :error, "Incognito error")}
     end
   end
 

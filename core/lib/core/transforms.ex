@@ -1,9 +1,5 @@
 defmodule Core.Transforms do
   @transformations %{
-    none: %{
-      label: "None",
-      props: []
-    },
     rotate: %{
       label: "Rotate",
       props: [
@@ -15,6 +11,10 @@ defmodule Core.Transforms do
       props: [
         %{key: "sigma", type: :number, default: 1.0, step: 0.1, min: 0}
       ]
+    },
+    invert: %{
+      label: "Invert",
+      props: []
     },
     brighten: %{
       label: "Brighten",
