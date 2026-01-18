@@ -14,7 +14,7 @@ impl TransformEngine {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
-    pub fn handle(&self, instructions: UploadDto) -> Result<(), anyhow::Error> {
+    pub async fn handle(&self, instructions: UploadDto) -> Result<(), anyhow::Error> {
         match instructions.transform.name.parse::<TransformFactory>() {
             Ok(kind) => {
                 let op: Box<dyn Transform> = kind.create(&instructions.transform.props);

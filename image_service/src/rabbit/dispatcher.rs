@@ -1,10 +1,10 @@
 use anyhow::Result;
+use anyhow::anyhow;
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
-use anyhow::anyhow;
 
 use crate::application::{LocalStorage, TransformEngine};
 use crate::domain::UploadDto;
@@ -23,7 +23,6 @@ impl Dispatcher {
     }
 
     pub async fn start(&self) -> Result<()> {
-        
         let conn_res = Connection::connect(&self.host, ConnectionProperties::default()).await;
         match conn_res {
             Ok(conn) => {
@@ -48,30 +47,31 @@ impl Dispatcher {
                     )
                     .await?;
 
-                // let semaphore = Arc::new(Semaphore::new(16));
+                let semaphore = Arc::new(Semaphore::new(16));
 
                 while let Some(delivery) = consumer.next().await {
                     let delivery = delivery?;
                     let srv = Arc::clone(&service);
-                    // let permit = semaphore.clone().acquire_owned().await?;
+                    let permit = semaphore.clone().acquire_owned().await?;
                     let msg: Result<UploadDto, serde_json::Error> =
                         serde_json::from_slice(&delivery.data);
                     match msg {
                         Ok(dto) => {
-                            // task::spawn(async move  {
-                            let result = srv.handle(dto);
+                            task::spawn(async move {
+                                let _permit = permit; 
 
-                            match result {
-                                Ok(_) => {
-                                    let _ = delivery.ack(BasicAckOptions::default()).await;
-                                }
-                                Err(e) => {
-                                    let _ = delivery.nack(BasicNackOptions::default()).await;
-                                    error!("message failed: {e:?}");
-                                }
-                            }
+                                let result = srv.handle(dto).await;
 
-                            // drop(permit);
+                                match result {
+                                    Ok(_) => {
+                                        let _ = delivery.ack(BasicAckOptions::default()).await;
+                                    }
+                                    Err(e) => {
+                                        let _ = delivery.nack(BasicNackOptions::default()).await;
+                                        error!("message failed: {e:?}");
+                                    }
+                                }
+                            });
                         }
                         Err(e) => {
                             error!("error deserializing the dto: {}", e);
@@ -85,7 +85,7 @@ impl Dispatcher {
             }
             Err(e) => {
                 error!("Connection in {} failed", self.host);
-                Err(anyhow!(format!("Error: {} opening connection",e)))
+                Err(anyhow!(format!("Error: {} opening connection", e)))
             }
         }
     }
