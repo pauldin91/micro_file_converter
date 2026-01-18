@@ -1,108 +1,84 @@
+<div>
+  <.header>
+    File Upload Form
+  </.header>
 
-    <div>
-      <.header>
-        File Upload Form
-      </.header>
+  <.simple_form
+    for={@form}
+    id="batch-form"
+    phx-target={@myself}
+    phx-change="validate"
+    phx-submit="save"
+  >
+    <.drag_n_drop files={@uploads.files} />
 
-      <.simple_form
-        for={@form}
-        id="batch-form"
+    <div class="mt-4 space-x-4">
+      <input
+        type="radio"
+        name="mode"
+        value="convert"
+        checked={@mode == "convert"}
+        phx-change="toggle_transform"
         phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.drag_n_drop files={@uploads.files} />
+      /> Convert
+      <input
+        type="radio"
+        name="mode"
+        value="transform"
+        checked={@mode == "transform"}
+        phx-change="toggle_transform"
+        phx-target={@myself}
+      /> Transform
+    </div>
 
-        <div class="mt-4 space-x-4">
-          <input
-            type="radio"
-            name="mode"
-            value="convert"
-            checked={@mode == "convert"}
-            phx-change="toggle_transform"
-            phx-target={@myself}
-          /> Convert
+    <div :if={@mode == "transform"} class="mt-6 space-y-4">
+      <.input
+        field={@form[:transform]}
+        type="select"
+        label="Transform"
+        options={Transforms.transform_options(@transformations)}
+        value={@transform}
+      />
 
-          <input 
-            type="radio"
-            name="mode"
-            value="transform"
-            checked={@mode == "transform"}
-            phx-change="toggle_transform"
-            phx-target={@myself}
-          /> Transform
-        </div>
+      <div :if={@props_entries != []} class="space-y-2">
+        <label class="font-semibold text-m">Transform Properties</label>
 
-        <div :if={@mode == "transform"} class="mt-6 space-y-4">
-          <.input
-            field={@form[:transform]}
-            type="select"
-            label="Transform"
-            options={@transformations}
-            value={@transform}
-          />
+        <div
+          :for={entry <- @props_entries}
+          class="flex gap-2 items-center"
+        >
+          <label class="w-1/3 capitalize">
+            {entry.key}
+          </label>
 
-          <div class="space-y-2">
-            <label class="font-semibold text-m">Transform Props</label>
+          <div
+            :for={entry <- @props_entries}
+            class="flex gap-2 items-center"
+          >
+            <label class="w-1/3 capitalize">
+              {entry.key}
+            </label>
 
-            <div
-              :for={entry <- @props_entries}
-              class="flex gap-2 items-center"
-            >
-              <input
-                type="text"
-                name={"props[#{entry.id}][key]"}
-                value={entry.key}
-                placeholder="key (e.g. sigma)"
-                class="input input-bordered w-1/2"
-              />
-
-              <input
-                type="text"
-                name={"props[#{entry.id}][value]"}
-                value={entry.value}
-                placeholder="value (e.g. 0.5)"
-                class="input input-bordered w-1/2"
-              />
-
-              <button
-                type="button"
-                phx-click="remove_prop"
-                phx-value-id={entry.id}
-                phx-target={@myself}
-                class="btn btn-ghost btn-sm"
-              >
-                ✕
-              </button>
-            </div>
-            <br/>
-            <button
-              type="button"
-
-              phx-click="add_prop"
-              phx-target={@myself}
-              class="btn btn-outline btn-sm"
-            >
-              + Add property
-            </button>
+            <.render_prop_input entry={entry} />
           </div>
         </div>
-
-        <.display_uploads files={@uploads.files} />
-
-        <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
-          {Formatter.error_to_string(err)}
-        </div>
-
-        <:actions>
-          <.button
-            type="submit"
-            disabled={@uploads.files.entries == []}
-            class="btn btn-primary w-full"
-          >
-            Upload Files
-          </.button>
-        </:actions>
-      </.simple_form>
+      </div>
     </div>
-    
+
+    <.display_uploads files={@uploads.files} />
+
+    <div :for={err <- upload_errors(@uploads.files)} class="text-error text-sm mb-2">
+      {Formatter.error_to_string(err)}
+    </div>
+
+    <:actions>
+      <.button
+        type="submit"
+        disabled={@uploads.files.entries == []}
+        class="btn btn-primary w-full"
+      >
+        Upload Files
+      </.button>
+    </:actions>
+  </.simple_form>
+</div>

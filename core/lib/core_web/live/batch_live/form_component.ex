@@ -5,17 +5,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Uploads.Formatter
   alias Core.Handlers
   alias Core.Storage
-
-  @transformations [
-    {"None", :none},
-    {"Rotate", :rotate},
-    {"Mirror", :mirror},
-    {"Blur", :blur},
-    {"Invert", :invert},
-    {"Crop", :crop},
-    {"Fractal", :fractal},
-    {"Brighten", :brighten}
-  ]
+  alias Core.Transforms
 
   @impl true
   def update(%{batch: batch} = assigns, socket) do
@@ -25,7 +15,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign_new(:mode, fn -> "convert" end)
      |> assign_new(:transform, fn -> "none" end)
      |> assign_new(:props_entries, fn -> [] end)
-     |> assign(:transformations, @transformations)
+     |> assign(:transformations, Transforms.transformations())
      |> assign_new(:form, fn ->
        to_form(Uploads.change_batch(batch))
      end)
@@ -37,35 +27,31 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"batch" => batch_params} = params, socket) do
+  def handle_event("validate", %{"batch" => batch_params}, socket) do
+    transform = batch_params["transform"] || socket.assigns.transform
+
+    props_entries =
+      Transforms.build_props_for_transform(transform, socket.assigns.transformations)
+
     changeset =
       socket.assigns.batch
       |> Uploads.change_batch(batch_params)
       |> Map.put(:action, :validate)
 
-    props_entries =
-      params
-      |> Map.get("props", %{})
-      |> Enum.map(fn {id, %{"key" => k, "value" => v}} ->
-        %{id: id, key: k, value: v}
-      end)
-
     {:noreply,
      socket
      |> assign(:form, to_form(changeset))
-     |> assign(:transform, batch_params["transform"] || socket.assigns.transform)
+     |> assign(:transform, transform)
      |> assign(:props_entries, props_entries)}
   end
 
   def handle_event("validate", _params, socket),
     do: {:noreply, socket}
 
-  @impl true
   def handle_event("toggle_transform", %{"mode" => mode}, socket) do
     {:noreply, assign(socket, :mode, mode)}
   end
 
-  @impl true
   def handle_event("add_prop", _params, socket) do
     entry = %{
       id: Ecto.UUID.generate(),
@@ -79,7 +65,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
      end)}
   end
 
-  @impl true
   def handle_event("remove_prop", %{"id" => id}, socket) do
     {:noreply,
      update(socket, :props_entries, fn entries ->
@@ -103,11 +88,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     props =
       socket.assigns.props_entries
-      |> Enum.reject(fn %{key: k, value: v} ->
-        k in ["", nil] or v in ["", nil]
-      end)
       |> Map.new(fn %{key: k, value: v} -> {k, v} end)
-
 
     result =
       Handlers.handle_upload(user, %{
@@ -132,4 +113,29 @@ defmodule CoreWeb.BatchLive.FormComponent do
     end
   end
 
+  def render_prop_input(assigns) do
+    ~H"""
+    <%= if @entry.meta[:selection] do %>
+      <select name={"props[#{@entry.key}]"} class="select select-bordered w-full">
+        <option
+          :for={opt <- @entry.meta.selection}
+          value={opt}
+          selected={opt == @entry.value}
+        >
+          {opt}
+        </option>
+      </select>
+    <% else %>
+      <input
+        type={(@entry.meta.type == :number && "number") || "text"}
+        name={"props[#{@entry.key}]"}
+        value={@entry.value}
+        min={@entry.meta[:min]}
+        max={@entry.meta[:max]}
+        step={@entry.meta[:step]}
+        class="input input-bordered w-full"
+      />
+    <% end %>
+    """
+  end
 end
