@@ -24,9 +24,20 @@
             @metadata["transform"]["name"]
         end}
         <div :if={@metadata["transform"] != "none"}>
-          {for n <- @metadata["transform"]["props"] do
-            "Property : #{elem(n, 0)}, Value: #{elem(n, 1)}"
-          end}
+          <table class="table-auto border-collapse border border-gray-300 mt-2">
+            <thead>
+              <tr>
+                <th class="border px-3 py-1 text-left">Property</th>
+                <th class="border px-3 py-1 text-left">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr :for={{key, value} <- @metadata["transform"]["props"]}>
+                <td class="border px-3 py-1">{key}</td>
+                <td class="border px-3 py-1">{value}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

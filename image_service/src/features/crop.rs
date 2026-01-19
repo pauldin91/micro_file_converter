@@ -9,11 +9,11 @@ pub struct Crop {
 }
 impl Crop {
     pub fn new(props: &HashMap<String, String>) -> Self {
-        let crop_instructions = props.get("rect");
-        let selection = match crop_instructions {
-            Some(rect) => Rect::from(rect),
-            None => Rect::from("0,0,0,0"),
-        };
+        let x: u32 = props.get("x").unwrap_or(&String::from("0")).parse().unwrap();
+        let y: u32 = props.get("y").unwrap_or(&String::from("0")).parse().unwrap();
+        let width: u32 = props.get("width").unwrap_or(&String::from("100")).parse().unwrap();
+        let height: u32 = props.get("height").unwrap_or(&String::from("100")).parse().unwrap();
+        let selection= Rect::new(x,y,width,height);
         Self {
             selection: selection,
         }

@@ -6,6 +6,14 @@ pub struct Rect {
 }
 
 impl Rect {
+    pub fn new(x: u32, y: u32, width: u32, height: u32) -> Self {
+        Self {
+            x,
+            y,
+            w: width,
+            h: height,
+        }
+    }
     pub fn from(rect: &str) -> Self {
         let crop_instructions: Vec<u32> = rect.split(",").map(|s| s.parse().unwrap()).collect();
         Self {
