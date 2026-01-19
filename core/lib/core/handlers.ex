@@ -10,18 +10,19 @@ defmodule Core.Handlers do
         user,
         %{files: files, transform: transform, batch_id: batch_id, props: props}
       ) do
-    create_batch_with_pictures(
-      %Core.Mappings.Batch{
-        id: batch_id,
-        files: files,
-        transform: %{
-          name: transform,
-          props: props
+
+      create_batch_with_pictures(
+        %Core.Mappings.Batch{
+          id: batch_id,
+          files: files,
+          transform: %{
+            name: transform,
+            props: props
+          },
         },
-        timestamp: DateTime.utc_now()
-      },
-      %{user_id: user.id}
-    )
+        %{user_id: user.id}
+      )
+
   end
 
   defp create_batch_with_pictures(%Core.Mappings.Batch{} = batch_dto, %{user_id: user_id}) do
@@ -30,10 +31,11 @@ defmodule Core.Handlers do
              id: batch_dto.id,
              status: "pending",
              transform: batch_dto.transform.name,
-             user_id: user_id
+             user_id: user_id,
+             inserted_at: batch_dto.timestamp
            }),
          :ok <- link_all_pictures(batch_dto),
-         :ok <- Metadata.save_metadata(batch_dto),
+         :ok <- Metadata.save_metadata(%Core.Mappings.Batch{batch_dto|timestamp: batch.inserted_at }),
          :ok <- publish_batch(batch_dto) do
       {:ok, batch.id}
     end

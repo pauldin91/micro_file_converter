@@ -67,4 +67,32 @@ defmodule CoreWeb.CustomComponents do
     </div>
     """
   end
+
+  attr :entry, :any, required: true
+
+  def render_prop_input(assigns) do
+    ~H"""
+    <%= if @entry.meta[:selection] do %>
+      <select name={"props[#{@entry.key}]"} class="select select-bordered w-full">
+        <option
+          :for={opt <- @entry.meta.selection}
+          value={opt}
+          selected={opt == @entry.value}
+        >
+          {opt}
+        </option>
+      </select>
+    <% else %>
+      <input
+        type={(@entry.meta.type == :number && "number") || "text"}
+        name={"props[#{@entry.key}]"}
+        value={@entry.value}
+        min={@entry.meta[:min]}
+        max={@entry.meta[:max]}
+        step={@entry.meta[:step]}
+        class="input input-bordered w-full"
+      />
+    <% end %>
+    """
+  end
 end
