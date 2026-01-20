@@ -8,7 +8,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
   alias Core.Storage
   alias Core.Transforms
 
-
   @impl true
   def update(%{batch: batch} = assigns, socket) do
     {:ok,
@@ -29,11 +28,16 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   @impl true
-  def handle_event("validate", %{"batch" => batch_params}, socket) do
+  def handle_event("validate", params, socket) do
+    batch_params = params["batch"] || %{}
+    props_params = params["props"] || %{}
+
     transform = batch_params["transform"] || socket.assigns.transform
 
     props_entries =
-      Transforms.build_props_for_transform(transform, socket.assigns.transformations)
+      transform
+      |> Transforms.build_props_for_transform(socket.assigns.transformations)
+      |> merge_props_values(props_params)
 
     changeset =
       socket.assigns.batch
@@ -92,6 +96,8 @@ defmodule CoreWeb.BatchLive.FormComponent do
       socket.assigns.props_entries
       |> Map.new(fn %{key: k, value: v} -> {k, to_string(v)} end)
 
+    dbg(props)
+
     case Validators.Transform.validate(props, socket.assigns.transform) do
       {:ok, _spec} ->
         result =
@@ -121,5 +127,15 @@ defmodule CoreWeb.BatchLive.FormComponent do
     end
   end
 
+  defp merge_props_values(entries, props_params) do
+    Enum.map(entries, fn entry ->
+      case Map.fetch(props_params, entry.key) do
+        {:ok, value} ->
+          %{entry | value: value}
 
+        :error ->
+          entry
+      end
+    end)
+  end
 end
