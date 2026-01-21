@@ -1,5 +1,6 @@
 use anyhow::Result;
 use anyhow::anyhow;
+use dotenv::dotenv;
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
@@ -13,13 +14,22 @@ use crate::domain::{Storage, config};
 pub struct Dispatcher {
     host: String,
     queue: String,
+    permits: usize,
 }
 
 impl Dispatcher {
     pub fn new() -> Self {
         let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
         let queue = dotenv::var(config::TRANSFORM_QUEUE).unwrap();
-        Self { host, queue }
+        let concurrent_batches: usize = dotenv::var(config::CONCURRENT_BATCHES)
+            .unwrap_or(String.from("16"))
+            .parse()
+            .unwrap();
+        Self {
+            host,
+            queue,
+            permits: concurrent_batches,
+        }
     }
 
     pub async fn start(&self) -> Result<()> {
@@ -58,7 +68,7 @@ impl Dispatcher {
                     match msg {
                         Ok(dto) => {
                             task::spawn(async move {
-                                let _permit = permit; 
+                                let _permit = permit;
 
                                 let result = srv.handle(dto).await;
 
