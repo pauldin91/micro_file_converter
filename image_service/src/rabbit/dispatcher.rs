@@ -22,7 +22,7 @@ impl Dispatcher {
         let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
         let queue = dotenv::var(config::TRANSFORM_QUEUE).unwrap();
         let concurrent_batches: usize = dotenv::var(config::CONCURRENT_BATCHES)
-            .unwrap_or(String.from("16"))
+            .unwrap_or(String::from("16"))
             .parse()
             .unwrap();
         Self {
@@ -57,7 +57,7 @@ impl Dispatcher {
                     )
                     .await?;
 
-                let semaphore = Arc::new(Semaphore::new(16));
+                let semaphore = Arc::new(Semaphore::new(self.permits));
 
                 while let Some(delivery) = consumer.next().await {
                     let delivery = delivery?;
@@ -85,7 +85,7 @@ impl Dispatcher {
                         }
                         Err(e) => {
                             error!("error deserializing the dto: {}", e);
-                            let _ = delivery.ack(BasicAckOptions::default()).await;
+                            let _ = delivery.nack(BasicNackOptions::default()).await;
                             continue;
                         }
                     }

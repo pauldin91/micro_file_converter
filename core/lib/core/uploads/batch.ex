@@ -11,7 +11,7 @@ defmodule Core.Uploads.Batch do
 
     belongs_to :user, Core.Accounts.User
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   @doc false

@@ -18,19 +18,6 @@ pub struct UploadDto{
     pub timestamp: DateTime<Utc>,
     pub files: Vec<FileDto>,
 }
-
-impl UploadDto{
-    pub fn to_map(&self) -> HashMap<String,String>{
-        let mut props= HashMap::new();
-        props.insert(String::from("id"), self.id.to_string());
-        props.insert(String::from("transform"), self.transform.name.clone());
-        for k in self.transform.props.clone(){
-            props.insert(k.0.clone(),k.1.clone());
-        }
-        props
-    }
-}
-
 #[derive(Debug, Deserialize)]
 pub struct TransformDto{
     pub name: String,

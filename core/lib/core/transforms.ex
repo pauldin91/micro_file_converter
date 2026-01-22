@@ -46,18 +46,30 @@ defmodule Core.Transforms do
   def transformations, do: @transformations
 
   def build_props_for_transform(transform, transformations) do
-    transform
-    |> String.to_existing_atom()
-    |> then(&transformations[&1])
-    |> Map.get(:props, [])
-    |> Enum.map(fn prop ->
-      %{
-        id: prop.key,
-        key: prop.key,
-        value: prop.default,
-        meta: prop
-      }
-    end)
+
+    cond do
+      transform |> String.downcase() == "none" ->
+        %{
+          convert: %{
+            label: "Convert",
+            props: []
+          }
+        }
+
+      true ->
+        transform
+        |> String.to_existing_atom()
+        |> then(&transformations[&1])
+        |> Map.get(:props, [])
+        |> Enum.map(fn prop ->
+          %{
+            id: prop.key,
+            key: prop.key,
+            value: prop.default,
+            meta: prop
+          }
+        end)
+    end
   end
 
   def transform_options(transformations) do
