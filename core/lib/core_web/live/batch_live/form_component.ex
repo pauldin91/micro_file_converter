@@ -13,7 +13,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
     {:ok,
      socket
      |> assign(assigns)
-     |> assign_new(:mode, fn -> "convert" end)
      |> assign_new(:transform, fn -> "none" end)
      |> assign_new(:props_entries, fn -> [] end)
      |> assign(:transformations, Transforms.transformations())
@@ -51,8 +50,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign(:props_entries, props_entries)}
   end
 
-  def handle_event("validate", _params, socket),
-    do: {:noreply, socket}
 
   def handle_event("toggle_transform", %{"mode" => mode}, socket) do
     {:noreply, assign(socket, :mode, mode)}
