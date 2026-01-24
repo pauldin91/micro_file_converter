@@ -93,14 +93,10 @@ defmodule CoreWeb.BatchLive.FormComponent do
       end)
 
     props =
-      cond do
-        socket.assigns.props_entries |> Enum.count() > 0 ->
-          socket.assigns.props_entries
-          |> Map.new(fn %{key: k, value: v} -> {k, to_string(v)} end)
+      socket.assigns.props_entries
+      |> Map.new(fn %{key: k, value: v} -> {k, to_string(v)} end)
 
-        true ->
-          []
-      end
+    dbg(props)
 
     case Validators.Transform.validate(props, socket.assigns.transform) do
       {:ok, _spec} ->
@@ -132,15 +128,14 @@ defmodule CoreWeb.BatchLive.FormComponent do
   end
 
   defp merge_props_values(entries, props_params) do
-    if map_size(props_params) > 0 do
-      Enum.map(entries, fn entry ->
-        case Map.fetch(props_params, entry.key) do
-          {:ok, value} -> %{entry | value: value}
-          :error -> entry
-        end
-      end)
-    else
-      entries
-    end
+    Enum.map(entries, fn entry ->
+      case Map.fetch(props_params, entry.key) do
+        {:ok, value} ->
+          %{entry | value: value}
+
+        :error ->
+          entry
+      end
+    end)
   end
 end
