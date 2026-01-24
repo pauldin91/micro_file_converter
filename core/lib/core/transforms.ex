@@ -16,6 +16,10 @@ defmodule Core.Transforms do
       label: "Invert",
       props: []
     },
+    convert: %{
+      label: "Convert",
+      props: []
+    },
     brighten: %{
       label: "Brighten",
       props: [

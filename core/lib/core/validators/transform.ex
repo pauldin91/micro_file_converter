@@ -1,5 +1,5 @@
 defmodule Core.Validators.Transform do
-  @transformations Map.merge(Core.Transforms.transformations(), %{ convert: %{}, none: %{}})
+  @transformations Core.Transforms.transformations()
 
   @spec validate(map(), atom() | String.t()) ::
           {:ok, map()} | {:error, map()}
@@ -44,6 +44,8 @@ defmodule Core.Validators.Transform do
       |> Enum.reject(&(&1 in allowed_keys))
       |> Enum.map(&{&1, "is not allowed"})
       |> Map.new()
+
+    dbg(errors)
 
     if errors != %{} do
       {:error, errors}
