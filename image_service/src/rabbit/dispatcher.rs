@@ -1,6 +1,5 @@
 use anyhow::Result;
 use anyhow::anyhow;
-use dotenv::dotenv;
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
