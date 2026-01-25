@@ -1,50 +1,59 @@
-use crate::domain::config;
-use lapin::{Connection, ConnectionProperties};
-use rabbitmq_stream_client::Environment;
+use crate::domain::{PublishError, Publisher, config};
+use rabbitmq_stream_client::{
+    Environment, NoDedup, Producer
+};
 use rabbitmq_stream_client::error::StreamCreateError;
-use rabbitmq_stream_client::types::{ByteCapacity, Message, ResponseCode, StreamCreator};
+use rabbitmq_stream_client::types::{Message, ResponseCode};
 use tracing::info;
+use async_trait::async_trait;
 
 pub struct RabbitMqPublisher {
-    host: String,
-    queue: String,
+    producer: Producer<NoDedup>,
+    stream: String,
 }
 
 impl RabbitMqPublisher {
-    pub fn new() -> Self {
+    pub async fn new() -> Result<Self, PublishError> {
         let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
-        let queue = dotenv::var(config::PROCESSED_QUEUE).unwrap();
-        Self { host, queue }
-    }
+        let stream = dotenv::var(config::PROCESSED_QUEUE).unwrap();
 
-    pub async fn publish(&self, msg: String) -> Result<(), Box<dyn std::error::Error>> {
-        use rabbitmq_stream_client::Environment;
-        let environment = Environment::builder().host(&self.host).build().await?;
-        let stream = msg.as_str();
-        let create_response = environment
+        let environment = Environment::builder()
+            .host(&host)
+            .build().await?;
+
+        if let Err(e) = environment
             .stream_creator()
-            .max_length(ByteCapacity::GB(5))
-            .create(&self.queue)
-            .await;
-
-        if let Err(e) = create_response {
-            if let StreamCreateError::Create { stream, status } = e {
-                match status {
-                    ResponseCode::StreamAlreadyExists => {}
-                    err => {
-                        println!("Error creating stream: {:?} {:?}", stream, err);
-                    }
+            .create(&stream).await
+        {
+            if let StreamCreateError::Create { status, .. } = &e {
+                if *status != ResponseCode::StreamAlreadyExists {
+                    return Err(e.into());
                 }
             }
         }
 
-        let producer = environment.producer().build(stream).await?;
+        let producer = environment
+            .producer()
+            .build(&stream).await
+            .unwrap();
 
-        producer
-            .send_with_confirm(Message::builder().body(stream).build())
-            .await?;
-        info!("Sent message to stream: {}", stream);
-        producer.close().await?;
+        Ok(Self { producer, stream })
+    }
+}
+
+#[async_trait]
+impl Publisher for RabbitMqPublisher {
+    async fn publish(&self, msg: &String) -> Result<(), PublishError> {
+        let _ = self.producer
+            .send_with_confirm(
+                Message::builder()
+                    .body(msg.as_bytes())
+                    .build(),
+            )
+            .await;
+
+        info!("Message published to stream `{}`", self.stream);
+
         Ok(())
     }
 }

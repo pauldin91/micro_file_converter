@@ -14,3 +14,13 @@ pub enum InstructionParseError<E> {
     #[error("failed to parse property")]
     Parse(#[source] E),
 }
+
+
+#[derive(Debug, Error)]
+pub enum PublishError {
+    #[error("RabbitMQ error: {0}")]
+    RabbitMq(#[from] rabbitmq_stream_client::error::ClientError),
+
+    #[error("Stream creation failed: {0:?}")]
+    StreamCreate(#[from] rabbitmq_stream_client::error::StreamCreateError),
+}

@@ -3,7 +3,7 @@ use std::result::Result::Ok;
 use std::sync::Arc;
 use tracing::error;
 
-use crate::domain::UploadDto;
+use crate::domain::{CompletedDto, UploadDto};
 use crate::domain::{Storage, Transform};
 use crate::features::TransformFactory;
 #[derive(Clone)]
@@ -14,7 +14,7 @@ impl TransformEngine {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage: storage }
     }
-    pub async fn handle(&self, instructions: UploadDto) -> Result<(), anyhow::Error> {
+    pub async fn handle(&self, instructions: UploadDto) -> Result<CompletedDto, anyhow::Error> {
         match instructions.transform.name.parse::<TransformFactory>() {
             Ok(kind) => {
                 let op: Box<dyn Transform> = kind.create(&instructions.transform.props);
@@ -43,7 +43,10 @@ impl TransformEngine {
                         }
                     }
                 }
-                Ok(())
+                Ok(CompletedDto {
+                    id: instructions.id.to_string(),
+                    status: crate::domain::Status::Completed,
+                })
             }
             Err(e) => {
                 error!("Error: {} invalid transform type", e);
