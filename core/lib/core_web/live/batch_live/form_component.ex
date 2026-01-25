@@ -93,8 +93,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
       socket.assigns.props_entries
       |> Map.new(fn %{key: k, value: v} -> {k, to_string(v)} end)
 
-    dbg(props)
-
     case Validators.Transform.validate(props, socket.assigns.transform) do
       {:ok, _spec} ->
         result =

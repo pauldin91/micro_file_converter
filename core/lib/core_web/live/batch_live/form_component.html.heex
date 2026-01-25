@@ -11,26 +11,6 @@
     phx-submit="save"
   >
     <.drag_n_drop files={@uploads.files} />
-<%!-- 
-    <div class="mt-4 space-x-4">
-      <input
-        type="radio"
-        name="mode"
-        value="convert"
-        checked={@mode == "convert"}
-        phx-change="toggle_transform"
-        phx-target={@myself}
-      /> Convert
-      <input
-        type="radio"
-        name="mode"
-        value="transform"
-        checked={@mode == "transform"}
-        phx-change="toggle_transform"
-        phx-target={@myself}
-      /> Transform
-    </div> --%>
-
       <.input
         field={@form[:transform]}
         type="select"

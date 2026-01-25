@@ -12,25 +12,21 @@ defmodule Core.Handlers do
       ) do
     ts = DateTime.utc_now()
 
-      create_batch_with_pictures(
-        %Core.Mappings.Batch{
-          id: batch_id,
-          files: files,
-          timestamp: ts,
-          transform: %{
-            name: transform,
-            props: props,
-          }
-        },
-        %{user_id: user.id}
-      )
-
-
+    create_batch_with_pictures(
+      %Core.Mappings.Batch{
+        id: batch_id,
+        files: files,
+        timestamp: ts,
+        transform: %{
+          name: transform,
+          props: props
+        }
+      },
+      %{user_id: user.id}
+    )
   end
 
   defp create_batch_with_pictures(%Core.Mappings.Batch{} = batch_dto, %{user_id: user_id}) do
-
-
     with {:ok, batch} <-
            Uploads.create_batch(%{
              id: batch_dto.id,
@@ -40,14 +36,19 @@ defmodule Core.Handlers do
              inserted_at: batch_dto.timestamp
            }),
          :ok <- link_all_pictures(batch_dto),
-         :ok <- Metadata.save_metadata(batch_dto ),
+         :ok <- Metadata.save_metadata(batch_dto),
          :ok <- publish_batch(batch_dto) do
       {:ok, batch.id}
     end
   end
 
   defp publish_batch(%Core.Mappings.Batch{} = batch_dto) do
-    queue = get_event_queue(batch_dto.transform)
+    queue =
+      cond do
+        batch_dto.transform.name == "convert" -> get_event_queue(:none)
+        true -> get_event_queue(batch_dto.transform.name)
+      end
+
     Core.RabbitMq.Publisher.publish_message(queue, Jason.encode!(batch_dto))
   end
 
