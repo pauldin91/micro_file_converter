@@ -6,7 +6,7 @@ use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
 
-use crate::application::{LocalStorage, TransformEngine};
+use crate::infrastructure::{LocalStorage, TransformEngine};
 use crate::domain::UploadDto;
 use crate::domain::{Storage, config};
 

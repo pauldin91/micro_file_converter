@@ -1,5 +1,5 @@
 use dotenv::dotenv;
-use image_service::rabbit;
+use image_service::application;
 use std::sync::Arc;
 use tracing_subscriber::FmtSubscriber;
 use tracing::error;
@@ -9,7 +9,7 @@ async fn main() {
     let subscriber = FmtSubscriber::new();
     tracing::subscriber::set_global_default(subscriber).expect("setting default failed");
 
-    let dispatcher = Arc::new(rabbit::Dispatcher::new());
+    let dispatcher = Arc::new(application::Dispatcher::new());
 
     let handle = tokio::spawn({
         let dispatcher = dispatcher.clone();
