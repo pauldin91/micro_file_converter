@@ -14,7 +14,7 @@ uuid = { version = "1", features = ["serde", "v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 num-complex = "0.4.2"
 clap={ version = "4.5.54" }
-
+rabbitmq-stream-client = "0.4.4"
 lapin = { version = " 2.5.5" }
 tokio = { version = "1", features = ["full"] }
 futures-lite = "2"
@@ -23,4 +23,5 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 iced = { version = "0.10", features = ["image", "tokio"] }
 rfd = "0.14"
+async-trait = "0.1"
 

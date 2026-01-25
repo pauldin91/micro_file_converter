@@ -1,15 +1,16 @@
 use anyhow::Result;
 use anyhow::anyhow;
-use dotenv::dotenv;
 use futures_util::StreamExt;
 use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
 
-use crate::application::{LocalStorage, TransformEngine};
+use crate::domain::Publisher;
 use crate::domain::UploadDto;
 use crate::domain::{Storage, config};
+use crate::infrastructure::RabbitMqPublisher;
+use crate::infrastructure::{LocalStorage, TransformEngine};
 
 pub struct Dispatcher {
     host: String,
@@ -47,6 +48,7 @@ impl Dispatcher {
 
                 let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
                 let service = Arc::new(TransformEngine::new(storage));
+                let publisher = Arc::new(RabbitMqPublisher::new().await?);
 
                 let mut consumer = channel
                     .basic_consume(
@@ -62,6 +64,7 @@ impl Dispatcher {
                 while let Some(delivery) = consumer.next().await {
                     let delivery = delivery?;
                     let srv = Arc::clone(&service);
+                    let _publisher = Arc::clone(&publisher);
                     let permit = semaphore.clone().acquire_owned().await?;
                     let msg: Result<UploadDto, serde_json::Error> =
                         serde_json::from_slice(&delivery.data);
@@ -73,8 +76,10 @@ impl Dispatcher {
                                 let result = srv.handle(dto).await;
 
                                 match result {
-                                    Ok(_) => {
+                                    Ok(dto) => {
                                         let _ = delivery.ack(BasicAckOptions::default()).await;
+                                        let msg = &serde_json::to_string(&dto).unwrap();
+                                        let _ = _publisher.publish(msg).await;
                                     }
                                     Err(e) => {
                                         let _ = delivery.nack(BasicNackOptions::default()).await;
