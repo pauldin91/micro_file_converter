@@ -1,5 +1,5 @@
 use clap::{Arg, Command, value_parser};
-use image_service::{Fractal, infrastructure::LocalStorage, domain::{Generator, Storage}};
+use image_service::{Fractal, domain::Generator, adapters::LocalStorage, ports::Storage};
 use std::{fs, path::PathBuf};
 
 fn main() {

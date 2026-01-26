@@ -3,13 +3,12 @@ use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
 
-use crate::domain::Publisher;
-use crate::domain::Subscriber;
 use crate::domain::UploadDto;
-use crate::domain::{Storage, config};
-use crate::infrastructure::RabbitMqPublisher;
-use crate::infrastructure::RabbitMqSubscriber;
-use crate::infrastructure::{LocalStorage, TransformEngine};
+use crate::domain::config;
+use crate::adapters::RabbitMqPublisher;
+use crate::adapters::RabbitMqSubscriber;
+use crate::adapters::{LocalStorage, TransformEngine};
+use crate::ports::{Publisher, Storage, Subscriber};
 
 pub struct Dispatcher {
     host: String,
@@ -41,8 +40,8 @@ impl Dispatcher {
 
         let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
         let service = Arc::new(TransformEngine::new(storage));
-        let publisher: Arc<dyn Publisher>  = Arc::new(RabbitMqPublisher::new().await?);
-        let subscriber:Arc<dyn Subscriber>  = Arc::new(RabbitMqSubscriber::new().await?);
+        let publisher: Arc<dyn Publisher> = Arc::new(RabbitMqPublisher::new().await?);
+        let subscriber: Arc<dyn Subscriber> = Arc::new(RabbitMqSubscriber::new().await?);
 
         let semaphore = Arc::new(Semaphore::new(self.permits));
 

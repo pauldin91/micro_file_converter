@@ -9,7 +9,7 @@ use lapin::{
 };
 use tracing::{error, info};
 
-use crate::domain::{Subscriber, config};
+use crate::{Subscriber, domain::config};
 
 pub struct RabbitMqSubscriber {
     consumer: Consumer,

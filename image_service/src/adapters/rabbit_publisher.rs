@@ -1,7 +1,10 @@
-use crate::domain::{PublishError, Publisher, config};
+use crate::{
+    Publisher,
+    domain::{RabbitMqError, config},
+};
 use async_trait::async_trait;
 use lapin::{
-    BasicProperties, Channel, Connection, ConnectionProperties, options::*, types::FieldTable
+    BasicProperties, Channel, Connection, ConnectionProperties, options::*, types::FieldTable,
 };
 use tracing::info;
 
@@ -12,13 +15,15 @@ pub struct RabbitMqPublisher {
 }
 
 impl RabbitMqPublisher {
-    pub async fn new() -> Result<Self, PublishError> {
-        let uri = dotenv::var(config::RABBITMQ_HOST)?;
-        let routing_key = dotenv::var(config::PROCESSED_QUEUE)?;
+    pub async fn new() -> Result<Self, RabbitMqError> {
+        let uri = dotenv::var(config::RABBITMQ_HOST).unwrap();
+        let routing_key = dotenv::var(config::PROCESSED_QUEUE).unwrap();
         let exchange = String::from("processed.exchange");
-        let connection = Connection::connect(&uri, ConnectionProperties::default()).await?;
+        let connection = Connection::connect(&uri, ConnectionProperties::default())
+            .await
+            .unwrap();
 
-        let channel = connection.create_channel().await?;
+        let channel = connection.create_channel().await.unwrap();
 
         channel
             .exchange_declare(
@@ -30,7 +35,8 @@ impl RabbitMqPublisher {
                 },
                 FieldTable::default(),
             )
-            .await?;
+            .await
+            .unwrap();
 
         channel
             .queue_declare(
@@ -41,7 +47,8 @@ impl RabbitMqPublisher {
                 },
                 FieldTable::default(),
             )
-            .await?;
+            .await
+            .unwrap();
 
         channel
             .queue_bind(
@@ -51,12 +58,14 @@ impl RabbitMqPublisher {
                 QueueBindOptions::default(),
                 FieldTable::default(),
             )
-            .await?;
+            .await
+            .unwrap();
 
         // Enable confirms
         channel
             .confirm_select(ConfirmSelectOptions::default())
-            .await?;
+            .await
+            .unwrap();
 
         Ok(Self {
             channel,
@@ -68,7 +77,7 @@ impl RabbitMqPublisher {
 
 #[async_trait]
 impl Publisher for RabbitMqPublisher {
-    async fn publish(&self, msg: &String) -> Result<(), PublishError> {
+    async fn publish(&self, msg: &String) -> Result<(), RabbitMqError> {
         let confirm = self
             .channel
             .basic_publish(
@@ -78,13 +87,13 @@ impl Publisher for RabbitMqPublisher {
                 msg.as_bytes(),
                 BasicProperties::default(),
             )
-            .await?
-            .await?;
+            .await
+            .unwrap()
+            .await
+            .unwrap();
 
         if confirm.is_nack() {
-            return Err(PublishError::RabbitMq(lapin::Error::InvalidChannelState(
-                lapin::ChannelState::Error,
-            )));
+            return Err(RabbitMqError::RabbitMq(String::from("unable to publish")));
         }
 
         info!(

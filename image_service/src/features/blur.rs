@@ -1,15 +1,15 @@
 use std::{collections::HashMap, io::Cursor};
 
-use image::{ImageError, ImageOutputFormat};
+use image::ImageOutputFormat;
 
-use crate::domain::{Instructions, Transform};
+use crate::domain::{ImageError, Instructions, Transform};
 
 pub struct Blur {
     sigma: f32,
 }
 
 impl Blur {
-    pub fn new(props: &HashMap<String,String>) -> Self {
+    pub fn new(props: &HashMap<String, String>) -> Self {
         let sigma_key = Instructions::parse_properties::<f32>(&props, &"sigma");
 
         let sigma: f32 = match sigma_key {
@@ -24,7 +24,9 @@ impl Transform for Blur {
         let dynamic_img = image::load_from_memory(img).unwrap();
         let blurred = dynamic_img.blur(self.sigma);
         let mut out = Vec::new();
-        blurred.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        blurred
+            .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
+            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
         Ok(out)
     }
 }

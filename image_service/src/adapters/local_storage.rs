@@ -5,7 +5,7 @@ use std::{
 };
 use tracing::error;
 
-use crate::domain::{Storage, config};
+use crate::{Storage, domain::config};
 
 pub struct LocalStorage {
     upload_dir: PathBuf,
@@ -52,7 +52,7 @@ impl Storage for LocalStorage {
                 filenames
             }
             Err(e) => {
-                error!("Error: {} not a directory",e);
+                error!("Error: {} not a directory", e);
                 Vec::new()
             }
         }

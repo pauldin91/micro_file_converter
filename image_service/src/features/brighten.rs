@@ -1,8 +1,8 @@
 use std::{collections::HashMap, io::Cursor};
 
-use image::{ImageError, ImageOutputFormat};
+use image::{ImageOutputFormat};
 
-use crate::domain::{Instructions, Transform};
+use crate::domain::{Instructions,ImageError, Transform};
 
 pub struct Brighten {
     value: i32,
@@ -23,7 +23,8 @@ impl Transform for Brighten {
         let dynamic_img = image::load_from_memory(img).unwrap();
         let brightend = dynamic_img.brighten(self.value);
         let mut out = Vec::new();
-        brightend.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)?;
+        brightend.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
+        .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
         Ok(out)
     }
 }

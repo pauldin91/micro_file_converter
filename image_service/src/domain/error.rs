@@ -17,19 +17,19 @@ pub enum InstructionParseError<E> {
 
 
 #[derive(Debug, Error)]
-pub enum PublishError {
+pub enum RabbitMqError {
     #[error("RabbitMQ error: {0}")]
-    RabbitMq(#[from] lapin::Error),
+    RabbitMq(String),
 
     #[error("Config error: {0}")]
-    Config(#[from] dotenv::Error),
+    Config(String),
 }
 
 #[derive(Debug, Error)]
-pub enum SubscribeError {
+pub enum ImageError {
     #[error("RabbitMQ error: {0}")]
-    RabbitMq(#[from] lapin::Error),
+    InvalidFormat(String),
 
     #[error("Config error: {0}")]
-    Config(#[from] dotenv::Error),
+    OutOfBounds(String),
 }

@@ -2,7 +2,7 @@ use std::{collections::HashMap, io::Cursor, str::FromStr};
 
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba};
 
-use crate::domain::{Instructions, Transform};
+use crate::domain::{ImageError, Instructions, Transform};
 #[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {
     Vertical,
@@ -41,7 +41,7 @@ impl Mirror {
 }
 
 impl Transform for Mirror {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, image::ImageError> {
+    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
         let dynamic_img = image::load_from_memory(img).unwrap();
 
         let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> =
@@ -60,7 +60,8 @@ impl Transform for Mirror {
 
         let img = DynamicImage::ImageRgba8(imgbuf);
         let mut out = Vec::new();
-        img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))?;
+        img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))
+            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
         Ok(out)
     }
 }
