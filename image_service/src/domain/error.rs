@@ -24,3 +24,12 @@ pub enum PublishError {
     #[error("Config error: {0}")]
     Config(#[from] dotenv::Error),
 }
+
+#[derive(Debug, Error)]
+pub enum SubscribeError {
+    #[error("RabbitMQ error: {0}")]
+    RabbitMq(#[from] lapin::Error),
+
+    #[error("Config error: {0}")]
+    Config(#[from] dotenv::Error),
+}

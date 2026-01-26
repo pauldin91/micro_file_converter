@@ -4,6 +4,7 @@ use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
 
 use crate::domain::Publisher;
+use crate::domain::Subscriber;
 use crate::domain::UploadDto;
 use crate::domain::{Storage, config};
 use crate::infrastructure::RabbitMqPublisher;
@@ -40,16 +41,17 @@ impl Dispatcher {
 
         let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
         let service = Arc::new(TransformEngine::new(storage));
-        let publisher = Arc::new(RabbitMqPublisher::new().await?);
-        let subscriber = Arc::new(RabbitMqSubscriber::new().await?);
+        let publisher: Arc<dyn Publisher>  = Arc::new(RabbitMqPublisher::new().await?);
+        let subscriber:Arc<dyn Subscriber>  = Arc::new(RabbitMqSubscriber::new().await?);
 
         let semaphore = Arc::new(Semaphore::new(self.permits));
 
         loop {
             let srv = Arc::clone(&service);
             let _publisher = Arc::clone(&publisher);
+            let _subscriber = Arc::clone(&subscriber);
             let permit = semaphore.clone().acquire_owned().await?;
-            match subscriber.get_next().await {
+            match _subscriber.get_next().await {
                 Ok(delivery) => {
                     let msg: Result<UploadDto, serde_json::Error> =
                         serde_json::from_str(delivery.as_str());

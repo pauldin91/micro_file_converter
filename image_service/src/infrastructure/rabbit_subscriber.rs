@@ -1,5 +1,7 @@
 use anyhow::{Context, anyhow};
 use futures_lite::StreamExt;
+use async_trait::async_trait;
+
 use lapin::{
     Connection, ConnectionProperties, Consumer,
     options::{BasicConsumeOptions, BasicQosOptions},
@@ -7,7 +9,7 @@ use lapin::{
 };
 use tracing::{error, info};
 
-use crate::domain::config;
+use crate::domain::{Subscriber, config};
 
 pub struct RabbitMqSubscriber {
     consumer: Consumer,
@@ -50,8 +52,10 @@ impl RabbitMqSubscriber {
             }
         }
     }
-
-    pub async fn get_next(&self) -> Result<String, anyhow::Error> {
+}
+#[async_trait]
+impl Subscriber for RabbitMqSubscriber{
+    async fn get_next(&self) -> Result<String, anyhow::Error> {
         let mut consumer = self.consumer.clone();
 
         let delivery = consumer
