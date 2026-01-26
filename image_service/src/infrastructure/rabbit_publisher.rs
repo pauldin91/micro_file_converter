@@ -1,7 +1,7 @@
 use crate::domain::{PublishError, Publisher, config};
 use async_trait::async_trait;
 use lapin::{
-    BasicProperties, Channel, Connection, ConnectionProperties, options::*, protocol::exchange, types::FieldTable
+    BasicProperties, Channel, Connection, ConnectionProperties, options::*, types::FieldTable
 };
 use tracing::info;
 

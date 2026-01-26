@@ -1,7 +1,4 @@
 use anyhow::Result;
-use anyhow::anyhow;
-use futures_util::StreamExt;
-use lapin::{Connection, ConnectionProperties, options::*, types::FieldTable};
 use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
@@ -10,6 +7,7 @@ use crate::domain::Publisher;
 use crate::domain::UploadDto;
 use crate::domain::{Storage, config};
 use crate::infrastructure::RabbitMqPublisher;
+use crate::infrastructure::RabbitMqSubscriber;
 use crate::infrastructure::{LocalStorage, TransformEngine};
 
 pub struct Dispatcher {
@@ -34,40 +32,27 @@ impl Dispatcher {
     }
 
     pub async fn start(&self) -> Result<()> {
-        let conn_res = Connection::connect(&self.host, ConnectionProperties::default()).await;
-        match conn_res {
-            Ok(conn) => {
-                info!(
-                    "Dispatcher started at : {} and queue : {}",
-                    self.host.clone(),
-                    self.queue.clone()
-                );
-                let channel = conn.create_channel().await?;
+        info!(
+            "Dispatcher started at : {} and queue : {}",
+            self.host.clone(),
+            self.queue.clone()
+        );
 
-                channel.basic_qos(16, BasicQosOptions::default()).await?;
+        let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
+        let service = Arc::new(TransformEngine::new(storage));
+        let publisher = Arc::new(RabbitMqPublisher::new().await?);
+        let subscriber = Arc::new(RabbitMqSubscriber::new().await?);
 
-                let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
-                let service = Arc::new(TransformEngine::new(storage));
-                let publisher = Arc::new(RabbitMqPublisher::new().await?);
+        let semaphore = Arc::new(Semaphore::new(self.permits));
 
-                let mut consumer = channel
-                    .basic_consume(
-                        &self.queue,
-                        "image_service",
-                        BasicConsumeOptions::default(),
-                        FieldTable::default(),
-                    )
-                    .await?;
-
-                let semaphore = Arc::new(Semaphore::new(self.permits));
-
-                while let Some(delivery) = consumer.next().await {
-                    let delivery = delivery?;
-                    let srv = Arc::clone(&service);
-                    let _publisher = Arc::clone(&publisher);
-                    let permit = semaphore.clone().acquire_owned().await?;
+        loop {
+            let srv = Arc::clone(&service);
+            let _publisher = Arc::clone(&publisher);
+            let permit = semaphore.clone().acquire_owned().await?;
+            match subscriber.get_next().await {
+                Ok(delivery) => {
                     let msg: Result<UploadDto, serde_json::Error> =
-                        serde_json::from_slice(&delivery.data);
+                        serde_json::from_str(delivery.as_str());
                     match msg {
                         Ok(dto) => {
                             task::spawn(async move {
@@ -77,12 +62,10 @@ impl Dispatcher {
 
                                 match result {
                                     Ok(dto) => {
-                                        let _ = delivery.ack(BasicAckOptions::default()).await;
                                         let msg = &serde_json::to_string(&dto).unwrap();
                                         let _ = _publisher.publish(msg).await;
                                     }
                                     Err(e) => {
-                                        let _ = delivery.nack(BasicNackOptions::default()).await;
                                         error!("message failed: {e:?}");
                                     }
                                 }
@@ -90,17 +73,14 @@ impl Dispatcher {
                         }
                         Err(e) => {
                             error!("error deserializing the dto: {}", e);
-                            let _ = delivery.nack(BasicNackOptions::default()).await;
                             continue;
                         }
                     }
                 }
-
-                Ok(())
-            }
-            Err(e) => {
-                error!("Connection in {} failed", self.host);
-                Err(anyhow!(format!("Error: {} opening connection", e)))
+                Err(e) => {
+                    error!("Error: {} opening connection", e);
+                    ()
+                }
             }
         }
     }
