@@ -1,58 +1,96 @@
 use crate::domain::{PublishError, Publisher, config};
-use rabbitmq_stream_client::{
-    Environment, NoDedup, Producer
-};
-use rabbitmq_stream_client::error::StreamCreateError;
-use rabbitmq_stream_client::types::{Message, ResponseCode};
-use tracing::info;
 use async_trait::async_trait;
+use lapin::{
+    BasicProperties, Channel, Connection, ConnectionProperties, options::*, protocol::exchange, types::FieldTable
+};
+use tracing::info;
 
 pub struct RabbitMqPublisher {
-    producer: Producer<NoDedup>,
-    stream: String,
+    channel: Channel,
+    exchange: String,
+    routing_key: String,
 }
 
 impl RabbitMqPublisher {
     pub async fn new() -> Result<Self, PublishError> {
-        let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
-        let stream = dotenv::var(config::PROCESSED_QUEUE).unwrap();
+        let uri = dotenv::var(config::RABBITMQ_HOST)?;
+        let routing_key = dotenv::var(config::PROCESSED_QUEUE)?;
+        let exchange = String::from("processed.exchange");
+        let connection = Connection::connect(&uri, ConnectionProperties::default()).await?;
 
-        let environment = Environment::builder()
-            .host(&host)
-            .build().await?;
+        let channel = connection.create_channel().await?;
 
-        if let Err(e) = environment
-            .stream_creator()
-            .create(&stream).await
-        {
-            if let StreamCreateError::Create { status, .. } = &e {
-                if *status != ResponseCode::StreamAlreadyExists {
-                    return Err(e.into());
-                }
-            }
-        }
+        channel
+            .exchange_declare(
+                &exchange,
+                lapin::ExchangeKind::Direct,
+                ExchangeDeclareOptions {
+                    durable: true,
+                    ..Default::default()
+                },
+                FieldTable::default(),
+            )
+            .await?;
 
-        let producer = environment
-            .producer()
-            .build(&stream).await
-            .unwrap();
+        channel
+            .queue_declare(
+                &routing_key,
+                QueueDeclareOptions {
+                    durable: true,
+                    ..Default::default()
+                },
+                FieldTable::default(),
+            )
+            .await?;
 
-        Ok(Self { producer, stream })
+        channel
+            .queue_bind(
+                &routing_key,
+                &exchange,
+                &routing_key,
+                QueueBindOptions::default(),
+                FieldTable::default(),
+            )
+            .await?;
+
+        // Enable confirms
+        channel
+            .confirm_select(ConfirmSelectOptions::default())
+            .await?;
+
+        Ok(Self {
+            channel,
+            exchange,
+            routing_key,
+        })
     }
 }
 
 #[async_trait]
 impl Publisher for RabbitMqPublisher {
     async fn publish(&self, msg: &String) -> Result<(), PublishError> {
-        let _ = self.producer
-            .send_with_confirm(
-                Message::builder()
-                    .body(msg.as_bytes())
-                    .build(),
+        let confirm = self
+            .channel
+            .basic_publish(
+                &self.exchange,
+                &self.routing_key,
+                BasicPublishOptions::default(),
+                msg.as_bytes(),
+                BasicProperties::default(),
             )
-            .await;
+            .await?
+            .await?;
 
-        info!("Message published to stream `{}`", self.stream);
+        if confirm.is_nack() {
+            return Err(PublishError::RabbitMq(lapin::Error::InvalidChannelState(
+                lapin::ChannelState::Error,
+            )));
+        }
+
+        info!(
+            "Message published to exchange `{}` with key `{}`",
+            self.exchange, self.routing_key
+        );
 
         Ok(())
     }

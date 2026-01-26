@@ -19,8 +19,8 @@ pub enum InstructionParseError<E> {
 #[derive(Debug, Error)]
 pub enum PublishError {
     #[error("RabbitMQ error: {0}")]
-    RabbitMq(#[from] rabbitmq_stream_client::error::ClientError),
+    RabbitMq(#[from] lapin::Error),
 
-    #[error("Stream creation failed: {0:?}")]
-    StreamCreate(#[from] rabbitmq_stream_client::error::StreamCreateError),
+    #[error("Config error: {0}")]
+    Config(#[from] dotenv::Error),
 }

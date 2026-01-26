@@ -14,7 +14,8 @@ async fn main() {
     let handle = tokio::spawn({
         let dispatcher = dispatcher.clone();
         async move {
-            if let Err(_) = dispatcher.start().await {
+            if let Err(e) = dispatcher.start().await {
+                error!("error : {}",e);
                 error!("consumer crashed");
             }
         }
