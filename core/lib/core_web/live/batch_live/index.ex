@@ -74,9 +74,8 @@ defmodule CoreWeb.BatchLive.Index do
   end
 
   @impl true
-  def handle_event("delete", %{"id" => id}, %{assigns: %{user: current_user}} = socket) do
-   {res,batch}= Uploads.get_batch(id)
-    dbg(res)
+  def handle_event("delete", %{"id" => id}, %{assigns: %{current_user: current_user}} = socket) do
+    batch = Uploads.get_batch!(id)
     with {:ok, _} <- Uploads.delete_batch_for_user(batch, current_user) do
       {:noreply, stream_delete(socket, :batches, batch)}
     else
@@ -98,6 +97,4 @@ defmodule CoreWeb.BatchLive.Index do
       |> stream(:batches, [])
     }
   end
-
-
 end
