@@ -14,6 +14,9 @@
       <div>
         <strong>Timestamp:</strong> {@metadata["timestamp"]}
       </div>
+      <div>
+        <strong>Status:</strong> {@metadata["status"]}
+      </div>
       <div><strong>Files Uploaded:</strong> {Enum.count(@metadata["files"])}</div>
       <div>
         <strong>Transform:</strong> {cond do
@@ -23,7 +26,7 @@
           true ->
             @metadata["transform"]["name"]
         end}
-        <div :if={@metadata["transform"] != "none"}>
+        <div :if={@metadata["transform"]["props"] |> Enum.count() > 0} >
           <table class="table-auto border-collapse border border-gray-300 mt-2">
             <thead>
               <tr>

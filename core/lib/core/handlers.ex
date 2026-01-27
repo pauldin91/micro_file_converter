@@ -30,13 +30,13 @@ defmodule Core.Handlers do
     with {:ok, batch} <-
            Uploads.create_batch(%{
              id: batch_dto.id,
-             status: "pending",
+             status: "Processing",
              transform: batch_dto.transform.name,
              user_id: user_id,
              inserted_at: batch_dto.timestamp
            }),
          :ok <- link_all_pictures(batch_dto),
-         :ok <- Metadata.save_metadata(batch_dto),
+         :ok <- Metadata.save_metadata(%Core.Mappings.Batch{batch_dto | status: batch.status}),
          :ok <- publish_batch(batch_dto) do
       {:ok, batch.id}
     end

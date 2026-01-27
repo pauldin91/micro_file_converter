@@ -1,6 +1,5 @@
 defmodule Core.RabbitMq.Consumer do
   alias Core.Uploads
-  alias Core.Uploads.Batch
   use GenServer
   require Logger
 
