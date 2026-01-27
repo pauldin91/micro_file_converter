@@ -1,4 +1,6 @@
 defmodule Core.RabbitMq.Consumer do
+  alias Core.Uploads
+  alias Core.Uploads.Batch
   use GenServer
   require Logger
 
@@ -53,17 +55,22 @@ defmodule Core.RabbitMq.Consumer do
 
   @impl true
   def handle_info({:basic_deliver, payload, meta}, state) do
-    Logger.info("Consumed from #{state.queue}: #{inspect(payload)}")
+    with {:ok, msg} <- Jason.decode(payload) do
+      batch = Uploads.get_batch!(msg["id"])
+      Uploads.update_batch(batch, %{updated_at: msg["timestamp"], status: msg["status"]})
 
-    Phoenix.PubSub.broadcast(
-      Core.PubSub,
-      "batch:processed",
-      {:batch_processed, payload}
-    )
+      Phoenix.PubSub.broadcast(
+        Core.PubSub,
+        "batch:processed",
+        {:batch_processed, "Batch with id #{msg["id"]} was processed"}
+      )
 
-    AMQP.Basic.ack(state.chan, meta.delivery_tag)
+      AMQP.Basic.ack(state.chan, meta.delivery_tag)
 
-    {:noreply, state}
+      {:noreply, state}
+    else
+      {:error, _reason} -> {:noreply, state}
+    end
   end
 
   @impl true
