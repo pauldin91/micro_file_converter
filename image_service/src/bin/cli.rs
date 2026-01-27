@@ -45,7 +45,7 @@ fn main() {
             let filename = base_dir
                 .clone()
                 .join(format!("fractal_{}x{}_{}s.png", width, height, scale));
-            storage.store_file(&filename, &img);
+            storage.save(&filename, &img);
         }
         Err(e) => eprintln!("{}", e),
     }

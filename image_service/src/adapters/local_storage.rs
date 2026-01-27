@@ -25,7 +25,7 @@ impl LocalStorage {
 }
 
 impl Storage for LocalStorage {
-    fn store_file(&self, filename: &PathBuf, content: &Vec<u8>) {
+    fn save(&self, filename: &PathBuf, content: &Vec<u8>) {
         let created = File::create(filename);
         match created {
             Ok(mut file) => {
@@ -35,7 +35,7 @@ impl Storage for LocalStorage {
         }
     }
 
-    fn get_files(&self, dir: &String) -> Vec<String> {
+    fn list_dir(&self, dir: &String) -> Vec<String> {
         let location_dir = fs::read_dir(self.get_full_path(dir.clone()));
         match location_dir {
             Ok(actual_dir) => {

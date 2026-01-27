@@ -22,7 +22,7 @@ impl TransformEngine {
 
                 let filenames: Vec<String> = self
                     .storage
-                    .get_files(&instructions.id.to_string())
+                    .list_dir(&instructions.id.to_string())
                     .iter()
                     .filter(|s| !s.as_str().ends_with(".json"))
                     .map(|p| p.clone())
@@ -36,7 +36,7 @@ impl TransformEngine {
                                 .storage
                                 .get_transformed_filename(&f, &instructions.transform.name);
                             let transformed = op.apply(&img).unwrap();
-                            self.storage.store_file(&new_filename, &transformed);
+                            self.storage.save(&new_filename, &transformed);
                         }
                         Err(e) => {
                             error!("error : {}, transforming file: {}", e, f);
