@@ -14,6 +14,7 @@
         ],
         "transform": {
             "name": "mirror",
+            "status": "pending",
             "props": {
                 "axis": "diagonal"
             }

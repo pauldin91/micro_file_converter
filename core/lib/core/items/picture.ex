@@ -9,7 +9,7 @@ defmodule Core.Items.Picture do
     field :size, :integer
     belongs_to :batch, Core.Uploads.Batch
 
-    timestamps(type: :utc_datetime)
+    timestamps(type: :utc_datetime_usec)
   end
 
   @doc false

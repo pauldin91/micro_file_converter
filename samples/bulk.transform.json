@@ -14,6 +14,7 @@
         ],
         "transform": {
             "name": "crop",
+            "status": "pending",
             "props": {
                 "rect": "24,24,24,24"
             }
@@ -34,6 +35,7 @@
         ],
         "transform": {
             "name": "blur",
+            "status": "pending",
             "props": {
                 "sigma": "2.0"
             }
@@ -53,6 +55,7 @@
             }
         ],
         "transform": {
+            "status": "pending",
             "name": "invert"
         }
     },
@@ -71,6 +74,7 @@
         ],
         "transform": {
             "name": "brighten",
+            "status": "pending",
             "props": {
                 "value": "20"
             }
@@ -90,6 +94,7 @@
             }
         ],
         "transform": {
+            "status": "pending",
             "name": "mirror",
             "props":{}
         }

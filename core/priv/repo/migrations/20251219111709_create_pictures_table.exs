@@ -8,7 +8,7 @@ defmodule Core.Repo.Migrations.CreatePicturesTable do
       add :size, :integer
       add :batch_id, references(:batches, on_delete: :delete_all, type: :binary_id)
 
-      timestamps(type: :utc_datetime)
+      timestamps(type: :utc_datetime_usec)
     end
 
     create index(:pictures, [:batch_id])
