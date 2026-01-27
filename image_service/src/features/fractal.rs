@@ -46,9 +46,9 @@ impl Generator for Fractal {
 
         let dynamic_img = DynamicImage::ImageRgba8(imgbuf);
         let mut out = Vec::new();
-        dynamic_img
+        let _ = dynamic_img
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }

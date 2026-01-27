@@ -4,8 +4,8 @@ use std::sync::Arc;
 use tracing::error;
 
 use crate::Storage;
+use crate::domain::Transform;
 use crate::domain::{CompletedDto, UploadDto};
-use crate::domain:: Transform;
 use crate::features::TransformFactory;
 #[derive(Clone)]
 pub struct TransformEngine {
@@ -44,10 +44,10 @@ impl TransformEngine {
                         }
                     }
                 }
-                Ok(CompletedDto {
-                    id: instructions.id.to_string(),
-                    status: crate::domain::Status::Completed,
-                })
+                Ok(CompletedDto::new(
+                    instructions.id.to_string(),
+                    crate::domain::Status::Completed,
+                ))
             }
             Err(e) => {
                 error!("Error: {} invalid transform type", e);

@@ -60,8 +60,9 @@ impl Transform for Mirror {
 
         let img = DynamicImage::ImageRgba8(imgbuf);
         let mut out = Vec::new();
-        img.write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+        let _ = img
+            .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }

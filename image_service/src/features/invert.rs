@@ -15,9 +15,9 @@ impl Transform for Invert {
         let mut dynamic_img = image::load_from_memory(img).unwrap();
         dynamic_img.invert();
         let mut out = Vec::new();
-        dynamic_img
+        let _ = dynamic_img
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }

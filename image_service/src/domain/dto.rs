@@ -37,12 +37,14 @@ pub struct TransformDto {
 pub struct CompletedDto {
     pub id: String,
     pub status: Status,
+    pub timestamp: DateTime<Utc>
 }
 impl CompletedDto {
     pub fn new(id: String, status: Status) -> Self {
         Self {
             id: id,
             status: status,
+            timestamp: Utc::now()
         }
     }
 }

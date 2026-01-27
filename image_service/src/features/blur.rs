@@ -24,9 +24,9 @@ impl Transform for Blur {
         let dynamic_img = image::load_from_memory(img).unwrap();
         let blurred = dynamic_img.blur(self.sigma);
         let mut out = Vec::new();
-        blurred
+        let _ = blurred
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }

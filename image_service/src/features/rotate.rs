@@ -30,14 +30,14 @@ impl Transform for Rotate {
             180 => dynamic_img.rotate180(),
             270 => dynamic_img.rotate270(),
             _ => {
-                return Err(ImageError::InvalidFormat((String::from("invalid"))));
+                return Err(ImageError::InvalidFormat(String::from("invalid")));
             }
         };
 
         let mut out = Vec::new();
-        transformed
+        let _ = transformed
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }

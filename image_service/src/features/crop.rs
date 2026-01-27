@@ -45,9 +45,9 @@ impl Transform for Crop {
             self.selection.h,
         );
         let mut out = Vec::new();
-        cropped
+        let _ = cropped
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
-            .map_err(|_| ImageError::InvalidFormat((String::from("invalid"))));
+            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
         Ok(out)
     }
 }
