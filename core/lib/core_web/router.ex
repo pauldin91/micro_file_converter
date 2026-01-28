@@ -17,11 +17,11 @@ defmodule CoreWeb.Router do
     plug :accepts, ["json"]
   end
 
-  scope "/", CoreWeb do
-    pipe_through :browser
+  # scope "/", CoreWeb do
+  #   pipe_through :browser
 
-    get "/", PageController, :home
-  end
+  #   get "/", PageController, :home
+  # end
 
   # Other scopes may use custom stacks.
   # scope "/api", CoreWeb do
@@ -68,12 +68,12 @@ defmodule CoreWeb.Router do
       on_mount: [{CoreWeb.UserAuth, :ensure_authenticated}] do
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
-      live "/batches", BatchLive.Index, :index
-      live "/batches/new", BatchLive.Index, :new
-      live "/batches/:id/edit", BatchLive.Index, :edit
+      live "/", BatchLive.Index, :index
+      live "/new", BatchLive.Index, :new
+      live "/:id/edit", BatchLive.Index, :edit
 
-      live "/batches/:id", BatchLive.Show, :show
-      live "/batches/:id/show/edit", BatchLive.Show, :edit
+      live "/:id", BatchLive.Show, :show
+      live "/:id/show/edit", BatchLive.Show, :edit
     end
 
     get "/download/:id", DownloadController, :download
