@@ -3,6 +3,8 @@ pub mod domain;
 pub mod features;
 pub mod adapters;
 pub mod ports;
+pub mod ui;
+pub use ui::*;
 pub use application::Dispatcher;
 pub use features::{Blur, Brighten, Crop, Fractal, Invert, Rotate};
 pub use adapters::TransformEngine;
