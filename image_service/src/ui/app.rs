@@ -1,10 +1,10 @@
-use iced::widget::{button, column, container, image, row, slider, text};
-use iced::{executor, Application, Command, Element, Length, Settings, Theme};
 use ::image::{DynamicImage, Rgba};
-use imageproc::geometric_transformations::{rotate_about_center, Interpolation};
+use iced::widget::{button, column, container, image, row, slider, text};
+use iced::{Application, Command, Element, Length, Settings, Theme, executor};
+use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
 
 use crate::Message;
-
+use crate::features::mirror::MirrorAxis;
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,
@@ -12,9 +12,9 @@ pub struct ImageApp {
     brightness: f32,
     contrast: f32,
     rotation: f32,
+    sigma: f32,
+    mirror: MirrorAxis,
 }
-
-
 
 impl Application for ImageApp {
     type Executor = executor::Default;
@@ -30,6 +30,8 @@ impl Application for ImageApp {
                 brightness: 0.0,
                 contrast: 1.0,
                 rotation: 0.0,
+                sigma: 0.0,
+                mirror: MirrorAxis::None,
             },
             Command::none(),
         )
@@ -56,6 +58,8 @@ impl Application for ImageApp {
                         self.brightness = 0.0;
                         self.contrast = 1.0;
                         self.rotation = 0.0;
+                        self.mirror = MirrorAxis::None;
+                        self.sigma = 0.0;
                         self.update_transformed_image();
                     }
                 }
@@ -76,10 +80,22 @@ impl Application for ImageApp {
                 self.update_transformed_image();
                 Command::none()
             }
+            Message::SigmaChanged(sigma) => {
+                self.sigma = sigma;
+                self.update_transformed_image();
+                Command::none()
+            }
+            Message::ReflectionChanged(reflection) => {
+                self.mirror = reflection;
+                self.update_transformed_image();
+                Command::none()
+            }
             Message::ResetTransforms => {
                 self.brightness = 0.0;
                 self.contrast = 1.0;
                 self.rotation = 0.0;
+                self.mirror = MirrorAxis::None;
+                self.sigma = 0.0;
                 self.update_transformed_image();
                 Command::none()
             }
@@ -112,8 +128,7 @@ impl Application for ImageApp {
             column![
                 row![
                     text("Brightness:").width(100),
-                    slider(-100.0..=100.0, self.brightness, Message::BrightnessChanged)
-                        .step(1.0),
+                    slider(-100.0..=100.0, self.brightness, Message::BrightnessChanged).step(1.0),
                     text(format!("{:.0}", self.brightness)).width(50),
                 ]
                 .spacing(10),
@@ -154,13 +169,7 @@ impl ImageApp {
         if let Some(original) = &self.original_image {
             let mut transformed = original.clone();
 
-            // Apply brightness and contrast
-            transformed = self.apply_brightness_contrast(transformed);
-
-            // Apply rotation (arbitrary angle)
-            if self.rotation != 0.0 {
-                transformed = self.apply_rotation(transformed);
-            }
+            
 
             // Convert to bytes and create handle
             let rgba = transformed.to_rgba8();
@@ -169,50 +178,5 @@ impl ImageApp {
 
             self.image_handle = Some(image::Handle::from_pixels(width, height, bytes));
         }
-    }
-
-    fn apply_brightness_contrast(&self, img: DynamicImage) -> DynamicImage {
-        let mut rgba = img.to_rgba8();
-        let (width, height) = rgba.dimensions();
-
-        for y in 0..height {
-            for x in 0..width {
-                let pixel = rgba.get_pixel_mut(x, y);
-                let r = pixel[0] as f32;
-                let g = pixel[1] as f32;
-                let b = pixel[2] as f32;
-
-                // Apply contrast and brightness
-                let new_r = ((r - 128.0) * self.contrast + 128.0 + self.brightness).clamp(0.0, 255.0);
-                let new_g = ((g - 128.0) * self.contrast + 128.0 + self.brightness).clamp(0.0, 255.0);
-                let new_b = ((b - 128.0) * self.contrast + 128.0 + self.brightness).clamp(0.0, 255.0);
-
-                pixel[0] = new_r as u8;
-                pixel[1] = new_g as u8;
-                pixel[2] = new_b as u8;
-            }
-        }
-
-        DynamicImage::ImageRgba8(rgba)
-    }
-
-    fn apply_rotation(&self, img: DynamicImage) -> DynamicImage {
-        let rgba = img.to_rgba8();
-        
-        // Convert degrees to radians (imageproc uses radians)
-        let angle_radians = -self.rotation.to_radians(); // Negative for clockwise rotation
-        
-        // Define the background color (transparent or white)
-        let background = Rgba([255u8, 255u8, 255u8, 0u8]); // Transparent white
-        
-        // Rotate the image around its center with bilinear interpolation
-        let rotated = rotate_about_center(
-            &rgba,
-            angle_radians,
-            Interpolation::Bilinear,
-            background,
-        );
-        
-        DynamicImage::ImageRgba8(rotated)
     }
 }

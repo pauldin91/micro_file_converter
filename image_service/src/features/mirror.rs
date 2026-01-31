@@ -5,6 +5,7 @@ use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba
 use crate::domain::{ImageError, Instructions, Transform};
 #[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {
+    None,
     Vertical,
     Horizontal,
     Diagonal,
@@ -18,7 +19,7 @@ impl FromStr for MirrorAxis {
             "vertical" => Ok(Self::Vertical),
             "horizontal" => Ok(Self::Horizontal),
             "diagonal" => Ok(Self::Diagonal),
-            _ => Err(()),
+            _ => Ok(Self::None),
         }
     }
 }
@@ -55,6 +56,7 @@ impl Transform for Mirror {
                     dynamic_img.height() - y - 1,
                     pixel,
                 ),
+                _ =>imgbuf.put_pixel(x, y, pixel),
             }
         }
 
