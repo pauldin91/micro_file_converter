@@ -1,7 +1,10 @@
 use std::{collections::HashMap, str::FromStr};
 
-use crate::{Blur, Brighten, Crop, Invert, Rotate, domain::{Transform, TransformParseError}, features::Mirror};
-
+use crate::{
+    Blur, Brighten, Crop, Invert, Rotate,
+    domain::{Transform, TransformParseError},
+    features::Mirror,
+};
 
 #[derive(Debug, Copy, Clone)]
 pub enum TransformFactory {
@@ -10,26 +13,35 @@ pub enum TransformFactory {
     Crop,
     Invert,
     Mirror,
-    Rotate
+    Rotate,
 }
 
-impl TransformFactory{
-        pub fn create(
+impl TransformFactory {
+    pub fn create<T>(&self,value: T) -> Box<dyn Transform> {
+        match self {
+            TransformFactory::Invert => Box::new(Invert::new()),
+            // TransformFactory::Crop => Box::new(Crop{}),
+            TransformFactory::Mirror => Box::new(Mirror::new(value)),
+            TransformFactory::Blur => Box::new(Blur::new(value)),
+            TransformFactory::Brighten => Box::new(Brighten::new(value)),
+            TransformFactory::Rotate => Box::new(Rotate::new(value)),
+        }
+    }
+
+    pub fn create_from_instructions(
         &self,
         instructions: &HashMap<String, String>,
     ) -> Box<dyn Transform> {
         match self {
             TransformFactory::Invert => Box::new(Invert::new()),
-            TransformFactory::Crop => Box::new(Crop::new(instructions)),
-            TransformFactory::Mirror => Box::new(Mirror::new(instructions)),
-            TransformFactory::Blur => Box::new(Blur::new(instructions)),
-            TransformFactory::Brighten => Box::new(Brighten::new(instructions)),
-            TransformFactory::Rotate => Box::new(Rotate::new(instructions)),
+            TransformFactory::Crop => Box::new(Crop::from(instructions)),
+            TransformFactory::Mirror => Box::new(Mirror::from(instructions)),
+            TransformFactory::Blur => Box::new(Blur::from(instructions)),
+            TransformFactory::Brighten => Box::new(Brighten::from(instructions)),
+            TransformFactory::Rotate => Box::new(Rotate::from(instructions)),
         }
     }
 }
-
-
 
 impl FromStr for TransformFactory {
     type Err = TransformParseError;
@@ -48,7 +60,7 @@ impl FromStr for TransformFactory {
 }
 
 pub enum GeneratorFactory {
-    Fractal
+    Fractal,
 }
 
 impl FromStr for GeneratorFactory {

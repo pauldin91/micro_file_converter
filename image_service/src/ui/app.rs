@@ -4,6 +4,8 @@ use iced::{Application, Command, Element, Length, Settings, Theme, executor};
 use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
 
 use crate::Message;
+use crate::domain::Transform;
+use crate::features::{TransformFactory, factory};
 use crate::features::mirror::MirrorAxis;
 
 pub struct ImageApp {
@@ -60,34 +62,34 @@ impl Application for ImageApp {
                         self.rotation = 0.0;
                         self.mirror = MirrorAxis::None;
                         self.sigma = 0.0;
-                        self.update_transformed_image();
+                        self.init();
                     }
                 }
                 Command::none()
             }
             Message::BrightnessChanged(value) => {
                 self.brightness = value;
-                self.update_transformed_image();
+                self.update_transformed_image("brighten");
                 Command::none()
             }
             Message::ContrastChanged(value) => {
                 self.contrast = value;
-                self.update_transformed_image();
+                self.update_transformed_image("contrast");
                 Command::none()
             }
             Message::RotationChanged(value) => {
                 self.rotation = value;
-                self.update_transformed_image();
+                self.update_transformed_image("rotate");
                 Command::none()
             }
             Message::SigmaChanged(sigma) => {
                 self.sigma = sigma;
-                self.update_transformed_image();
+                self.update_transformed_image("blur");
                 Command::none()
             }
             Message::ReflectionChanged(reflection) => {
                 self.mirror = reflection;
-                self.update_transformed_image();
+                self.update_transformed_image("mirror");
                 Command::none()
             }
             Message::ResetTransforms => {
@@ -96,7 +98,7 @@ impl Application for ImageApp {
                 self.rotation = 0.0;
                 self.mirror = MirrorAxis::None;
                 self.sigma = 0.0;
-                self.update_transformed_image();
+                self.reset();
                 Command::none()
             }
         }
@@ -165,18 +167,25 @@ impl Application for ImageApp {
 }
 
 impl ImageApp {
-    fn update_transformed_image(&mut self) {
+    fn init(&self) {}
+    fn reset(&self) {}
+    fn update_transformed_image(&mut self, transform: &str) {
         if let Some(original) = &self.original_image {
             let mut transformed = original.clone();
 
-            
+            match transform.parse::<TransformFactory>() {
+                Ok(kind) => {
+                    let op: Box<dyn Transform> = kind.create();
 
-            // Convert to bytes and create handle
-            let rgba = transformed.to_rgba8();
-            let (width, height) = rgba.dimensions();
-            let bytes = rgba.into_raw();
+                    // Convert to bytes and create handle
+                    let rgba = transformed.to_rgba8();
+                    let (width, height) = rgba.dimensions();
+                    let bytes = rgba.into_raw();
 
-            self.image_handle = Some(image::Handle::from_pixels(width, height, bytes));
+                    self.image_handle = Some(image::Handle::from_pixels(width, height, bytes));
+                },
+                Err(_)=>(),
+            }
         }
     }
 }

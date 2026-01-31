@@ -27,7 +27,16 @@ pub struct Mirror {
     axis: MirrorAxis,
 }
 impl Mirror {
-    pub fn new(props: &HashMap<String, String>) -> Self {
+    pub fn new(prop:String) -> Self{
+        
+        let axis=   match prop.parse::<MirrorAxis>() {
+                Ok(axis) => axis,
+                Err(_) => MirrorAxis::Vertical,
+        };
+
+        Self { axis: axis }        
+    }
+    pub fn from(props: &HashMap<String, String>) -> Self {
         let axis_key = Instructions::parse_properties::<String>(&props, &"axis");
         let axis = match axis_key {
             Some(axis_type) => match axis_type.parse::<MirrorAxis>() {

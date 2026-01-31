@@ -9,7 +9,7 @@ pub struct Rotate {
 }
 
 impl Rotate {
-    pub fn new(props: &HashMap<String, String>) -> Self {
+    pub fn from(props: &HashMap<String, String>) -> Self {
         let degrees_key = Instructions::parse_properties::<f32>(&props, &"degrees");
 
         let angle: f32 = match degrees_key {
@@ -39,7 +39,7 @@ impl Transform for Rotate {
         // Rotate the image around its center with bilinear interpolation
         let rotated =
             rotate_about_center(&rgba, angle_radians, Interpolation::Bilinear, background);
-            
+
         let mut out = Vec::new();
         let _ = DynamicImage::ImageRgba8(rotated)
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)

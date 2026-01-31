@@ -8,7 +8,7 @@ pub struct Crop {
     selection: Rect,
 }
 impl Crop {
-    pub fn new(props: &HashMap<String, String>) -> Self {
+    pub fn from(props: &HashMap<String, String>) -> Self {
         let x: u32 = props
             .get("x")
             .unwrap_or(&String::from("0"))

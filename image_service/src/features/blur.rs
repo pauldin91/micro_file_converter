@@ -9,7 +9,14 @@ pub struct Blur {
 }
 
 impl Blur {
-    pub fn new(props: &HashMap<String, String>) -> Self {
+    pub fn new(props: String) -> Self {
+        let sigma: f32 = match props.parse() {
+            Ok(sigma) => sigma,
+            Err(_) => 0.0,
+        };
+        Self { sigma: sigma }
+    }
+    pub fn from(props: &HashMap<String, String>) -> Self {
         let sigma_key = Instructions::parse_properties::<f32>(&props, &"sigma");
 
         let sigma: f32 = match sigma_key {

@@ -18,7 +18,7 @@ impl TransformEngine {
     pub async fn handle(&self, instructions: UploadDto) -> Result<CompletedDto, anyhow::Error> {
         match instructions.transform.name.parse::<TransformFactory>() {
             Ok(kind) => {
-                let op: Box<dyn Transform> = kind.create(&instructions.transform.props);
+                let op: Box<dyn Transform> = kind.create_from_instructions(&instructions.transform.props);
 
                 let filenames: Vec<String> = self
                     .storage
