@@ -5,34 +5,29 @@ use image::ImageOutputFormat;
 use crate::domain::{ImageError, Instructions, Transform};
 
 pub struct Brighten {
-    value: i32,
+    brightness: i32,
 }
 impl Brighten {
-    pub fn new(props: String) -> Self {
-        let value: i32 = match props.parse() {
-            Ok(value) => value,
-            Err(_) => 0,
-        };
-        Self { value: value }
+    pub fn new() -> Self {
+        Self {
+            brightness: 0,
+        }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
-        let value_key = Instructions::parse_properties::<i32>(&props, &"value");
+        let br_key = Instructions::parse_properties::<i32>(&props, &"brightness");
 
-        let value: i32 = match value_key {
+        let brightness: i32 = match br_key {
             Some(value) => value,
             None => 0,
         };
-        Self { value: value }
+        Self { brightness }
     }
 }
-impl Brighten{
-}
+impl Brighten {}
 impl Transform for Brighten {
-
-    
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
         let dynamic_img = image::load_from_memory(img).unwrap();
-        let brightend = dynamic_img.brighten(self.value);
+        let brightend = dynamic_img.brighten(self.brightness);
         let mut out = Vec::new();
         let _ = brightend
             .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)

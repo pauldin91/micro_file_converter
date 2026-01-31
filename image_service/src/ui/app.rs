@@ -1,18 +1,19 @@
-use ::image::{DynamicImage, Rgba};
+use std::collections::HashMap;
+
+use ::image::DynamicImage;
 use iced::widget::{button, column, container, image, row, slider, text};
-use iced::{Application, Command, Element, Length, Settings, Theme, executor};
-use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
+use iced::{Application, Command, Element, Length, Theme, executor};
 
 use crate::Message;
 use crate::domain::Transform;
-use crate::features::{TransformFactory, factory};
+use crate::features::TransformFactory;
 use crate::features::mirror::MirrorAxis;
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,
     image_handle: Option<image::Handle>,
-    brightness: f32,
     contrast: f32,
+    brightness: i32,
     rotation: f32,
     sigma: f32,
     mirror: MirrorAxis,
@@ -29,11 +30,12 @@ impl Application for ImageApp {
             Self {
                 original_image: None,
                 image_handle: None,
-                brightness: 0.0,
-                contrast: 1.0,
-                rotation: 0.0,
+                brightness: 0,
                 sigma: 0.0,
                 mirror: MirrorAxis::None,
+                rotation: 0.0,
+                contrast: 1.0,
+
             },
             Command::none(),
         )
@@ -57,47 +59,36 @@ impl Application for ImageApp {
                 if let Some(path) = path {
                     if let Ok(img) = ::image::open(&path) {
                         self.original_image = Some(img);
-                        self.brightness = 0.0;
-                        self.contrast = 1.0;
-                        self.rotation = 0.0;
-                        self.mirror = MirrorAxis::None;
-                        self.sigma = 0.0;
                         self.init();
                     }
                 }
                 Command::none()
             }
-            Message::BrightnessChanged(value) => {
-                self.brightness = value;
+            Message::BrightnessChanged(brightness) => {
                 self.update_transformed_image("brighten");
                 Command::none()
             }
-            Message::ContrastChanged(value) => {
-                self.contrast = value;
+            Message::ContrastChanged(constrast) => {
                 self.update_transformed_image("contrast");
                 Command::none()
             }
-            Message::RotationChanged(value) => {
-                self.rotation = value;
+            Message::RotationChanged(degrees) => {
+                self.instructions.insert("degrees", degrees.to_string());
                 self.update_transformed_image("rotate");
                 Command::none()
             }
             Message::SigmaChanged(sigma) => {
-                self.sigma = sigma;
+                self.instructions.insert("sigma", sigma.to_string());
                 self.update_transformed_image("blur");
                 Command::none()
             }
             Message::ReflectionChanged(reflection) => {
-                self.mirror = reflection;
+                self.instructions.insert("axis",reflection);
+
                 self.update_transformed_image("mirror");
                 Command::none()
             }
             Message::ResetTransforms => {
-                self.brightness = 0.0;
-                self.contrast = 1.0;
-                self.rotation = 0.0;
-                self.mirror = MirrorAxis::None;
-                self.sigma = 0.0;
                 self.reset();
                 Command::none()
             }
@@ -130,8 +121,8 @@ impl Application for ImageApp {
             column![
                 row![
                     text("Brightness:").width(100),
-                    slider(-100.0..=100.0, self.brightness, Message::BrightnessChanged).step(1.0),
-                    text(format!("{:.0}", self.brightness)).width(50),
+                    slider(-100.0..=100.0, self.instructions.get("brightness"), Message::BrightnessChanged).step(1.0),
+                    text(format!("{:.0}", self.instructions.get("brightness"))).width(50),
                 ]
                 .spacing(10),
                 row![
@@ -171,20 +162,26 @@ impl ImageApp {
     fn reset(&self) {}
     fn update_transformed_image(&mut self, transform: &str) {
         if let Some(original) = &self.original_image {
-            let mut transformed = original.clone();
-
+            let temp = original.clone();
             match transform.parse::<TransformFactory>() {
                 Ok(kind) => {
                     let op: Box<dyn Transform> = kind.create();
 
-                    // Convert to bytes and create handle
-                    let rgba = transformed.to_rgba8();
-                    let (width, height) = rgba.dimensions();
-                    let bytes = rgba.into_raw();
+                    let result = op.apply(&temp.as_bytes());
+                    match result {
+                        Ok(bytes) => {
+                            let transormed = ::image::load_from_memory(bytes.as_slice()).unwrap();
+                            let rgba = transormed.to_rgba8();
+                            let (width, height) = rgba.dimensions();
+                            let bytes = rgba.into_raw();
 
-                    self.image_handle = Some(image::Handle::from_pixels(width, height, bytes));
-                },
-                Err(_)=>(),
+                            self.image_handle =
+                                Some(image::Handle::from_pixels(width, height, bytes));
+                        }
+                        Err(_) => (),
+                    }
+                }
+                Err(_) => (),
             }
         }
     }

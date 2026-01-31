@@ -27,14 +27,8 @@ pub struct Mirror {
     axis: MirrorAxis,
 }
 impl Mirror {
-    pub fn new(prop:String) -> Self{
-        
-        let axis=   match prop.parse::<MirrorAxis>() {
-                Ok(axis) => axis,
-                Err(_) => MirrorAxis::Vertical,
-        };
-
-        Self { axis: axis }        
+    pub fn new() -> Self {
+        Self { axis: MirrorAxis::None }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
         let axis_key = Instructions::parse_properties::<String>(&props, &"axis");
@@ -65,7 +59,7 @@ impl Transform for Mirror {
                     dynamic_img.height() - y - 1,
                     pixel,
                 ),
-                _ =>imgbuf.put_pixel(x, y, pixel),
+                _ => imgbuf.put_pixel(x, y, pixel),
             }
         }
 

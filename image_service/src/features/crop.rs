@@ -8,6 +8,16 @@ pub struct Crop {
     selection: Rect,
 }
 impl Crop {
+    pub fn new() -> Self {
+        Self {
+            selection: Rect {
+                x: 0,
+                y: 0,
+                w: 24,
+                h: 24,
+            },
+        }
+    }
     pub fn from(props: &HashMap<String, String>) -> Self {
         let x: u32 = props
             .get("x")

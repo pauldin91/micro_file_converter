@@ -17,16 +17,6 @@ pub enum TransformFactory {
 }
 
 impl TransformFactory {
-    pub fn create<T>(&self,value: T) -> Box<dyn Transform> {
-        match self {
-            TransformFactory::Invert => Box::new(Invert::new()),
-            // TransformFactory::Crop => Box::new(Crop{}),
-            TransformFactory::Mirror => Box::new(Mirror::new(value)),
-            TransformFactory::Blur => Box::new(Blur::new(value)),
-            TransformFactory::Brighten => Box::new(Brighten::new(value)),
-            TransformFactory::Rotate => Box::new(Rotate::new(value)),
-        }
-    }
 
     pub fn create_from_instructions(
         &self,
