@@ -1,7 +1,7 @@
 use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
 use std::io::Cursor;
 
-use crate::domain::{Generator, ImageError};
+use crate::{domain::{Generator, ImageError}, features::encode};
 
 pub struct Fractal {
     width: u32,
@@ -45,10 +45,6 @@ impl Generator for Fractal {
         }
 
         let dynamic_img = DynamicImage::ImageRgba8(imgbuf);
-        let mut out = Vec::new();
-        let _ = dynamic_img
-            .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Jpeg(100))
-            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
-        Ok(out)
+        encode(&dynamic_img)
     }
 }

@@ -5,9 +5,9 @@ use iced::widget::{button, column, container, image, pick_list, radio, row, slid
 use iced::{Application, Command, Element, Length, Theme, executor};
 
 use crate::Message;
-use crate::domain::Transform;
-use crate::features::TransformFactory;
+use crate::domain::{ImageError, Transform};
 use crate::features::mirror::MirrorAxis;
+use crate::features::{TransformFactory, decode, encode};
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,
@@ -39,9 +39,9 @@ impl Application for ImageApp {
                 contrast: 1.0,
                 instructions: HashMap::new(),
                 axes: vec![
-                    String::from("Vertical"),
-                    String::from("Horizontal"),
-                    String::from("Diagonal"),
+                    String::from("vertical"),
+                    String::from("horizontal"),
+                    String::from("diagonal"),
                 ],
             },
             Command::none(),
@@ -186,28 +186,33 @@ impl ImageApp {
     fn init(&self) {}
     fn reset(&self) {}
     fn update_transformed_image(&mut self, transform: &str) {
-        if let Some(original) = &self.original_image {
-            let temp = original.clone();
-            match transform.parse::<TransformFactory>() {
-                Ok(kind) => {
-                    let op: Box<dyn Transform> = kind.create_from_instructions(&self.instructions);
+        let original = match &self.original_image {
+            Some(img) => img,
+            None => return,
+        };
 
-                    let result = op.apply(&temp.as_bytes());
-                    match result {
-                        Ok(bytes) => {
-                            let transormed = ::image::load_from_memory(bytes.as_slice()).unwrap();
-                            let rgba = transormed.to_rgba8();
-                            let (width, height) = rgba.dimensions();
-                            let bytes = rgba.into_raw();
+        let kind = match transform.parse::<TransformFactory>() {
+            Ok(k) => k,
+            Err(_) => return,
+        };
 
-                            self.image_handle =
-                                Some(image::Handle::from_pixels(width, height, bytes));
-                        }
-                        Err(_) => (),
-                    }
-                }
-                Err(_) => (),
-            }
-        }
+        let op = kind.create_from_instructions(&self.instructions);
+
+        // Convert DynamicImage to raw RGBA bytes
+        let raw_bytes = original.to_rgba8().into_raw();
+
+        let bytes = match op.apply(&raw_bytes) {
+            Ok(b) => b,
+            Err(_) => return,
+        };
+
+        let transformed = match decode(&bytes) {
+            Ok(img) => img,
+            Err(_) => return,
+        };
+
+        let rgba = transformed.to_rgba8();
+        let (width, height) = rgba.dimensions();
+        self.image_handle = Some(image::Handle::from_pixels(width, height, rgba.into_raw()));
     }
 }

@@ -2,7 +2,7 @@ use std::{collections::HashMap, io::Cursor};
 
 use image::ImageOutputFormat;
 
-use crate::domain::{ImageError, Instructions, Transform};
+use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
 
 pub struct Brighten {
     brightness: i32,
@@ -26,12 +26,8 @@ impl Brighten {
 impl Brighten {}
 impl Transform for Brighten {
     fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let dynamic_img = image::load_from_memory(img).unwrap();
+        let dynamic_img = decode(img)?;
         let brightend = dynamic_img.brighten(self.brightness);
-        let mut out = Vec::new();
-        let _ = brightend
-            .write_to(&mut Cursor::new(&mut out), ImageOutputFormat::Png)
-            .map_err(|_| ImageError::InvalidFormat(String::from("invalid")));
-        Ok(out)
+        encode(&brightend)
     }
 }

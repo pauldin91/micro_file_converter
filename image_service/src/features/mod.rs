@@ -7,8 +7,9 @@ pub mod invert;
 pub mod rotate;
 pub mod mirror;
 pub mod factory;
+pub mod encoder;
 
-
+pub use encoder::*;
 pub use factory::*;
 pub use mirror::Mirror;
 pub use blur::Blur;
