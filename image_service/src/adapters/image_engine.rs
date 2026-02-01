@@ -8,7 +8,7 @@ use crate::domain::Transform;
 use crate::domain::{CompletedDto, UploadDto};
 use crate::features::TransformFactory;
 #[derive(Clone)]
-pub struct TransformEngine {
+pub struct TransformEngine{
     storage: Arc<dyn Storage>,
 }
 impl TransformEngine {

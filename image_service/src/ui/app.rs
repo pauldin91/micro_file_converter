@@ -14,9 +14,10 @@ pub struct ImageApp {
     image_handle: Option<image::Handle>,
     contrast: f32,
     brightness: i32,
-    rotation: f32,
+    degrees: f32,
     sigma: f32,
-    mirror: MirrorAxis,
+    axis: String,
+    instructions: HashMap<String, String>,
 }
 
 impl Application for ImageApp {
@@ -32,10 +33,10 @@ impl Application for ImageApp {
                 image_handle: None,
                 brightness: 0,
                 sigma: 0.0,
-                mirror: MirrorAxis::None,
-                rotation: 0.0,
+                axis: String::from("none"),
+                degrees: 0.0,
                 contrast: 1.0,
-
+                instructions: HashMap::new()
             },
             Command::none(),
         )
@@ -65,26 +66,32 @@ impl Application for ImageApp {
                 Command::none()
             }
             Message::BrightnessChanged(brightness) => {
+                self.brightness = brightness;
+                self.instructions.insert(String::from("brightness"), self.brightness.to_string());
                 self.update_transformed_image("brighten");
                 Command::none()
             }
             Message::ContrastChanged(constrast) => {
+                self.contrast = constrast;
+                self.instructions.insert(String::from("contrast"), self.contrast.to_string());
                 self.update_transformed_image("contrast");
                 Command::none()
             }
             Message::RotationChanged(degrees) => {
-                self.instructions.insert("degrees", degrees.to_string());
+                self.degrees = degrees;
+                self.instructions.insert(String::from("degrees"), self.degrees.to_string());
                 self.update_transformed_image("rotate");
                 Command::none()
             }
             Message::SigmaChanged(sigma) => {
-                self.instructions.insert("sigma", sigma.to_string());
+                self.sigma = sigma;
+                self.instructions.insert(String::from("sigma"), self.sigma.to_string());
                 self.update_transformed_image("blur");
                 Command::none()
             }
-            Message::ReflectionChanged(reflection) => {
-                self.instructions.insert("axis",reflection);
-
+            Message::ReflectionChanged(mirror) => {
+                self.axis = mirror;
+                self.instructions.insert(String::from("axis"), self.axis.to_string());
                 self.update_transformed_image("mirror");
                 Command::none()
             }
@@ -121,8 +128,8 @@ impl Application for ImageApp {
             column![
                 row![
                     text("Brightness:").width(100),
-                    slider(-100.0..=100.0, self.instructions.get("brightness"), Message::BrightnessChanged).step(1.0),
-                    text(format!("{:.0}", self.instructions.get("brightness"))).width(50),
+                    slider(-100..=100, self.brightness, Message::BrightnessChanged).step(1),
+                    text(format!("{:.0}", self.brightness)).width(50),
                 ]
                 .spacing(10),
                 row![
@@ -133,8 +140,8 @@ impl Application for ImageApp {
                 .spacing(10),
                 row![
                     text("Rotation:").width(100),
-                    slider(0.0..=360.0, self.rotation, Message::RotationChanged).step(1.0),
-                    text(format!("{:.0}°", self.rotation)).width(50),
+                    slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
+                    text(format!("{:.0}°", self.degrees)).width(50),
                 ]
                 .spacing(10),
                 button("Reset Transforms").on_press(Message::ResetTransforms),
@@ -165,7 +172,7 @@ impl ImageApp {
             let temp = original.clone();
             match transform.parse::<TransformFactory>() {
                 Ok(kind) => {
-                    let op: Box<dyn Transform> = kind.create();
+                    let op: Box<dyn Transform> = kind.create_from_instructions(&self.instructions);
 
                     let result = op.apply(&temp.as_bytes());
                     match result {

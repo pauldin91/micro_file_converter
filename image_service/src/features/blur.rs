@@ -13,7 +13,7 @@ impl Blur {
         Self { sigma: 0.0 }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
-        let sigma_key = Instructions::parse_properties::<f32>(&props, &"sigma");
+        let sigma_key = Instructions::parse_properties::<f32>(props, &"sigma");
 
         let sigma: f32 = match sigma_key {
             Some(sigma) => sigma,

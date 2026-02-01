@@ -6,7 +6,7 @@ use crate::features::mirror::MirrorAxis;
 pub enum Message {
     SelectImage,
     ImageSelected(Option<PathBuf>),
-    BrightnessChanged(f32),
+    BrightnessChanged(i32),
     ContrastChanged(f32),
     RotationChanged(f32),
     ReflectionChanged(String),
