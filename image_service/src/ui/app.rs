@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use ::image::DynamicImage;
-use iced::widget::{button, column, container, image, row, slider, text};
+use iced::widget::{button, column, container, image, pick_list, radio, row, slider, text};
 use iced::{Application, Command, Element, Length, Theme, executor};
 
 use crate::Message;
@@ -16,8 +16,9 @@ pub struct ImageApp {
     brightness: i32,
     degrees: f32,
     sigma: f32,
-    axis: String,
+    axis: Option<String>,
     instructions: HashMap<String, String>,
+    axes: Vec<String>,
 }
 
 impl Application for ImageApp {
@@ -33,10 +34,15 @@ impl Application for ImageApp {
                 image_handle: None,
                 brightness: 0,
                 sigma: 0.0,
-                axis: String::from("none"),
+                axis: Some(String::from("none")),
                 degrees: 0.0,
                 contrast: 1.0,
-                instructions: HashMap::new()
+                instructions: HashMap::new(),
+                axes: vec![
+                    String::from("Vertical"),
+                    String::from("Horizontal"),
+                    String::from("Diagonal"),
+                ],
             },
             Command::none(),
         )
@@ -67,31 +73,37 @@ impl Application for ImageApp {
             }
             Message::BrightnessChanged(brightness) => {
                 self.brightness = brightness;
-                self.instructions.insert(String::from("brightness"), self.brightness.to_string());
+                self.instructions
+                    .insert(String::from("brightness"), self.brightness.to_string());
                 self.update_transformed_image("brighten");
                 Command::none()
             }
             Message::ContrastChanged(constrast) => {
                 self.contrast = constrast;
-                self.instructions.insert(String::from("contrast"), self.contrast.to_string());
+                self.instructions
+                    .insert(String::from("contrast"), self.contrast.to_string());
                 self.update_transformed_image("contrast");
                 Command::none()
             }
             Message::RotationChanged(degrees) => {
                 self.degrees = degrees;
-                self.instructions.insert(String::from("degrees"), self.degrees.to_string());
+                self.instructions
+                    .insert(String::from("degrees"), self.degrees.to_string());
                 self.update_transformed_image("rotate");
                 Command::none()
             }
             Message::SigmaChanged(sigma) => {
                 self.sigma = sigma;
-                self.instructions.insert(String::from("sigma"), self.sigma.to_string());
+                self.instructions
+                    .insert(String::from("sigma"), self.sigma.to_string());
                 self.update_transformed_image("blur");
                 Command::none()
             }
             Message::ReflectionChanged(mirror) => {
-                self.axis = mirror;
-                self.instructions.insert(String::from("axis"), self.axis.to_string());
+                self.axis = Some(mirror);
+                let axis = self.axis.clone();
+                self.instructions
+                    .insert(String::from("axis"), axis.unwrap());
                 self.update_transformed_image("mirror");
                 Command::none()
             }
@@ -142,6 +154,12 @@ impl Application for ImageApp {
                     text("Rotation:").width(100),
                     slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
                     text(format!("{:.0}°", self.degrees)).width(50),
+                ]
+                .spacing(10),
+                row![
+                    text("Mirror:").width(100),
+                    pick_list(&self.axes, self.axis.clone(), Message::ReflectionChanged),
+                    text(self.axis.as_deref().unwrap_or("None")).width(50),
                 ]
                 .spacing(10),
                 button("Reset Transforms").on_press(Message::ResetTransforms),

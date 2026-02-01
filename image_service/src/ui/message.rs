@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use crate::features::mirror::MirrorAxis;
-
 #[derive(Debug, Clone)]
 pub enum Message {
     SelectImage,
