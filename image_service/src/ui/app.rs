@@ -9,6 +9,7 @@ use crate::features::TransformFactory;
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,
+    displayed_image: Option<DynamicImage>,
     image_handle: Option<image::Handle>,
     contrast: f32,
     brightness: i32,
@@ -29,6 +30,7 @@ impl Application for ImageApp {
         (
             Self {
                 original_image: None,
+                displayed_image: None,
                 image_handle: None,
                 brightness: 0,
                 sigma: 0.0,
@@ -64,6 +66,7 @@ impl Application for ImageApp {
                 if let Some(path) = path {
                     if let Ok(img) = ::image::open(&path) {
                         self.original_image = Some(img);
+                        self.displayed_image = self.original_image.clone();
                         self.init();
                     }
                 }
@@ -134,7 +137,7 @@ impl Application for ImageApp {
                 .into()
         };
 
-        let controls = if self.original_image.is_some() {
+        let controls = if self.displayed_image.is_some() {
             column![
                 row![
                     text("Brightness:").width(100),
@@ -181,7 +184,7 @@ impl Application for ImageApp {
 }
 impl ImageApp {
     fn init(&mut self) {
-        if let Some(original) = &self.original_image {
+        if let Some(original) = &self.displayed_image {
             let rgba = original.to_rgba8();
             let (width, height) = rgba.dimensions();
             self.image_handle = Some(image::Handle::from_pixels(width, height, rgba.into_raw()));
@@ -195,11 +198,12 @@ impl ImageApp {
         self.sigma = 0.0;
         self.axis = Some(String::from("none"));
         self.instructions.clear();
+        self.displayed_image = self.original_image.clone();
         self.init();
     }
 
     fn update_transformed_image(&mut self, transform: &str) {
-        let original = match &self.original_image {
+        let original = match &self.displayed_image {
             Some(img) => img,
             None => return,
         };
@@ -211,6 +215,7 @@ impl ImageApp {
         let op = kind.create_from_instructions(&self.instructions);
 
         current = op.apply(&current).unwrap();
+        self.displayed_image = Some(current.clone());
 
         let rgba = current.to_rgba8();
         let (width, height) = rgba.dimensions();
