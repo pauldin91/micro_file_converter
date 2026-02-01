@@ -16,7 +16,10 @@
             "name": "crop",
             "status": "pending",
             "props": {
-                "rect": "24,24,24,24"
+                "x": "24",
+                "y": "24",
+                "w": "24",
+                "h": "24"
             }
         }
     },
@@ -76,7 +79,7 @@
             "name": "brighten",
             "status": "pending",
             "props": {
-                "value": "20"
+                "brightness": "20"
             }
         }
     },
@@ -96,7 +99,9 @@
         "transform": {
             "status": "pending",
             "name": "mirror",
-            "props":{}
+            "props":{
+                "axis": "diagonal"
+            }
         }
     }
 ]

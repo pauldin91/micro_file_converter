@@ -3,7 +3,7 @@ defmodule Core.Transforms do
     rotate: %{
       label: "Rotate",
       props: [
-        %{key: "degrees", type: :number, default: 90, step: 90, min: 0, max: 270}
+        %{key: "degrees", type: :number, default: 90, step: 1, min: 0, max: 360}
       ]
     },
     blur: %{
@@ -23,7 +23,7 @@ defmodule Core.Transforms do
     brighten: %{
       label: "Brighten",
       props: [
-        %{key: "value", type: :number, default: 20, step: 1, min: 0}
+        %{key: "brightness", type: :number, default: 20, step: 1, min: 0}
       ]
     },
     mirror: %{
@@ -42,8 +42,8 @@ defmodule Core.Transforms do
       props: [
         %{key: "x", type: :number, default: 0},
         %{key: "y", type: :number, default: 0},
-        %{key: "width", type: :number, default: 100},
-        %{key: "height", type: :number, default: 100}
+        %{key: "w", type: :number, default: 100},
+        %{key: "h", type: :number, default: 100}
       ]
     }
   }
