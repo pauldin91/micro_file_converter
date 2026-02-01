@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 
-use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
+use image::DynamicImage;
+
+use crate::{domain::{ImageError, Instructions}, features::{Transform, decode, encode}};
 
 pub struct Brighten {
     brightness: i32,
@@ -27,9 +29,8 @@ impl Brighten {
 }
 impl Brighten {}
 impl Transform for Brighten {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let dynamic_img = decode(img)?;
-        let brightend = dynamic_img.brighten(self.brightness);
-        encode(&brightend)
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
+        let brightend = img.brighten(self.brightness);
+        Ok(brightend)
     }
 }

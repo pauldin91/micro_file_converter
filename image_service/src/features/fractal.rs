@@ -1,6 +1,6 @@
 use image::{DynamicImage, ImageBuffer, Rgba};
 
-use crate::{domain::{Generator, ImageError}, features::encode};
+use crate::{domain::ImageError, features::{Generator, encode}};
 
 pub struct Fractal {
     width: u32,

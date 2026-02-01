@@ -76,13 +76,13 @@ impl Application for ImageApp {
                 self.update_transformed_image("brighten");
                 Command::none()
             }
-            Message::ContrastChanged(constrast) => {
-                self.contrast = constrast;
-                self.instructions
-                    .insert(String::from("contrast"), self.contrast.to_string());
-                self.update_transformed_image("contrast");
-                Command::none()
-            }
+            // Message::ContrastChanged(constrast) => {
+            //     self.contrast = constrast;
+            //     self.instructions
+            //         .insert(String::from("contrast"), self.contrast.to_string());
+            //     self.update_transformed_image("contrast");
+            //     Command::none()
+            // }
             Message::RotationChanged(degrees) => {
                 self.degrees = degrees;
                 self.instructions
@@ -142,12 +142,12 @@ impl Application for ImageApp {
                     text(format!("{:.0}", self.brightness)).width(50),
                 ]
                 .spacing(10),
-                row![
-                    text("Contrast:").width(100),
-                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.1),
-                    text(format!("{:.1}", self.contrast)).width(50),
-                ]
-                .spacing(10),
+                // row![
+                //     text("Contrast:").width(100),
+                //     slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.1),
+                //     text(format!("{:.1}", self.contrast)).width(50),
+                // ]
+                // .spacing(10),
                 row![
                     text("Rotation:").width(100),
                     slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
@@ -179,38 +179,42 @@ impl Application for ImageApp {
         .into()
     }
 }
-
 impl ImageApp {
-    fn init(&self) {}
-    fn reset(&self) {}
+    fn init(&mut self) {
+        if let Some(original) = &self.original_image {
+            let rgba = original.to_rgba8();
+            let (width, height) = rgba.dimensions();
+            self.image_handle = Some(image::Handle::from_pixels(width, height, rgba.into_raw()));
+        }
+    }
+
+    fn reset(&mut self) {
+        self.brightness = 0;
+        self.contrast = 1.0;
+        self.degrees = 0.0;
+        self.sigma = 0.0;
+        self.axis = Some(String::from("none"));
+        self.instructions.clear();
+        self.init();
+    }
+
     fn update_transformed_image(&mut self, transform: &str) {
         let original = match &self.original_image {
             Some(img) => img,
             None => return,
         };
 
-        let kind = match transform.parse::<TransformFactory>() {
-            Ok(k) => k,
-            Err(_) => return,
-        };
+        let mut current = original.clone();
+
+        let kind = transform.parse::<TransformFactory>().unwrap();
 
         let op = kind.create_from_instructions(&self.instructions);
 
-        // Convert DynamicImage to raw RGBA bytes
-        let raw_bytes = original.to_rgba8().into_raw();
+        current = op.apply(&current).unwrap();
 
-        let bytes = match op.apply(&raw_bytes) {
-            Ok(b) => b,
-            Err(_) => return,
-        };
-
-        let transformed = match decode(&bytes) {
-            Ok(img) => img,
-            Err(_) => return,
-        };
-
-        let rgba = transformed.to_rgba8();
+        let rgba = current.to_rgba8();
         let (width, height) = rgba.dimensions();
+        
         self.image_handle = Some(image::Handle::from_pixels(width, height, rgba.into_raw()));
     }
 }

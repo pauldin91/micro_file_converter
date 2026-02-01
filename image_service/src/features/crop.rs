@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 
-use crate::{domain::{ImageError, Rect, Transform}, features::{decode, encode}};
+use image::DynamicImage;
+
+use crate::{domain::{ImageError, Rect}, features::{Transform, decode, encode}};
 
 pub struct Crop {
     selection: Rect,
@@ -51,14 +53,14 @@ impl Crop {
     }
 }
 impl Transform for Crop {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let mut dynamic_img = decode(img)?;
-        let cropped = dynamic_img.crop(
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
+        let mut copy = img.clone();
+        let cropped = copy.crop(
             self.selection.x,
             self.selection.y,
             self.selection.w,
             self.selection.h,
         );
-        encode(&cropped)
+        Ok(cropped)
     }
 }

@@ -2,7 +2,10 @@ use std::{collections::HashMap, str::FromStr};
 
 use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 
-use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
+use crate::{
+    domain::{ImageError, Instructions},
+    features::{Transform, decode, encode},
+};
 #[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {
     None,
@@ -34,7 +37,9 @@ impl Default for Mirror {
 
 impl Mirror {
     pub fn new() -> Self {
-        Self { axis: MirrorAxis::None }
+        Self {
+            axis: MirrorAxis::None,
+        }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
         let axis_key = Instructions::parse_properties::<String>(props, "axis");
@@ -51,25 +56,21 @@ impl Mirror {
 }
 
 impl Transform for Mirror {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let dynamic_img = decode(img)?;
-
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
         let mut imgbuf: ImageBuffer<Rgba<u8>, Vec<u8>> =
-            ImageBuffer::new(dynamic_img.width(), dynamic_img.height());
-        for (x, y, pixel) in dynamic_img.pixels() {
+            ImageBuffer::new(img.width(), img.height());
+        for (x, y, pixel) in img.pixels() {
             match self.axis {
-                MirrorAxis::Vertical => imgbuf.put_pixel(dynamic_img.width() - x - 1, y, pixel),
-                MirrorAxis::Horizontal => imgbuf.put_pixel(x, dynamic_img.height() - y - 1, pixel),
-                MirrorAxis::Diagonal => imgbuf.put_pixel(
-                    dynamic_img.width() - x - 1,
-                    dynamic_img.height() - y - 1,
-                    pixel,
-                ),
+                MirrorAxis::Vertical => imgbuf.put_pixel(img.width() - x - 1, y, pixel),
+                MirrorAxis::Horizontal => imgbuf.put_pixel(x, img.height() - y - 1, pixel),
+                MirrorAxis::Diagonal => {
+                    imgbuf.put_pixel(img.width() - x - 1, img.height() - y - 1, pixel)
+                }
                 _ => imgbuf.put_pixel(x, y, pixel),
             }
         }
 
-        let img = DynamicImage::ImageRgba8(imgbuf);
-        encode(&img)
+        let res_img = DynamicImage::ImageRgba8(imgbuf);
+        Ok(res_img)
     }
 }

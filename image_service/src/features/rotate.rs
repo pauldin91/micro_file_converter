@@ -2,7 +2,7 @@ use image::{DynamicImage, Rgba};
 use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
 use std::collections::HashMap;
 
-use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
+use crate::{domain::{ImageError, Instructions}, features::{Transform}};
 
 pub struct Rotate {
     degrees: f32,
@@ -27,10 +27,9 @@ impl Rotate {
 }
 
 impl Transform for Rotate {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let dynamic_img = decode(img)?;
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
 
-        let rgba = dynamic_img.to_rgba8();
+        let rgba = img.to_rgba8();
 
         let angle_radians = -self.degrees.to_radians();
 
@@ -39,6 +38,6 @@ impl Transform for Rotate {
         let rotated =
             rotate_about_center(&rgba, angle_radians, Interpolation::Bilinear, background);
 
-        encode(&DynamicImage::ImageRgba8(rotated))
+        Ok(DynamicImage::ImageRgba8(rotated))
     }
 }

@@ -1,6 +1,8 @@
 
 
-use crate::{domain::{ImageError, Transform}, features::{decode, encode}};
+use image::DynamicImage;
+
+use crate::{domain::ImageError, features::{Transform, decode, encode}};
 
 pub struct Invert;
 impl Default for Invert {
@@ -15,9 +17,9 @@ impl Invert {
     }
 }
 impl Transform for Invert {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let mut dynamic_img = decode(img)?;
-        dynamic_img.invert();
-        encode(&dynamic_img)
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
+        let mut copy =img.clone();
+        copy.invert();
+        Ok(copy)
     }
 }

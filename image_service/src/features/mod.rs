@@ -8,7 +8,12 @@ pub mod rotate;
 pub mod mirror;
 pub mod factory;
 pub mod encoder;
-
+pub mod pipeline;
+pub use pipeline::TransformPipeline;
+pub mod transform;
+pub mod generator;
+pub use generator::Generator;
+pub use transform::Transform;
 pub use encoder::*;
 pub use factory::*;
 pub use mirror::Mirror;

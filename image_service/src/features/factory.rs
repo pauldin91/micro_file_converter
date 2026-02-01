@@ -2,8 +2,8 @@ use std::{collections::HashMap, str::FromStr};
 
 use crate::{
     Blur, Brighten, Crop, Invert, Rotate,
-    domain::{Transform, TransformParseError},
-    features::Mirror,
+    domain::TransformParseError,
+    features::{Mirror, Transform},
 };
 
 #[derive(Debug, Copy, Clone)]

@@ -4,9 +4,8 @@ use std::sync::Arc;
 use tracing::error;
 
 use crate::Storage;
-use crate::domain::Transform;
 use crate::domain::{CompletedDto, UploadDto};
-use crate::features::TransformFactory;
+use crate::features::{Transform, TransformFactory, decode, encode};
 #[derive(Clone)]
 pub struct TransformEngine{
     storage: Arc<dyn Storage>,
@@ -30,12 +29,13 @@ impl TransformEngine {
                 for f in filenames {
                     let res = self.storage.load(&f);
                     match res {
-                        Ok(img) => {
+                        Ok(bytes) => {
                             let new_filename = self
                                 .storage
                                 .get_transformed_filename(&f, &instructions.transform.name);
+                            let img = decode(&bytes).unwrap();
                             let transformed = op.apply(&img).unwrap();
-                            self.storage.save(&new_filename, &transformed);
+                            self.storage.save(&new_filename, &encode(&transformed).unwrap());
                         }
                         Err(e) => {
                             error!("error : {}, transforming file: {}", e, f);

@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use image::DynamicImage;
+
 use super::encoder::*;
 
-use crate::{domain::{ImageError, Instructions, Transform}};
+use crate::{domain::{ImageError, Instructions}, features::Transform};
 
 pub struct Blur {
     sigma: f32,
@@ -25,9 +27,8 @@ impl Blur {
     }
 }
 impl Transform for Blur {
-    fn apply(&self, img: &[u8]) -> Result<Vec<u8>, ImageError> {
-        let dynamic_img = decode(img)?;
-        let blurred = dynamic_img.blur(self.sigma);
-        encode(&blurred)
+    fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
+        let blurred = img.blur(self.sigma);
+        Ok(blurred)
     }
 }
