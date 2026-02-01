@@ -77,7 +77,7 @@ impl RabbitMqPublisher {
 
 #[async_trait]
 impl Publisher for RabbitMqPublisher {
-    async fn publish(&self, msg: &String) -> Result<(), RabbitMqError> {
+    async fn publish(&self, msg: &str) -> Result<(), RabbitMqError> {
         let confirm = self
             .channel
             .basic_publish(

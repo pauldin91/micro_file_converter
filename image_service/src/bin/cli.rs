@@ -26,9 +26,9 @@ fn main() {
         .arg(Arg::new("output").long("output").help("results directory"))
         .get_matches();
 
-    let width: u32 = matches.get_one::<u32>("width").unwrap_or(&480).clone();
-    let height: u32 = matches.get_one::<u32>("height").unwrap_or(&480).clone();
-    let scale: f32 = matches.get_one::<f32>("scale").unwrap_or(&2.0).clone();
+    let width: u32 = *matches.get_one::<u32>("width").unwrap_or(&480);
+    let height: u32 = *matches.get_one::<u32>("height").unwrap_or(&480);
+    let scale: f32 = *matches.get_one::<f32>("scale").unwrap_or(&2.0);
     let dir: String = matches
         .get_one::<String>("output")
         .unwrap_or(&String::from("test"))

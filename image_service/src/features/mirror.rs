@@ -1,6 +1,6 @@
-use std::{collections::HashMap, io::Cursor, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
-use image::{DynamicImage, GenericImageView, ImageBuffer, ImageOutputFormat, Rgba};
+use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 
 use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
 #[derive(Debug, Copy, Clone)]
@@ -26,12 +26,18 @@ impl FromStr for MirrorAxis {
 pub struct Mirror {
     axis: MirrorAxis,
 }
+impl Default for Mirror {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Mirror {
     pub fn new() -> Self {
         Self { axis: MirrorAxis::None }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
-        let axis_key = Instructions::parse_properties::<String>(&props, &"axis");
+        let axis_key = Instructions::parse_properties::<String>(props, "axis");
         let axis = match axis_key {
             Some(axis_type) => match axis_type.parse::<MirrorAxis>() {
                 Ok(axis) => axis,
@@ -40,7 +46,7 @@ impl Mirror {
             None => MirrorAxis::Vertical,
         };
 
-        Self { axis: axis }
+        Self { axis }
     }
 }
 

@@ -17,10 +17,10 @@ impl Rect {
     pub fn from(rect: &str) -> Self {
         let crop_instructions: Vec<u32> = rect.split(",").map(|s| s.parse().unwrap()).collect();
         Self {
-            x: crop_instructions.get(0).unwrap().clone(),
-            y: crop_instructions.get(1).unwrap().clone(),
-            w: crop_instructions.get(2).unwrap().clone(),
-            h: crop_instructions.get(3).unwrap().clone(),
+            x: *crop_instructions.first().unwrap(),
+            y: *crop_instructions.get(1).unwrap(),
+            w: *crop_instructions.get(2).unwrap(),
+            h: *crop_instructions.get(3).unwrap(),
         }
     }
 }

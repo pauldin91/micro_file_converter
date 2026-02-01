@@ -1,6 +1,6 @@
-use image::{DynamicImage, ImageOutputFormat, Rgba};
+use image::{DynamicImage, Rgba};
 use imageproc::geometric_transformations::{Interpolation, rotate_about_center};
-use std::{collections::HashMap, io::Cursor};
+use std::collections::HashMap;
 
 use crate::{domain::{ImageError, Instructions, Transform}, features::{decode, encode}};
 
@@ -8,17 +8,20 @@ pub struct Rotate {
     degrees: f32,
 }
 
+impl Default for Rotate {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Rotate {
     pub fn new() -> Self {
         Self { degrees: 0.0 }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
-        let degrees_key = Instructions::parse_properties::<f32>(&props, &"degrees");
+        let degrees_key = Instructions::parse_properties::<f32>(props, "degrees");
 
-        let angle: f32 = match degrees_key {
-            Some(degrees) => degrees,
-            None => 90.0,
-        };
+        let angle: f32 = degrees_key.unwrap_or(90.0);
         Self { degrees: angle }
     }
 }

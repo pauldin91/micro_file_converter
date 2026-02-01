@@ -1,10 +1,14 @@
-use std::io::Cursor;
 
-use image::ImageOutputFormat;
 
 use crate::{domain::{ImageError, Transform}, features::{decode, encode}};
 
 pub struct Invert;
+impl Default for Invert {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Invert {
     pub fn new() -> Self {
         Self {}

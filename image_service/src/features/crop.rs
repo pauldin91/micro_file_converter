@@ -1,12 +1,17 @@
-use std::{collections::HashMap, io::Cursor};
+use std::collections::HashMap;
 
-use image::ImageOutputFormat;
 
 use crate::{domain::{ImageError, Rect, Transform}, features::{decode, encode}};
 
 pub struct Crop {
     selection: Rect,
 }
+impl Default for Crop {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Crop {
     pub fn new() -> Self {
         Self {
@@ -41,7 +46,7 @@ impl Crop {
             .unwrap();
         let selection = Rect::new(x, y, width, height);
         Self {
-            selection: selection,
+            selection,
         }
     }
 }

@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::{self, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 use tracing::error;
 
@@ -9,6 +9,12 @@ use crate::{Storage, domain::config};
 
 pub struct LocalStorage {
     upload_dir: PathBuf,
+}
+
+impl Default for LocalStorage {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LocalStorage {
@@ -19,24 +25,24 @@ impl LocalStorage {
             upload_dir: PathBuf::from(upload_dir),
         }
     }
-    fn get_full_path(&self, dir: String) -> PathBuf {
+    fn get_full_path(&self, dir: &str) -> PathBuf {
         self.upload_dir.join(dir)
     }
 }
 
 impl Storage for LocalStorage {
-    fn save(&self, filename: &PathBuf, content: &Vec<u8>) {
+    fn save(&self, filename: &Path, content: &[u8]) {
         let created = File::create(filename);
         match created {
             Ok(mut file) => {
-                let _ = file.write(&content);
+                let _ = file.write(content);
             }
             Err(e) => error!("could not create file : {}", e),
         }
     }
 
-    fn list_dir(&self, dir: &String) -> Vec<String> {
-        let location_dir = fs::read_dir(self.get_full_path(dir.clone()));
+    fn list_dir(&self, dir: &str) -> Vec<String> {
+        let location_dir = fs::read_dir(self.get_full_path(dir));
         match location_dir {
             Ok(actual_dir) => {
                 let mut filenames = Vec::new();
@@ -58,11 +64,11 @@ impl Storage for LocalStorage {
         }
     }
 
-    fn load(&self, fullpath: &String) -> io::Result<Vec<u8>> {
-        Ok(fs::read(fullpath)?)
+    fn load(&self, fullpath: &str) -> io::Result<Vec<u8>> {
+        fs::read(fullpath)
     }
 
-    fn get_transformed_filename(&self, old_filename: &String, transform_type: &String) -> PathBuf {
+    fn get_transformed_filename(&self, old_filename: &str, transform_type: &str) -> PathBuf {
         let old_path = PathBuf::from(old_filename);
         let _ = fs::create_dir(old_path.parent().unwrap().join("transformed").as_path());
         let filename = old_path.file_name().unwrap().to_str().unwrap();

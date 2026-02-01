@@ -42,8 +42,8 @@ pub struct CompletedDto {
 impl CompletedDto {
     pub fn new(id: String, status: Status) -> Self {
         Self {
-            id: id,
-            status: status,
+            id,
+            status,
             timestamp: Utc::now()
         }
     }

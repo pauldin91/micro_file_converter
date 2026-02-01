@@ -5,6 +5,12 @@ pub struct TransformPipeline {
     transformations: Vec<Box<dyn Transform>>,
 }
 
+impl Default for TransformPipeline {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TransformPipeline {
     pub fn new() -> Self {
         Self {

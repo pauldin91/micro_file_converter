@@ -13,7 +13,7 @@ pub struct TransformEngine{
 }
 impl TransformEngine {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
-        Self { storage: storage }
+        Self { storage }
     }
     pub async fn handle(&self, instructions: UploadDto) -> Result<CompletedDto, anyhow::Error> {
         match instructions.transform.name.parse::<TransformFactory>() {
@@ -24,8 +24,7 @@ impl TransformEngine {
                     .storage
                     .list_dir(&instructions.id.to_string())
                     .iter()
-                    .filter(|s| !s.as_str().ends_with(".json"))
-                    .map(|p| p.clone())
+                    .filter(|s| !s.as_str().ends_with(".json")).cloned()
                     .collect();
 
                 for f in filenames {

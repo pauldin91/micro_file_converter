@@ -1,13 +1,11 @@
 use std::collections::HashMap;
 
 use ::image::DynamicImage;
-use iced::widget::{button, column, container, image, pick_list, radio, row, slider, text};
+use iced::widget::{button, column, container, image, pick_list, row, slider, text};
 use iced::{Application, Command, Element, Length, Theme, executor};
 
 use crate::Message;
-use crate::domain::{ImageError, Transform};
-use crate::features::mirror::MirrorAxis;
-use crate::features::{TransformFactory, decode, encode};
+use crate::features::{TransformFactory, decode};
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,

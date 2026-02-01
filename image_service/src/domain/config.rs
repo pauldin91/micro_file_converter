@@ -1,5 +1,5 @@
-pub const RABBITMQ_HOST: &'static str = "RABBITMQ_HOST";
-pub const TRANSFORM_QUEUE: &'static str = "TRANSFORM_QUEUE";
-pub const PROCESSED_QUEUE: &'static str = "PROCESSED_QUEUE";
-pub const UPLOAD_DIR: &'static str = "UPLOAD_DIR";
-pub const CONCURRENT_BATCHES: &'static str = "CONCURRENT_BATCHES";
+pub const RABBITMQ_HOST: &str = "RABBITMQ_HOST";
+pub const TRANSFORM_QUEUE: &str = "TRANSFORM_QUEUE";
+pub const PROCESSED_QUEUE: &str = "PROCESSED_QUEUE";
+pub const UPLOAD_DIR: &str = "UPLOAD_DIR";
+pub const CONCURRENT_BATCHES: &str = "CONCURRENT_BATCHES";

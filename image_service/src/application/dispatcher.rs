@@ -16,6 +16,12 @@ pub struct Dispatcher {
     permits: usize,
 }
 
+impl Default for Dispatcher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Dispatcher {
     pub fn new() -> Self {
         let host = dotenv::var(config::RABBITMQ_HOST).unwrap();
@@ -80,7 +86,7 @@ impl Dispatcher {
                 }
                 Err(e) => {
                     error!("Error: {} opening connection", e);
-                    ()
+                    
                 }
             }
         }

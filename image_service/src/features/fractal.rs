@@ -1,5 +1,4 @@
-use image::{DynamicImage, ImageBuffer, ImageOutputFormat, Rgba};
-use std::io::Cursor;
+use image::{DynamicImage, ImageBuffer, Rgba};
 
 use crate::{domain::{Generator, ImageError}, features::encode};
 
@@ -29,8 +28,8 @@ impl Generator for Fractal {
             let red = (0.3 * x as f32) as u8;
             let blue = (0.3 * y as f32) as u8;
 
-            let cx = y as f32 * scale_x - (self.scale / 2.0 as f32);
-            let cy = x as f32 * scale_y - (self.scale / 2.0 as f32);
+            let cx = y as f32 * scale_x - (self.scale / 2.0_f32);
+            let cy = x as f32 * scale_y - (self.scale / 2.0_f32);
 
             let c = num_complex::Complex::new(-0.4, 0.6);
             let mut z = num_complex::Complex::new(cx, cy);
