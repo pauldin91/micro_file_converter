@@ -4,7 +4,7 @@ use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 
 use crate::{
     domain::{ImageError, Instructions},
-    features::{Transform, decode, encode},
+    features::Transform,
 };
 #[derive(Debug, Copy, Clone)]
 pub enum MirrorAxis {

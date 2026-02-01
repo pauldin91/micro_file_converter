@@ -5,7 +5,7 @@ use iced::widget::{button, column, container, image, pick_list, row, slider, tex
 use iced::{Application, Command, Element, Length, Theme, executor};
 
 use crate::Message;
-use crate::features::{TransformFactory, decode};
+use crate::features::TransformFactory;
 
 pub struct ImageApp {
     original_image: Option<DynamicImage>,

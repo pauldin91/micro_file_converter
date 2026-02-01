@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use image::DynamicImage;
 
-use crate::{domain::{ImageError, Rect}, features::{Transform, decode, encode}};
+use crate::{domain::{ImageError, Rect}, features::Transform};
 
 pub struct Crop {
     selection: Rect,

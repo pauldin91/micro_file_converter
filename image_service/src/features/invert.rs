@@ -2,7 +2,7 @@
 
 use image::DynamicImage;
 
-use crate::{domain::ImageError, features::{Transform, decode, encode}};
+use crate::{domain::ImageError, features::Transform};
 
 pub struct Invert;
 impl Default for Invert {

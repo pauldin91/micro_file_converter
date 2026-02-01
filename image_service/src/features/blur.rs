@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use image::DynamicImage;
 
-use super::encoder::*;
 
 use crate::{domain::{ImageError, Instructions}, features::Transform};
 

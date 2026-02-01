@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use image::DynamicImage;
 
-use crate::{domain::{ImageError, Instructions}, features::{Transform, decode, encode}};
+use crate::{domain::{ImageError, Instructions}, features::Transform};
 
 pub struct Brighten {
     brightness: i32,
