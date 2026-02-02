@@ -17,7 +17,7 @@ defmodule Core.Uploads.Batch do
   @doc false
   def changeset(batch, attrs) do
     batch
-    |> cast(attrs, [:id, :status, :transform, :user_id])
-    |> validate_required([:status, :transform, :user_id])
+    |> cast(attrs, [:id, :status, :user_id])
+    |> validate_required([:status, :user_id])
   end
 end

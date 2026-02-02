@@ -33,14 +33,19 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     transform = batch_params["transform"] || socket.assigns.transform
 
+    batch_params_with_metadata =
+      batch_params
+      |> Map.put("user_id", socket.assigns.user.id)
+      |> Map.put("status", "pending")
+
     props_entries =
       transform
-      |> Transforms.build_props_for_transform(socket.assigns.transformations)
+      |> Transforms.build_props_for_transform()
       |> merge_props_values(props_params)
 
     changeset =
       socket.assigns.batch
-      |> Uploads.change_batch(batch_params)
+      |> Uploads.change_batch(batch_params_with_metadata)
       |> Map.put(:action, :validate)
 
     {:noreply,
@@ -49,7 +54,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign(:transform, transform)
      |> assign(:props_entries, props_entries)}
   end
-
 
   def handle_event("toggle_transform", %{"mode" => mode}, socket) do
     {:noreply, assign(socket, :mode, mode)}
@@ -105,12 +109,15 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
         case result do
           {:ok, batch_id} ->
+            dbg(result)
+
             {:noreply,
              socket
              |> assign(:batch_id, batch_id)
              |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
 
           {:error, reason} ->
+            dbg(reason)
             {:noreply, put_flash(socket, :error, reason)}
 
           :error ->
@@ -118,6 +125,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
         end
 
       {:error, reason} ->
+        dbg(reason)
         {:noreply, put_flash(socket, :error, reason)}
     end
   end
