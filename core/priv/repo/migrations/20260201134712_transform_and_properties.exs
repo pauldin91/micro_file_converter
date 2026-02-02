@@ -1,4 +1,4 @@
-defmodule Core.Repo.Migrations.TransformAndProperties do
+defmodule Core.Repo.Migrations.TransformProperties do
   use Ecto.Migration
 
   def change do
@@ -11,8 +11,8 @@ defmodule Core.Repo.Migrations.TransformAndProperties do
       add :key, :string
       add :type, :string
       add :default, :string
-
-      add :transform_name,
+      add :metadata, :map, default: %{}
+      add :transform_id,
           references(:transforms, column: :name, on_delete: :delete_all, type: :string)
     end
 

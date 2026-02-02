@@ -1,12 +1,15 @@
-defmodule Core.Uploads.Transform do
+defmodule Core.Transformations.Transform do
   use Ecto.Schema
   import Ecto.Changeset
 
   @primary_key {:name, :string, autogenerate: false}
-  @foreign_key_type :integer
+
   schema "transforms" do
     field :label, :string
-    has_many :transform_properties, Core.Items.TransformProperties, on_delete: :delete_all
+    has_many :transform_properties, Core.Transformations.TransformProperties,
+      foreign_key: :transform_name,
+      on_delete: :delete_all
+
   end
 
   @doc false
@@ -14,5 +17,6 @@ defmodule Core.Uploads.Transform do
     transform
     |> cast(attrs, [:name, :label])
     |> validate_required([:name, :label])
+    |> unique_constraint(:name)
   end
 end
