@@ -12,7 +12,7 @@ defmodule Core.Repo.Migrations.TransformProperties do
       add :type, :string
       add :default, :string
       add :metadata, :map, default: %{}
-      add :transform_id,
+      add :transform_name,
           references(:transforms, column: :name, on_delete: :delete_all, type: :string)
     end
 

@@ -71,7 +71,7 @@ defmodule Core.Repo.Migrations.SeedTransforms do
 
       Enum.each(props, fn prop_data ->
         %TransformProperties{}
-        |> TransformProperties.changeset(Map.put(prop_data, :transform_id, transform.id))
+        |> TransformProperties.changeset(Map.put(prop_data, :transform_name, transform.name))
         |> Repo.insert!()
       end)
     end)

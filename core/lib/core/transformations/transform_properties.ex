@@ -5,7 +5,7 @@ defmodule Core.Transformations.TransformProperties do
   schema "transform_properties" do
     field :key, :string
     field :type, :string
-    field :transform_id, :string
+    field :transform_name, :string
 
     belongs_to :transform, Core.Transformations.Transform,
       define_field: false,
