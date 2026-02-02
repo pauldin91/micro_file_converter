@@ -1,53 +1,13 @@
 defmodule Core.Transforms do
-  @transformations %{
-    rotate: %{
-      label: "Rotate",
-      props: [
-        %{key: "degrees", type: :number, default: 90, step: 1, min: 0, max: 360}
-      ]
-    },
-    blur: %{
-      label: "Blur",
-      props: [
-        %{key: "sigma", type: :number, default: 1.0, step: 0.1, min: 0}
-      ]
-    },
-    invert: %{
-      label: "Invert",
-      props: []
-    },
-    convert: %{
-      label: "Convert",
-      props: []
-    },
-    brighten: %{
-      label: "Brighten",
-      props: [
-        %{key: "brightness", type: :number, default: 20, step: 1, min: 0}
-      ]
-    },
-    mirror: %{
-      label: "Mirror",
-      props: [
-        %{
-          key: "axis",
-          type: :text,
-          default: "horizontal",
-          selection: ["horizontal", "vertical", "diagonal"]
-        }
-      ]
-    },
-    crop: %{
-      label: "Crop",
-      props: [
-        %{key: "x", type: :number, default: 0},
-        %{key: "y", type: :number, default: 0},
-        %{key: "w", type: :number, default: 100},
-        %{key: "h", type: :number, default: 100}
-      ]
-    }
-  }
-  def transformations, do: @transformations
+  import Ecto.Query, warn: false
+  alias Core.Repo
+  alias Core.Transformations.Transform
+
+
+  def list_transforms() do
+    Repo.all(Transform)
+    |> Repo.preload(:transform_properties)
+  end
 
   def build_props_for_transform(transform, transformations) do
     transform

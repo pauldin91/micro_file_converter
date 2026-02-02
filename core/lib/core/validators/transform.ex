@@ -1,5 +1,6 @@
 defmodule Core.Validators.Transform do
-  @transformations Core.Transforms.transformations()
+alias Core.Transforms
+
 
   @spec validate(map(), atom() | String.t()) ::
           {:ok, map()} | {:error, map()}
@@ -22,7 +23,8 @@ defmodule Core.Validators.Transform do
   ## -------- helpers --------
 
   defp fetch_transform(transform) do
-    case Map.fetch(@transformations, transform) do
+    transformations = Transforms.list_transforms()
+    case Map.fetch(transformations, transform) do
       {:ok, spec} -> {:ok, spec}
       :error -> {:error, %{transform: "Unknown transform"}}
     end
