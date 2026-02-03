@@ -1,5 +1,6 @@
 [
     {
+        "status": "pending",
         "files": [
             {
                 "size": 116328,
@@ -14,7 +15,6 @@
         ],
         "transform": {
             "name": "crop",
-            "status": "pending",
             "props": {
                 "x": "24",
                 "y": "24",
@@ -24,6 +24,7 @@
         }
     },
     {
+        "status": "pending",
         "files": [
             {
                 "size": 116328,
@@ -38,13 +39,13 @@
         ],
         "transform": {
             "name": "blur",
-            "status": "pending",
             "props": {
                 "sigma": "2.0"
             }
         }
     },
     {
+        "status": "pending",
         "files": [
             {
                 "size": 116328,
@@ -58,11 +59,11 @@
             }
         ],
         "transform": {
-            "status": "pending",
             "name": "invert"
         }
     },
     {
+        "status": "pending",
         "files": [
             {
                 "size": 116328,
@@ -77,13 +78,13 @@
         ],
         "transform": {
             "name": "brighten",
-            "status": "pending",
             "props": {
                 "brightness": "20"
             }
         }
     },
     {
+        "status": "pending",
         "files": [
             {
                 "size": 116328,
@@ -97,7 +98,6 @@
             }
         ],
         "transform": {
-            "status": "pending",
             "name": "mirror",
             "props":{
                 "axis": "diagonal"

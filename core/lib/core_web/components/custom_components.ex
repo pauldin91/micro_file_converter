@@ -84,9 +84,9 @@ defmodule CoreWeb.CustomComponents do
       </select>
     <% else %>
       <input
-        type={(@entry.meta.type == :number && "number") || "text"}
+        type={(@entry.type == :number && "number") || "text"}
         name={"props[#{@entry.key}]"}
-        value={@entry.value}
+        value={@entry.value || @entry.meta[:default]}
         min={@entry.meta[:min]}
         max={@entry.meta[:max]}
         step={@entry.meta[:step]}

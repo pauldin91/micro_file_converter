@@ -15,7 +15,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign(assigns)
      |> assign_new(:transform, fn -> "none" end)
      |> assign_new(:props_entries, fn -> [] end)
-     |> assign(:transformations, Transforms.transformations())
+     |> assign(:transformations, Transforms.list_transforms())
      |> assign_new(:form, fn ->
        to_form(Uploads.change_batch(batch))
      end)
@@ -35,7 +35,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     props_entries =
       transform
-      |> Transforms.build_props_for_transform(socket.assigns.transformations)
+      |> Transforms.build_props_for_transform()
       |> merge_props_values(props_params)
 
     changeset =
@@ -49,7 +49,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
      |> assign(:transform, transform)
      |> assign(:props_entries, props_entries)}
   end
-
 
   def handle_event("toggle_transform", %{"mode" => mode}, socket) do
     {:noreply, assign(socket, :mode, mode)}
