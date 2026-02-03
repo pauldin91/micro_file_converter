@@ -1,21 +1,9 @@
 defmodule Core.Validators.Transform do
-alias Core.Transforms
+  alias Core.Transforms
 
-
-  @spec validate(map(), atom() | String.t()) ::
-          {:ok, map()} | {:error, map()}
   def validate(props, transform) when is_binary(transform) do
-    validate(props, String.to_existing_atom(transform))
-  rescue
-
-    ArgumentError ->
-      {:error, %{transform: "Unknown transform"}}
-  end
-
-  def validate(props, transform) when is_atom(transform) do
     with {:ok, spec} <- fetch_transform(transform),
-         {:ok, props} <- normalize_props(props),
-         {:ok, validated} <- validate_props(spec.props, props) do
+         {:ok, validated} <- validate_props(spec.transform_properties, props) do
       {:ok, validated}
     end
   end
@@ -23,18 +11,13 @@ alias Core.Transforms
   ## -------- helpers --------
 
   defp fetch_transform(transform) do
-    transformations = Transforms.list_transforms()
-    case Map.fetch(transformations, transform) do
-      {:ok, spec} -> {:ok, spec}
-      :error -> {:error, %{transform: "Unknown transform"}}
-    end
-  end
+    tr = Transforms.get_by_name(transform)
+    dbg(tr)
 
-  defp normalize_props(props) do
-    {:ok,
-     Map.new(props, fn {k, v} ->
-       {to_string(k), v}
-     end)}
+    cond do
+      tr != nil -> {:ok, tr}
+      true -> {:error, %{transform: "Unknown transform"}}
+    end
   end
 
   defp validate_props(specs, props) do
@@ -60,8 +43,10 @@ alias Core.Transforms
     specs
     |> Enum.reduce({%{}, %{}}, fn spec, {ok, errors} ->
       key = spec.key
-      value = Map.get(props, key, spec.default)
+      value = Map.get(props, spec.key, spec.metadata["default"])
 
+      dbg(spec)
+      dbg(value)
       case validate_prop(value, spec) do
         {:ok, v} -> {Map.put(ok, key, v), errors}
         {:error, err} -> {ok, Map.put(errors, key, err)}
@@ -75,7 +60,8 @@ alias Core.Transforms
 
   ## -------- per-prop validation --------
 
-  defp validate_prop(value, %{type: :number} = spec) do
+  defp validate_prop(value, %Core.Transformations.TransformProperties{} = spec) do
+
     with {:ok, number} <- cast_number(value),
          :ok <- check_min(number, spec),
          :ok <- check_max(number, spec) do
@@ -110,13 +96,13 @@ alias Core.Transforms
 
   defp cast_number(_), do: {:error, "is not a number"}
 
-  defp check_min(value, %{min: min}) when value < min,
-    do: {:error, "must be ≥ #{min}"}
+  defp check_min(value,%Core.Transformations.TransformProperties{}=spec) when value < spec.metadata.min,
+    do: {:error, "must be ≥ #{spec.metadata.min}"}
 
   defp check_min(_, _), do: :ok
 
-  defp check_max(value, %{max: max}) when value > max,
-    do: {:error, "must be ≤ #{max}"}
+  defp check_max(value, %Core.Transformations.TransformProperties{}=spec) when value > spec.metadata.max,
+    do: {:error, "must be ≤ #{spec.metadata.max}"}
 
   defp check_max(_, _), do: :ok
 end
