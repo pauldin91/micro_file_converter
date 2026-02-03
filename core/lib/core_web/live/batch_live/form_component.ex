@@ -33,11 +33,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     transform = batch_params["transform"] || socket.assigns.transform
 
-    batch_params_with_metadata =
-      batch_params
-      |> Map.put("user_id", socket.assigns.user.id)
-      |> Map.put("status", "pending")
-
     props_entries =
       transform
       |> Transforms.build_props_for_transform()
@@ -45,7 +40,7 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
     changeset =
       socket.assigns.batch
-      |> Uploads.change_batch(batch_params_with_metadata)
+      |> Uploads.change_batch(batch_params)
       |> Map.put(:action, :validate)
 
     {:noreply,
