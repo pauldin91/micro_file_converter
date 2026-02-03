@@ -109,15 +109,12 @@ defmodule CoreWeb.BatchLive.FormComponent do
 
         case result do
           {:ok, batch_id} ->
-            dbg(result)
-
             {:noreply,
              socket
              |> assign(:batch_id, batch_id)
              |> put_flash(:info, "Files uploaded with batch id #{batch_id}")}
 
           {:error, reason} ->
-            dbg(reason)
             {:noreply, put_flash(socket, :error, reason)}
 
           :error ->
@@ -125,7 +122,6 @@ defmodule CoreWeb.BatchLive.FormComponent do
         end
 
       {:error, reason} ->
-        dbg(reason)
         {:noreply, put_flash(socket, :error, reason)}
     end
   end
