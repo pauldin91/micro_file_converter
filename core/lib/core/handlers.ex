@@ -24,7 +24,7 @@ defmodule Core.Handlers do
   end
 
   defp create_batch_with_pictures(%Core.Mappings.Batch{} = batch_dto, %{user_id: user_id}) do
-    status = "pending"
+    status = "Processing"
 
     with {:ok, batch} <-
            Uploads.create_batch(%{
@@ -35,32 +35,33 @@ defmodule Core.Handlers do
              inserted_at: batch_dto.timestamp
            }),
          :ok <- link_all_pictures(batch_dto),
-         :ok <-
-           Metadata.save_metadata(%Core.Mappings.Batch{
-             batch_dto
-             | timestamp: batch.inserted_at,
-               status: status
-           }),
-         :ok <- publish_batch(batch_dto) do
+         {:ok, serialized} <-
+           Metadata.save_metadata(
+             %Core.Mappings.Batch{
+               batch_dto
+               | timestamp: batch.inserted_at,
+                 status: status
+             }
+           ),
+         :ok <- publish_batch(serialized, batch_dto.transform.name) do
       {:ok, batch.id}
     end
   end
 
-  defp publish_batch(%Core.Mappings.Batch{} = batch_dto) do
+  defp publish_batch(serialized, transform) do
     queue =
       cond do
-        batch_dto.transform.name == "convert" -> get_event_queue(:none)
-        true -> get_event_queue(batch_dto.transform.name)
+        transform == "convert" -> get_event_queue(:none)
+        true -> get_event_queue(transform)
       end
-      dbg(batch_dto)
 
-    Core.RabbitMq.Publisher.publish_message(queue, Jason.encode!(batch_dto))
+    Core.RabbitMq.Publisher.publish_message(queue, serialized)
   end
 
-  def get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
-  def get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
+  defp get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
+  defp get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
 
-  def link_all_pictures(batch_dto) do
+  defp link_all_pictures(batch_dto) do
     Enum.reduce_while(batch_dto.files, :ok, fn file, :ok ->
       case link_picture(file, batch_dto.id) do
         :ok -> {:cont, :ok}
