@@ -83,7 +83,7 @@ impl Application for ImageApp {
                 self.contrast = constrast;
                 self.instructions
                     .insert(String::from("contrast"), self.contrast.to_string());
-                self.update_transformed_image("contrast");
+                self.update_transformed_image("brighten");
                 Command::none()
             }
             Message::RotationChanged(degrees) => {

@@ -34,7 +34,8 @@ defmodule Core.Repo.Migrations.SeedTransforms do
         name: "brighten",
         label: "Brighten",
         props: [
-          %{key: "brightness", type: "number", metadata: %{default: 20, step: 1, min: 0}}
+          %{key: "brightness", type: "number", metadata: %{default: 20.0, step: 1.0, min: 0,max: 100.0}},
+          %{key: "contrast", type: "number", metadata: %{default: 0.5, step: 0.1, min: 0, max: 3.0}}
         ]
       },
       %{
