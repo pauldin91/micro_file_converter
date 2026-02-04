@@ -79,13 +79,13 @@ impl Application for ImageApp {
                 self.update_transformed_image("brighten");
                 Command::none()
             }
-            // Message::ContrastChanged(constrast) => {
-            //     self.contrast = constrast;
-            //     self.instructions
-            //         .insert(String::from("contrast"), self.contrast.to_string());
-            //     self.update_transformed_image("contrast");
-            //     Command::none()
-            // }
+            Message::ContrastChanged(constrast) => {
+                self.contrast = constrast;
+                self.instructions
+                    .insert(String::from("contrast"), self.contrast.to_string());
+                self.update_transformed_image("contrast");
+                Command::none()
+            }
             Message::RotationChanged(degrees) => {
                 self.degrees = degrees;
                 self.instructions
@@ -145,12 +145,18 @@ impl Application for ImageApp {
                     text(format!("{:.0}", self.brightness)).width(50),
                 ]
                 .spacing(10),
-                // row![
-                //     text("Contrast:").width(100),
-                //     slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.1),
-                //     text(format!("{:.1}", self.contrast)).width(50),
-                // ]
-                // .spacing(10),
+                row![
+                    text("Contrast:").width(100),
+                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.1),
+                    text(format!("{:.1}", self.contrast)).width(50),
+                ]
+                .spacing(10),
+                row![
+                    text("Blur:").width(100),
+                    slider(0.0..=3.0, self.contrast, Message::SigmaChanged).step(0.1),
+                    text(format!("{:.1}", self.contrast)).width(50),
+                ]
+                .spacing(10),
                 row![
                     text("Rotation:").width(100),
                     slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
