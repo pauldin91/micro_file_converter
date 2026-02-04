@@ -62,18 +62,19 @@ impl Dispatcher {
                         serde_json::from_str(delivery.as_str());
                     match msg {
                         Ok(dto) => {
+                            let id = dto.id.to_string();
                             task::spawn(async move {
                                 let _permit = permit;
 
                                 let result = srv.handle(dto).await;
 
                                 match result {
-                                    Ok(dto) => {
-                                        let msg = &serde_json::to_string(&dto).unwrap();
+                                    Ok(completed_dto) => {
+                                        let msg = &serde_json::to_string(&completed_dto).unwrap();
                                         let _ = _publisher.publish(msg).await;
                                     }
                                     Err(e) => {
-                                        error!("message failed: {e:?}");
+                                        error!("error : {e:?} handling message with id {}",id);
                                     }
                                 }
                             });
@@ -85,7 +86,7 @@ impl Dispatcher {
                     }
                 }
                 Err(e) => {
-                    error!("Error: {} opening connection", e);
+                    error!("error: {} opening connection", e);
                     
                 }
             }
