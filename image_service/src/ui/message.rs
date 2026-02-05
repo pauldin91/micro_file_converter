@@ -4,7 +4,7 @@ use std::path::PathBuf;
 pub enum Message {
     SelectImage,
     ImageSelected(Option<PathBuf>),
-    BrightnessChanged(i32),
+    BrightnessChanged(f32),
     ContrastChanged(f32),
     RotationChanged(f32),
     ReflectionChanged(String),

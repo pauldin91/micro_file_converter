@@ -12,7 +12,7 @@ pub struct ImageApp {
     displayed_image: Option<DynamicImage>,
     image_handle: Option<image::Handle>,
     contrast: f32,
-    brightness: i32,
+    brightness: f32,
     degrees: f32,
     sigma: f32,
     axis: Option<String>,
@@ -32,7 +32,7 @@ impl Application for ImageApp {
                 original_image: None,
                 displayed_image: None,
                 image_handle: None,
-                brightness: 0,
+                brightness: 0.0,
                 sigma: 0.0,
                 axis: Some(String::from("none")),
                 degrees: 0.0,
@@ -141,20 +141,20 @@ impl Application for ImageApp {
             column![
                 row![
                     text("Brightness:").width(100),
-                    slider(-100..=100, self.brightness, Message::BrightnessChanged).step(1),
+                    slider(-100.0..=100.0, self.brightness, Message::BrightnessChanged).step(1.0),
                     text(format!("{:.0}", self.brightness)).width(50),
                 ]
                 .spacing(10),
                 row![
                     text("Contrast:").width(100),
-                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.1),
+                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.3),
                     text(format!("{:.1}", self.contrast)).width(50),
                 ]
                 .spacing(10),
                 row![
                     text("Blur:").width(100),
-                    slider(0.0..=3.0, self.contrast, Message::SigmaChanged).step(0.1),
-                    text(format!("{:.1}", self.contrast)).width(50),
+                    slider(0.0..=3.0, self.sigma, Message::SigmaChanged).step(0.1),
+                    text(format!("{:.1}", self.sigma)).width(50),
                 ]
                 .spacing(10),
                 row![
@@ -198,7 +198,7 @@ impl ImageApp {
     }
 
     fn reset(&mut self) {
-        self.brightness = 0;
+        self.brightness = 0.0;
         self.contrast = 1.0;
         self.degrees = 0.0;
         self.sigma = 0.0;
@@ -221,7 +221,7 @@ impl ImageApp {
         let op = kind.create_from_instructions(&self.instructions);
 
         current = op.apply(&current).unwrap();
-        self.displayed_image = Some(current.clone());
+        // self.displayed_image = Some(current.clone());
 
         let rgba = current.to_rgba8();
         let (width, height) = rgba.dimensions();
