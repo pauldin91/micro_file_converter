@@ -62,6 +62,26 @@ impl Application for ImageApp {
                 },
                 Message::ImageSelected,
             ),
+            Message::SaveImage => Command::perform(
+                async {
+                    rfd::FileDialog::new()
+                        .add_filter("Images", &["png", "jpg", "jpeg"])
+                        .save_file()
+                },
+                Message::ImageSaved,
+            ),
+            Message::ImageSaved(path) => {
+                if let Some(path) = path {
+                    match self.displayed_image.clone() {
+                        Some(img) => {
+                            let _ = img.save(path);
+                            ()
+                        }
+                        None => (),
+                    };
+                }
+                Command::none()
+            }
             Message::ImageSelected(path) => {
                 if let Some(path) = path {
                     if let Ok(img) = ::image::open(&path) {
@@ -137,20 +157,8 @@ impl Application for ImageApp {
                 .into()
         };
 
-        let controls = if self.displayed_image.is_some() {
+        let controls: iced::widget::Column<'_, Message> = if self.displayed_image.is_some() {
             column![
-                row![
-                    text("Brightness:").width(100),
-                    slider(-100.0..=100.0, self.brightness, Message::BrightnessChanged).step(1.0),
-                    text(format!("{:.0}", self.brightness)).width(50),
-                ]
-                .spacing(10),
-                row![
-                    text("Contrast:").width(100),
-                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.3),
-                    text(format!("{:.1}", self.contrast)).width(50),
-                ]
-                .spacing(10),
                 row![
                     text("Blur:").width(100),
                     slider(0.0..=3.0, self.sigma, Message::SigmaChanged).step(0.1),
@@ -158,15 +166,27 @@ impl Application for ImageApp {
                 ]
                 .spacing(10),
                 row![
-                    text("Rotation:").width(100),
-                    slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
-                    text(format!("{:.0}°", self.degrees)).width(50),
+                    text("Brightness:").width(100),
+                    slider(-5.0..=5.0, self.brightness, Message::BrightnessChanged).step(0.5),
+                    text(format!("{:.0}", self.brightness)).width(50),
+                ]
+                .spacing(10),
+                row![
+                    text("Contrast:").width(100),
+                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.2),
+                    text(format!("{:.1}", self.contrast)).width(50),
                 ]
                 .spacing(10),
                 row![
                     text("Mirror:").width(100),
                     pick_list(&self.axes, self.axis.clone(), Message::ReflectionChanged),
                     text(self.axis.as_deref().unwrap_or("None")).width(50),
+                ]
+                .spacing(10),
+                row![
+                    text("Rotation:").width(100),
+                    slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
+                    text(format!("{:.0}°", self.degrees)).width(50),
                 ]
                 .spacing(10),
                 button("Reset Transforms").on_press(Message::ResetTransforms),
@@ -178,6 +198,7 @@ impl Application for ImageApp {
 
         column![
             button("Select Image").on_press(Message::SelectImage),
+            button("Save").on_press(Message::SaveImage),
             controls,
             image_display,
         ]
@@ -221,11 +242,11 @@ impl ImageApp {
         let op = kind.create_from_instructions(&self.instructions);
 
         current = op.apply(&current).unwrap();
-        // self.displayed_image = Some(current.clone());
+        self.displayed_image = Some(current.clone());
 
         let rgba = current.to_rgba8();
         let (width, height) = rgba.dimensions();
-        
+
         self.image_handle = Some(image::Handle::from_pixels(width, height, rgba.into_raw()));
     }
 }
