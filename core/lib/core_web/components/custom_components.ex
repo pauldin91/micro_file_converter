@@ -72,10 +72,10 @@ defmodule CoreWeb.CustomComponents do
 
   def render_prop_input(assigns) do
     ~H"""
-    <%= if @entry.meta[:selection] do %>
+    <%= if @entry.meta["selection"]|>Enum.count > 0 do %>
       <select name={"props[#{@entry.key}]"} class="select select-bordered w-full">
         <option
-          :for={opt <- @entry.meta.selection}
+          :for={opt <- @entry.meta["selection"]}
           value={opt}
           selected={opt == @entry.value}
         >
