@@ -9,6 +9,7 @@ pub enum Message {
     BrightnessChanged(f32),
     ContrastChanged(f32),
     RotationChanged(f32),
+    InvertToogle,
     SigmaChanged(f32),
     ReflectionChanged(String),
     ResetTransforms,

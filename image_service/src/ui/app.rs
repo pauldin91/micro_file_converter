@@ -18,6 +18,7 @@ pub struct ImageApp {
     axis: Option<String>,
     instructions: HashMap<String, String>,
     axes: Vec<String>,
+    toogle: bool,
 }
 
 impl Application for ImageApp {
@@ -37,6 +38,7 @@ impl Application for ImageApp {
                 axis: Some(String::from("none")),
                 degrees: 0.0,
                 contrast: 1.0,
+                toogle: false,
                 instructions: HashMap::new(),
                 axes: vec![
                     String::from("vertical"),
@@ -113,6 +115,11 @@ impl Application for ImageApp {
                 self.update_transformed_image("rotate");
                 Command::none()
             }
+            Message::InvertToogle => {
+                self.toogle = !self.toogle;
+                self.update_transformed_image("invert");
+                Command::none()
+            }
             Message::SigmaChanged(sigma) => {
                 self.sigma = sigma;
                 self.instructions
@@ -175,6 +182,13 @@ impl Application for ImageApp {
                     text("Contrast:").width(100),
                     slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.2),
                     text(format!("{:.1}", self.contrast)).width(50),
+                ]
+                .spacing(10),
+                row![
+                    
+                    button("Invert")
+                    .on_press(Message::InvertToogle),
+
                 ]
                 .spacing(10),
                 row![
