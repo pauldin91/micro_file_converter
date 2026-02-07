@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use ::image::DynamicImage;
-use iced::widget::{button, column, container, image, pick_list, row, slider, text};
+use iced::widget::{button, column, container, image, text};
 use iced::{Application, Command, Element, Length, Theme, executor};
 
-use crate::Message;
+use crate::{Controls, Message};
 use crate::features::TransformFactory;
 
 pub struct ImageApp {
@@ -166,41 +166,7 @@ impl Application for ImageApp {
         };
 
         let controls: iced::widget::Column<'_, Message> = if self.displayed_image.is_some() {
-            column![
-                row![
-                    text("Blur:").width(100),
-                    slider(0.0..=3.0, self.sigma, Message::SigmaChanged).step(0.1),
-                    text(format!("{:.1}", self.sigma)).width(50),
-                ]
-                .spacing(10),
-                row![
-                    text("Brightness:").width(100),
-                    slider(-5.0..=5.0, self.brightness, Message::BrightnessChanged).step(0.5),
-                    text(format!("{:.0}", self.brightness)).width(50),
-                ]
-                .spacing(10),
-                row![
-                    text("Contrast:").width(100),
-                    slider(0.0..=3.0, self.contrast, Message::ContrastChanged).step(0.2),
-                    text(format!("{:.1}", self.contrast)).width(50),
-                ]
-                .spacing(10),
-                row![button("Invert").on_press(Message::InvertToogle),].spacing(10),
-                row![
-                    text("Mirror:").width(100),
-                    pick_list(&self.axes, self.axis.clone(), Message::ReflectionChanged),
-                    text(self.axis.as_deref().unwrap_or("None")).width(50),
-                ]
-                .spacing(10),
-                row![
-                    text("Rotation:").width(100),
-                    slider(0.0..=360.0, self.degrees, Message::RotationChanged).step(1.0),
-                    text(format!("{:.0}°", self.degrees)).width(50),
-                ]
-                .spacing(10),
-                button("Reset Transforms").on_press(Message::ResetTransforms),
-            ]
-            .spacing(10)
+            Controls::setup(self.sigma, self.brightness, self.contrast, self.degrees, self.axis.clone(), self.axes.clone())
         } else {
             column![]
         };

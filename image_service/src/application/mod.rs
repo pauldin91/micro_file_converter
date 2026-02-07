@@ -1,3 +1,2 @@
-pub mod dispatcher;
-
+mod dispatcher;
 pub use dispatcher::Dispatcher;

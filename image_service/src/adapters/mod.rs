@@ -1,7 +1,7 @@
-pub mod transform_handler;
-pub mod local_storage;
-pub mod rabbit_publisher;
-pub mod rabbit_subscriber;
+mod transform_handler;
+mod local_storage;
+mod rabbit_publisher;
+mod rabbit_subscriber;
 pub use transform_handler::TransformHandler;
 pub use local_storage::LocalStorage;
 pub use rabbit_publisher::RabbitMqPublisher;

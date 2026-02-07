@@ -1,9 +1,9 @@
-pub mod rect;
+mod rect;
+mod dto;
+mod instructions;
+pub mod error;
 pub mod config;
 pub use config::*;
-pub mod dto;
-pub mod instructions;
-pub mod error;
 pub use dto::*;
 pub use error::*;
 pub use instructions::Instructions;
