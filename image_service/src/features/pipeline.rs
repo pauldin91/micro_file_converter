@@ -1,8 +1,5 @@
 use crate::features::Transform;
 
-
-
-
 pub struct TransformPipeline {
     transformations: Vec<Box<dyn Transform>>,
 }

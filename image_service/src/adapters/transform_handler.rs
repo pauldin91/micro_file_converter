@@ -4,17 +4,17 @@ use std::sync::Arc;
 use tracing::error;
 
 use crate::Storage;
-use crate::domain::{CompletedDto, UploadDto};
+use crate::domain::{TransformResponseDto, TransformRequestDto};
 use crate::features::{Transform, TransformFactory, decode, encode};
 #[derive(Clone)]
-pub struct TransformEngine{
+pub struct TransformHandler{
     storage: Arc<dyn Storage>,
 }
-impl TransformEngine {
+impl TransformHandler {
     pub fn new(storage: Arc<dyn Storage>) -> Self {
         Self { storage }
     }
-    pub async fn handle(&self, instructions: UploadDto) -> Result<CompletedDto, anyhow::Error> {
+    pub async fn handle(&self, instructions: TransformRequestDto) -> Result<TransformResponseDto, anyhow::Error> {
         match instructions.transform.name.parse::<TransformFactory>() {
             Ok(kind) => {
                 let op: Box<dyn Transform> = kind.create_from_instructions(&instructions.transform.props);
@@ -43,7 +43,7 @@ impl TransformEngine {
                         }
                     }
                 }
-                Ok(CompletedDto::new(
+                Ok(TransformResponseDto::new(
                     instructions.id.to_string(),
                     crate::domain::Status::Completed,
                 ))

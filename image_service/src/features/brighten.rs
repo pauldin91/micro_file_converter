@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use image::DynamicImage;
 
-use crate::{domain::{ImageError}, features::Transform};
+use crate::{domain::{ImageError, Instructions}, features::Transform};
 
 pub struct Brighten {
     contrast: f32,
@@ -19,17 +19,9 @@ impl Brighten {
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
         
-        let contrast: f32 = props
-            .get("contrast")
-            .unwrap_or(&String::from("0.0"))
-            .parse()
-            .unwrap();
+        let contrast: f32 = Instructions::parse_properties::<f32>(props, "contrast").unwrap_or(1.0);
 
-        let brightness: f32 = props
-            .get("brightness")
-            .unwrap_or(&String::from("0.0"))
-            .parse()
-            .unwrap();
+        let brightness: f32 = Instructions::parse_properties::<f32>(props, "brightness").unwrap_or(0.0);
        
        Self { contrast, brightness: brightness }
     }

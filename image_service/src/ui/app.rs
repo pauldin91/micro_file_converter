@@ -44,6 +44,7 @@ impl Application for ImageApp {
                     String::from("vertical"),
                     String::from("horizontal"),
                     String::from("diagonal"),
+                    String::from("none"),
                 ],
             },
             Command::none(),
@@ -184,13 +185,7 @@ impl Application for ImageApp {
                     text(format!("{:.1}", self.contrast)).width(50),
                 ]
                 .spacing(10),
-                row![
-                    
-                    button("Invert")
-                    .on_press(Message::InvertToogle),
-
-                ]
-                .spacing(10),
+                row![button("Invert").on_press(Message::InvertToogle),].spacing(10),
                 row![
                     text("Mirror:").width(100),
                     pick_list(&self.axes, self.axis.clone(), Message::ReflectionChanged),

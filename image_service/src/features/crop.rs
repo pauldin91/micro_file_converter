@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use image::DynamicImage;
 
-use crate::{domain::{ImageError, Rect}, features::Transform};
+use crate::{domain::{ImageError, Instructions, Rect}, features::Transform};
 
 pub struct Crop {
     selection: Rect,
@@ -26,26 +26,10 @@ impl Crop {
         }
     }
     pub fn from(props: &HashMap<String, String>) -> Self {
-        let x: u32 = props
-            .get("x")
-            .unwrap_or(&String::from("0"))
-            .parse()
-            .unwrap();
-        let y: u32 = props
-            .get("y")
-            .unwrap_or(&String::from("0"))
-            .parse()
-            .unwrap();
-        let width: u32 = props
-            .get("width")
-            .unwrap_or(&String::from("100"))
-            .parse()
-            .unwrap();
-        let height: u32 = props
-            .get("height")
-            .unwrap_or(&String::from("100"))
-            .parse()
-            .unwrap();
+        let x: u32 = Instructions::parse_properties::<u32>(props, "x").unwrap_or(0);
+        let y: u32 = Instructions::parse_properties::<u32>(props, "y").unwrap_or(0);
+        let width: u32 = Instructions::parse_properties::<u32>(props, "w").unwrap_or(100);
+        let height: u32 = Instructions::parse_properties::<u32>(props, "h").unwrap_or(100);
         let selection = Rect::new(x, y, width, height);
         Self {
             selection,

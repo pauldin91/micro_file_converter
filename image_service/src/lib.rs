@@ -7,5 +7,5 @@ pub mod ui;
 pub use ui::*;
 pub use application::Dispatcher;
 pub use features::{Blur, Brighten, Crop, Fractal, Invert, Rotate};
-pub use adapters::TransformEngine;
+pub use adapters::TransformHandler;
 pub use ports::{Publisher, Storage, Subscriber};

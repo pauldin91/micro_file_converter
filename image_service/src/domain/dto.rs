@@ -20,26 +20,26 @@ pub struct FileDto {
 }
 
 #[derive(Debug, Deserialize)]
-pub struct UploadDto {
+pub struct TransformRequestDto {
     pub id: Uuid,
-    pub transform: TransformDto,
+    pub transform: TransformPropertiesDto,
     pub timestamp: DateTime<Utc>,
     pub files: Vec<FileDto>,
 }
 #[derive(Debug, Deserialize)]
-pub struct TransformDto{
+pub struct TransformPropertiesDto{
     pub name: String,
     #[serde(default)]
     pub props: HashMap<String, String>,
 }
 
 #[derive(Debug,Serialize, Deserialize)]
-pub struct CompletedDto {
+pub struct TransformResponseDto {
     pub id: String,
     pub status: Status,
     pub timestamp: DateTime<Utc>
 }
-impl CompletedDto {
+impl TransformResponseDto {
     pub fn new(id: String, status: Status) -> Self {
         Self {
             id,

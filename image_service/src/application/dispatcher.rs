@@ -3,11 +3,11 @@ use std::sync::Arc;
 use tokio::{sync::Semaphore, task};
 use tracing::{error, info};
 
-use crate::domain::UploadDto;
+use crate::domain::TransformRequestDto;
 use crate::domain::config;
 use crate::adapters::RabbitMqPublisher;
 use crate::adapters::RabbitMqSubscriber;
-use crate::adapters::{LocalStorage, TransformEngine};
+use crate::adapters::{LocalStorage, TransformHandler};
 use crate::ports::{Publisher, Storage, Subscriber};
 
 pub struct Dispatcher {
@@ -45,7 +45,7 @@ impl Dispatcher {
         );
 
         let storage: Arc<dyn Storage> = Arc::new(LocalStorage::new());
-        let service = Arc::new(TransformEngine::new(storage));
+        let service = Arc::new(TransformHandler::new(storage));
         let publisher: Arc<dyn Publisher> = Arc::new(RabbitMqPublisher::new().await?);
         let subscriber: Arc<dyn Subscriber> = Arc::new(RabbitMqSubscriber::new().await?);
 
@@ -58,7 +58,7 @@ impl Dispatcher {
             let permit = semaphore.clone().acquire_owned().await?;
             match _subscriber.get_next().await {
                 Ok(delivery) => {
-                    let msg: Result<UploadDto, serde_json::Error> =
+                    let msg: Result<TransformRequestDto, serde_json::Error> =
                         serde_json::from_str(delivery.as_str());
                     match msg {
                         Ok(dto) => {
