@@ -72,7 +72,7 @@ defmodule CoreWeb.CustomComponents do
 
   def render_prop_input(assigns) do
     ~H"""
-    <%= if @entry.meta["selection"]|>Enum.count > 0 do %>
+    <%= if Map.get(@entry.meta,"selection") != nil do %>
       <select name={"props[#{@entry.key}]"} class="select select-bordered w-full">
         <option
           :for={opt <- @entry.meta["selection"]}
@@ -86,10 +86,10 @@ defmodule CoreWeb.CustomComponents do
       <input
         type={(@entry.type == :number && "number") || "text"}
         name={"props[#{@entry.key}]"}
-        value={@entry.value || @entry.meta[:default]}
-        min={@entry.meta[:min]}
-        max={@entry.meta[:max]}
-        step={@entry.meta[:step]}
+        value={@entry.value || @entry.meta["default"]}
+        min={@entry.meta["min"]}
+        max={@entry.meta["max"]}
+        step={@entry.meta["step"]}
         class="input input-bordered w-full"
       />
     <% end %>
