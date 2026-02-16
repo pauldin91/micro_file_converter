@@ -10,6 +10,12 @@ pub struct Brighten {
     brightness: f32,
 }
 
+impl Default for Brighten {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Brighten {
     pub fn new() -> Self {
         Self {
@@ -23,9 +29,10 @@ impl Brighten {
 
         let brightness: f32 = Instructions::parse_properties::<f32>(props, "brightness").unwrap_or(0.0);
        
-       Self { contrast, brightness: brightness }
+       Self { contrast, brightness }
     }
 }
+
 impl Transform for Brighten {
     fn apply(&self, img: &DynamicImage) -> Result<DynamicImage, ImageError> {
                 let mut rgba = img.to_rgba8();

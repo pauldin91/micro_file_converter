@@ -88,19 +88,17 @@ impl Application for ImageApp {
             }
             
             Message::ImageSaved(path) => {
-                if let Some(path) = path {
-                    if let Some(img) = &self.displayed_image {
+                if let Some(path) = path && let Some(img) = &self.displayed_image {
                         let _ = img.save(path);
                     }
-                }
+                
                 Command::none()
             }
             
             Message::ImageSelected(path) => {
-                if let Some(path) = path {
-                    if let Ok(img) = ::image::open(&path) {
+                if let Some(path) = path && let Ok(img) = ::image::open(&path) {
                         self.load_image(img);
-                    }
+                    
                 }
                 Command::none()
             }
