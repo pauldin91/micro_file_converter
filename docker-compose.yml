@@ -69,10 +69,6 @@ services:
     build: 
       context: .
       dockerfile: upload_service/dockerfile
-    depends_on:
-      - db
-      - rabbit      
-
     env_file:
       - upload_service/app.env
     environment:
@@ -84,6 +80,9 @@ services:
       - ./uploads:/data/uploads  
     networks:
       - micro.converter
+    depends_on:
+      - db
+      - rabbit      
 
 
   core:    

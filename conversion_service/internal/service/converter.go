@@ -67,6 +67,9 @@ func (c *Converter) fetchBatchFilenames(batchId string) ([]string, error) {
 func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
 	inputDir, outputDir := c.getUploadDirectoriesForBatch(batch.Id)
 	filenames, err := c.fetchBatchFilenames(batch.Id)
+
+	log.Printf("files are %v\n", filenames)
+
 	if err != nil {
 		return fmt.Errorf("unable to fetch Batch Filenames %v", err.Error())
 	}
