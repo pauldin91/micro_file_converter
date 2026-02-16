@@ -153,7 +153,7 @@ impl Application for ImageApp {
         }
     }
 
-    fn view(&self) -> Element<Message> {
+    fn view(&self) -> Element<'_,Message> {
         let image_display = self.build_image_display();
         let controls = self.build_controls();
         let toolbar = self.build_toolbar();
@@ -232,7 +232,7 @@ impl ImageApp {
     }
 
     /// Build the image display widget
-    fn build_image_display(&self) -> Element<Message> {
+    fn build_image_display(&self) -> Element<'_,Message> {
         if let Some(handle) = &self.image_handle {
             container(
                 image(handle.clone())
@@ -256,7 +256,7 @@ impl ImageApp {
     }
 
     /// Build the toolbar with file operations
-    fn build_toolbar(&self) -> Element<Message> {
+    fn build_toolbar(&self) -> Element<'_,Message> {
         let save_button = if self.displayed_image.is_some() {
             button("Save Image").on_press(Message::SaveImage)
         } else {
@@ -272,7 +272,7 @@ impl ImageApp {
     }
 
     /// Build the controls panel
-    fn build_controls(&self) -> Element<Message> {
+    fn build_controls(&self) -> Element<'_, Message> {
         if self.displayed_image.is_some() {
             container(
                 iced::widget::scrollable(
