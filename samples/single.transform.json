@@ -1,6 +1,6 @@
 [
     {
-        "status": "pending",
+        "status": "Processing",
         "files": [
             {
                 "size": 116328,
@@ -14,9 +14,8 @@
             }
         ],
         "transform": {
-            "name": "mirror",
+            "name": "convert",
             "props": {
-                "axis": "diagonal"
             }
         }
     }

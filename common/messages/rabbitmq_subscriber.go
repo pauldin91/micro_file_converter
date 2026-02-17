@@ -99,7 +99,7 @@ func (s *RabbitMQSubscriber) Start(ctx context.Context) error {
 					wg.Done()
 				}()
 				if err := s.handler(d.Body); err != nil && s.requeueMessagesOnError {
-					d.Nack(false, true)
+					d.Ack(false)
 					return
 				}
 
