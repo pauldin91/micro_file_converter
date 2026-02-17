@@ -46,6 +46,7 @@ func main() {
 			log.Printf("failed to deserialize body %s: %v\n", body, err)
 			return err
 		}
+		log.Printf("deserialized : %v\n", batch)
 
 		if err := worker.Convert(context, batch); err != nil {
 			log.Printf("batch %s failed: %v", batch.Id, err)

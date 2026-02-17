@@ -50,16 +50,23 @@ func (c *Converter) fetchBatchFilenames(batchId string) ([]string, error) {
 		return nil, fmt.Errorf("create output dir: %w", err)
 	}
 
-	entries, err := os.ReadDir(inputDir)
+	absInputDir, err := filepath.Abs(inputDir)
+	if err != nil {
+		return nil, fmt.Errorf("get absolute path: %w", err)
+	}
+
+	entries, err := os.ReadDir(absInputDir)
 	if err != nil {
 		return nil, fmt.Errorf("read input dir: %w", err)
 	}
-	filenames := make([]string, len(entries))
+
+	filenames := make([]string, 0)
 	for _, e := range entries {
 		if e.IsDir() || strings.EqualFold(filepath.Ext(e.Name()), ".json") {
 			continue
 		}
-		filenames = append(filenames, e.Name())
+		// Join the absolute inputDir with the filename
+		filenames = append(filenames, filepath.Join(absInputDir, e.Name()))
 	}
 	return filenames, nil
 }
