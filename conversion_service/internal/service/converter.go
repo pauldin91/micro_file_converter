@@ -38,41 +38,33 @@ func NewConverter(conf config.Config, publisher messages.Publisher) (*Converter,
 	}, nil
 }
 
-func (c *Converter) getUploadDirectoriesForBatch(batchId string) (string, string) {
+func (c *Converter) getUploadDirectoriesForBatch(batchId string) string {
 	inputDir := filepath.Join(c.uploadDir, batchId)
-	outputDir := filepath.Join(inputDir, "converted")
-	return inputDir, outputDir
+	return inputDir
 }
 
 func (c *Converter) fetchBatchFilenames(batchId string) ([]string, error) {
-	inputDir, outputDir := c.getUploadDirectoriesForBatch(batchId)
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return nil, fmt.Errorf("create output dir: %w", err)
-	}
+	inputDir := c.getUploadDirectoriesForBatch(batchId)
+	// if err := os.MkdirAll(outputDir, 0755); err != nil {
+	// 	return nil, fmt.Errorf("create output dir: %w", err)
+	// }
 
-	absInputDir, err := filepath.Abs(inputDir)
-	if err != nil {
-		return nil, fmt.Errorf("get absolute path: %w", err)
-	}
-
-	entries, err := os.ReadDir(absInputDir)
+	entries, err := os.ReadDir(inputDir)
 	if err != nil {
 		return nil, fmt.Errorf("read input dir: %w", err)
 	}
-
-	filenames := make([]string, 0)
+	filenames := make([]string, len(entries))
 	for _, e := range entries {
 		if e.IsDir() || strings.EqualFold(filepath.Ext(e.Name()), ".json") {
 			continue
 		}
-		// Join the absolute inputDir with the filename
-		filenames = append(filenames, filepath.Join(absInputDir, e.Name()))
+		filenames = append(filenames, e.Name())
 	}
 	return filenames, nil
 }
 
 func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
-	inputDir, outputDir := c.getUploadDirectoriesForBatch(batch.Id)
+	inputDir := c.getUploadDirectoriesForBatch(batch.Id)
 	filenames, err := c.fetchBatchFilenames(batch.Id)
 
 	log.Printf("files are %v\n", filenames)
@@ -87,7 +79,7 @@ func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
 		default:
 		}
 
-		if err := c.convertFile(inputDir, outputDir, e); err != nil {
+		if err := c.convertFile(filepath.Join(inputDir, e)); err != nil {
 			return err
 		}
 	}
@@ -114,10 +106,10 @@ func (c *Converter) notifyForCompletion(batch common.Batch) error {
 	return nil
 }
 
-func (c *Converter) convertFile(inputDir, outputDir, filename string) error {
-	src := filepath.Join(inputDir, filename)
+func (c *Converter) convertFile(filename string) error {
+	src := filepath.Dir(filename)
 	base := strings.TrimSuffix(filename, filepath.Ext(filename))
-	dst := filepath.Join(outputDir, base+".pdf")
+	dst := filepath.Join(src, "converted", base+".pdf")
 
 	log.Printf("converting %s -> %s", src, dst)
 
