@@ -30,7 +30,7 @@ func main() {
 	context, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	publisher, err := messages.NewRabbitMQPublisher(conf.Get(domain.RabbitMQHost), conf.Get(domain.ConversionQueue))
+	publisher, err := messages.NewRabbitMQPublisher(conf.Get(domain.RabbitMQHost), conf.Get(domain.ProcessedQueue))
 	if err != nil {
 		log.Panicf("Could not create publisher: %v", err)
 	}
@@ -40,6 +40,9 @@ func main() {
 	}
 	subscriber, err := messages.NewRabbitMQSubscriber(conf.Get(domain.RabbitMQHost), conf.Get(domain.ConversionQueue), 3, true)
 
+	if err != nil {
+		log.Panicf("Could not create subscriber: %v", err)
+	}
 	subscriber.SetConsumeHandler(func(body []byte) error {
 		var batch common.Batch
 		if err := json.Unmarshal(body, &batch); err != nil {
@@ -50,12 +53,12 @@ func main() {
 			log.Printf("batch %s failed: %v", batch.Id, err)
 			return err
 		}
+		log.Printf("converted batch %s succesfully\n", batch.Id)
 		return nil
 
 	})
+	err = subscriber.Start(context)
 	if err != nil {
-		log.Panicf("Could not create subscriber: %v", err)
+		log.Printf("context cancelled: %v", err)
 	}
-	subscriber.Start(context)
-
 }

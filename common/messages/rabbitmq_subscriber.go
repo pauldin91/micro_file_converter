@@ -98,8 +98,8 @@ func (s *RabbitMQSubscriber) Start(ctx context.Context) error {
 					<-sem
 					wg.Done()
 				}()
-				if err := s.handler(d.Body); err != nil && s.requeueMessagesOnError {
-					d.Nack(false, true)
+				if err := s.handler(d.Body); err != nil {
+					d.Nack(false, s.requeueMessagesOnError)
 					return
 				}
 
