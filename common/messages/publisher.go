@@ -1,6 +1,8 @@
 package messages
 
+import "context"
+
 type Publisher interface {
-	Publish(body []byte) error
+	Publish(ctx context.Context, body []byte) error
 	Close() error
 }

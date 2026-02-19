@@ -6,59 +6,81 @@ import (
 	"common/messages"
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"micro_file_converter/internal/domain"
 	"micro_file_converter/internal/service"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 )
 
 func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	conf := config.NewConfig()
-	err := conf.LoadConfig("../..")
-	if err != nil {
-		l, _ := os.Getwd()
-		files, _ := os.ReadDir(l)
-		for _, f := range files {
-			log.Printf("Could not load app.env file in %s\n", f.Name())
-		}
-		log.Panicf("Could not load app.env file in %s\n", filepath.Dir(l))
+	if err := conf.LoadConfig("../.."); err != nil {
+		cwd, _ := os.Getwd()
+		logger.Error("could not load app.env", slog.String("search_path", cwd), slog.Any("error", err))
+		os.Exit(1)
 	}
 
-	context, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	publisher, err := messages.NewRabbitMQPublisher(conf.Get(domain.RabbitMQHost), conf.Get(domain.ProcessedQueue))
+	publisher, err := messages.NewRabbitMQPublisher(
+		conf.Get(domain.RabbitMQHost),
+		conf.Get(domain.ProcessedQueue),
+	)
 	if err != nil {
-		log.Panicf("Could not create publisher: %v", err)
+		logger.Error("could not create publisher", slog.Any("error", err))
+		os.Exit(1)
 	}
-	worker, err := service.NewConverter(conf, publisher)
-	if err != nil {
-		log.Panicf("Could not create converter: %v", err)
-	}
-	subscriber, err := messages.NewRabbitMQSubscriber(conf.Get(domain.RabbitMQHost), conf.Get(domain.ConversionQueue), 3, true)
+	defer publisher.Close()
 
+	converter, err := service.NewConverter(conf, publisher, logger)
 	if err != nil {
-		log.Panicf("Could not create subscriber: %v", err)
+		logger.Error("could not create converter", slog.Any("error", err))
+		os.Exit(1)
 	}
-	subscriber.SetConsumeHandler(func(body []byte) error {
+
+	handler := func(body []byte) error {
 		var batch common.Batch
 		if err := json.Unmarshal(body, &batch); err != nil {
-			log.Printf("failed to deserialize body %s: %v\n", body, err)
-			return err
+			logger.Error("failed to deserialise message body", slog.Any("error", err))
+			return nil
 		}
-		if err := worker.Convert(context, batch); err != nil {
-			log.Printf("batch %s failed: %v", batch.Id, err)
-			return err
-		}
-		log.Printf("converted batch %s succesfully\n", batch.Id)
-		return nil
 
-	})
-	err = subscriber.Start(context)
-	if err != nil {
-		log.Printf("context cancelled: %v", err)
+		if err := converter.Convert(ctx, batch); err != nil {
+			logger.Error("batch conversion failed",
+				slog.String("batch_id", batch.Id),
+				slog.Any("error", err),
+			)
+			return err
+		}
+
+		logger.Info("batch converted successfully", slog.String("batch_id", batch.Id))
+		return nil
 	}
+
+	subscriber, err := messages.NewRabbitMQSubscriber(
+		conf.Get(domain.RabbitMQHost),
+		conf.Get(domain.ConversionQueue),
+		3,
+		true,
+		handler,
+	)
+	if err != nil {
+		logger.Error("could not create subscriber", slog.Any("error", err))
+		os.Exit(1)
+	}
+	defer subscriber.Close()
+
+	logger.Info("file converter started")
+
+	if err := subscriber.Start(ctx); err != nil && err != context.Canceled {
+		logger.Error("subscriber exited with error", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	logger.Info("file converter stopped")
 }
