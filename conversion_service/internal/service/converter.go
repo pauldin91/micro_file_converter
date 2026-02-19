@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 type Converter struct {
@@ -87,10 +88,12 @@ func (c *Converter) Convert(ctx context.Context, batch common.Batch) error {
 }
 
 func (c *Converter) notifyForCompletion(batch common.Batch) error {
-	payload, err := json.Marshal(batch)
-	if err != nil {
-		return fmt.Errorf("marshal batch: %w", err)
+	dto := common.Result{
+		Id:        batch.Id,
+		Timestamp: time.Now().UTC(),
+		Status:    "Completed",
 	}
+	payload, _ := json.Marshal(dto)
 	if err := c.publisher.Publish(payload); err != nil {
 		return fmt.Errorf("publish result: %w", err)
 	}

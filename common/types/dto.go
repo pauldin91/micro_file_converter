@@ -20,3 +20,9 @@ type Batch struct {
 	Files     []File    `json:"files"`
 	Transform Transform `json:"transform"`
 }
+
+type Result struct {
+	Id        string    `json:"id"`
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+}
