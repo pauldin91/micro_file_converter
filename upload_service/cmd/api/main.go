@@ -1,13 +1,19 @@
 package main
 
 import (
+	"common/messages"
 	"context"
-	"fmt"
+	"log"
+
+	"os"
 	"os/signal"
 	api "webapi/cmd"
+	db "webapi/db/sqlc"
+	"webapi/internal/domain"
+	"webapi/internal/handlers"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
-	"golang.org/x/sync/errgroup"
 )
 
 func main() {
@@ -15,17 +21,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
 	defer stop()
 
-	group, subCtx := errgroup.WithContext(ctx)
-	server := api.NewServer(subCtx)
-
-	group.Go(func() error {
-		return server.Start()
-	})
-	if err := group.Wait(); err != nil {
-		fmt.Println("Exited due to fatal error:", err)
-	} else {
-		fmt.Println("Exited gracefully.")
+	connPool, err := pgxpool.New(ctx, os.Getenv(domain.DbConn))
+	if err != nil {
+		log.Fatal("cannot connect to db")
 	}
 
+	store := db.NewStore(connPool)
+
+	publisher, err := messages.NewRabbitMQPublisher(os.Getenv(domain.RabbitMQHost), os.Getenv(domain.ConversionQueue))
+	if err != nil {
+		log.Fatal("cannot connect to RabbitMQ")
+	}
+	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(store, publisher)
+
+	server := api.NewServer(uploadHandler)
+	server.Start(ctx)
+	defer server.Shutdown()
 	<-ctx.Done()
 }
