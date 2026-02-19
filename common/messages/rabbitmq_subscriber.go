@@ -9,8 +9,10 @@ import (
 )
 
 const (
-	defaultReconnectDelay = 5 * time.Second
-	maxReconnectDelay     = 60 * time.Second
+	defaultReconnectDelay         = 5 * time.Second
+	maxReconnectDelay             = 60 * time.Second
+	defaultPrefetch               = 3
+	defaultRequeueMessagesOnError = true
 )
 
 type RabbitMQSubscriber struct {
@@ -30,8 +32,6 @@ type RabbitMQSubscriber struct {
 
 func NewRabbitMQSubscriber(
 	addr, queue string,
-	prefetchCount int,
-	requeueMessagesOnError bool,
 	handler func(body []byte) error,
 ) (*RabbitMQSubscriber, error) {
 	if handler == nil {
@@ -41,8 +41,8 @@ func NewRabbitMQSubscriber(
 	s := &RabbitMQSubscriber{
 		addr:                   addr,
 		queue:                  queue,
-		prefetchCount:          prefetchCount,
-		requeueMessagesOnError: requeueMessagesOnError,
+		prefetchCount:          defaultPrefetch,
+		requeueMessagesOnError: defaultRequeueMessagesOnError,
 		handler:                handler,
 		closed:                 make(chan struct{}),
 	}

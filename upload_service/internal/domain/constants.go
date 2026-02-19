@@ -1,10 +1,6 @@
 package domain
 
-const (
-	ApiRoot         string = "/api"
-	UploadEndpoint  string = ApiRoot + "/uploads"
-	SwaggerEndpoint string = "/swagger/*"
-)
+type Status string
 
 const (
 	Environment       string = "ENVIRONMENT"
@@ -14,15 +10,13 @@ const (
 	ConversionQueue   string = "CONVERSION_QUEUE"
 	MigrationsDir     string = "MIGRATIONS_DIR"
 	UploadDir         string = "UPLOAD_DIR"
-)
 
-type Status string
+	ApiRoot         string = "/api"
+	UploadEndpoint  string = ApiRoot + "/uploads"
+	SwaggerEndpoint string = "/swagger/*"
 
-const (
-	Queued Status = "Queued"
-
-	Processing = "Processing"
-	Completed  = "Completed"
-
-	Fail = "Fail"
+	Queued     Status = "Queued"
+	Processing Status = "Processing"
+	Completed  Status = "Completed"
+	Fail       Status = "Fail"
 )

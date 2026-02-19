@@ -39,31 +39,27 @@ func main() {
 		os.Exit(1)
 	}
 
-	handler := func(body []byte) error {
-		var batch common.Batch
-		if err := json.Unmarshal(body, &batch); err != nil {
-			logger.Error("failed to deserialise message body", slog.Any("error", err))
-			return nil
-		}
-
-		if err := converter.Convert(ctx, batch); err != nil {
-			logger.Error("batch conversion failed",
-				slog.String("batch_id", batch.Id),
-				slog.Any("error", err),
-			)
-			return err
-		}
-
-		logger.Info("batch converted successfully", slog.String("batch_id", batch.Id))
-		return nil
-	}
-
 	subscriber, err := messages.NewRabbitMQSubscriber(
 		os.Getenv(domain.RabbitMQHost),
 		os.Getenv(domain.ConversionQueue),
-		3,
-		true,
-		handler,
+		func(body []byte) error {
+			var batch common.Batch
+			if err := json.Unmarshal(body, &batch); err != nil {
+				logger.Error("failed to deserialise message body", slog.Any("error", err))
+				return nil
+			}
+
+			if err := converter.Convert(ctx, batch); err != nil {
+				logger.Error("batch conversion failed",
+					slog.String("batch_id", batch.Id),
+					slog.Any("error", err),
+				)
+				return err
+			}
+
+			logger.Info("batch converted successfully", slog.String("batch_id", batch.Id))
+			return nil
+		},
 	)
 	if err != nil {
 		logger.Error("could not create subscriber", slog.Any("error", err))
