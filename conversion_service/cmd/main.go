@@ -2,7 +2,6 @@ package main
 
 import (
 	"common"
-	config "common/config"
 	"common/messages"
 	"context"
 	"encoding/json"
@@ -12,24 +11,21 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
-	conf := config.NewConfig()
-	if err := conf.LoadConfig("../.."); err != nil {
-		cwd, _ := os.Getwd()
-		logger.Error("could not load app.env", slog.String("search_path", cwd), slog.Any("error", err))
-		os.Exit(1)
-	}
+	_ = godotenv.Load()
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
 	publisher, err := messages.NewRabbitMQPublisher(
-		conf.Get(domain.RabbitMQHost),
-		conf.Get(domain.ProcessedQueue),
+		os.Getenv(domain.RabbitMQHost),
+		os.Getenv(domain.ProcessedQueue),
 	)
 	if err != nil {
 		logger.Error("could not create publisher", slog.Any("error", err))
@@ -37,7 +33,7 @@ func main() {
 	}
 	defer publisher.Close()
 
-	converter, err := service.NewConverter(conf, publisher, logger)
+	converter, err := service.NewConverter(publisher, logger)
 	if err != nil {
 		logger.Error("could not create converter", slog.Any("error", err))
 		os.Exit(1)
@@ -63,8 +59,8 @@ func main() {
 	}
 
 	subscriber, err := messages.NewRabbitMQSubscriber(
-		conf.Get(domain.RabbitMQHost),
-		conf.Get(domain.ConversionQueue),
+		os.Getenv(domain.RabbitMQHost),
+		os.Getenv(domain.ConversionQueue),
 		3,
 		true,
 		handler,

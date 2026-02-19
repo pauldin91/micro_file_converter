@@ -1,7 +1,6 @@
 package api
 
 import (
-	"common/config"
 	"common/messages"
 	"context"
 	"net/http"
@@ -33,13 +32,13 @@ type Application struct {
 	ctx        context.Context
 }
 
-func NewServer(ctx context.Context, cfg config.Config) *Application {
+func NewServer(ctx context.Context) *Application {
 	server := Application{
 		ctx: ctx,
 	}
-	router := server.registerRoutes(cfg)
+	router := server.registerRoutes()
 	server.httpServer = &http.Server{
-		Addr:    cfg.Get(domain.HttpServerAddress),
+		Addr:    os.Getenv(domain.HttpServerAddress),
 		Handler: router,
 	}
 	return &server
@@ -65,24 +64,24 @@ func (server *Application) Start() error {
 	return nil
 }
 
-func (server *Application) registerRoutes(cfg config.Config) *chi.Mux {
+func (server *Application) registerRoutes() *chi.Mux {
 	router := chi.NewMux()
 	router.Get(domain.SwaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
 	))
 
-	connPool, err := pgxpool.New(server.ctx, cfg.Get(domain.DbConn))
+	connPool, err := pgxpool.New(server.ctx, os.Getenv(domain.DbConn))
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to db")
 	}
 
 	store := db.NewStore(connPool)
 
-	publisher, err := messages.NewRabbitMQPublisher(cfg.Get(domain.RabbitMQHost), cfg.Get(domain.ConversionQueue))
+	publisher, err := messages.NewRabbitMQPublisher(os.Getenv(domain.RabbitMQHost), os.Getenv(domain.ConversionQueue))
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to RabbitMQ")
 	}
-	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(cfg, store, publisher)
+	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(store, publisher)
 	router.Post(domain.UploadEndpoint, uploadHandler.CreateUpload)
 	return router
 }

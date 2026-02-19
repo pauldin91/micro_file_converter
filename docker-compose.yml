@@ -36,9 +36,6 @@ services:
       dockerfile: conversion_service/dockerfile
     env_file:
       - conversion_service/app.env
-    environment:
-      - UPLOAD_DIR=/data/uploads
-      - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     volumes:
       - ./uploads:/data/uploads  
 
@@ -57,8 +54,6 @@ services:
       dockerfile: dockerfile
     env_file:
       - image_service/app.env
-    environment:
-      AMQP_ADDR: amqp://rabbit:5672/%2f
     networks:
       - micro.converter  
     depends_on:
@@ -71,9 +66,6 @@ services:
       dockerfile: upload_service/dockerfile
     env_file:
       - upload_service/app.env
-    environment:
-      - UPLOAD_DIR=/data/uploads
-      - RABBITMQ_HOST=amqp://guest:guest@rabbit:5672
     ports:
       - "8080:8080"
     volumes:

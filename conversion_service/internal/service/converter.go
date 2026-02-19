@@ -2,7 +2,6 @@ package service
 
 import (
 	"common"
-	config "common/config"
 	"common/messages"
 	"context"
 	"encoding/json"
@@ -24,18 +23,17 @@ const (
 )
 
 type Converter struct {
-	conf      config.Config
 	uploadDir string
 	publisher messages.Publisher
 	logger    *slog.Logger
 }
 
-func NewConverter(conf config.Config, publisher messages.Publisher, logger *slog.Logger) (*Converter, error) {
+func NewConverter(publisher messages.Publisher, logger *slog.Logger) (*Converter, error) {
 	if logger == nil {
 		logger = slog.Default()
 	}
 
-	uploadDir := conf.Get(domain.UploadDir)
+	uploadDir := os.Getenv(domain.UploadDir)
 	if uploadDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
@@ -45,7 +43,6 @@ func NewConverter(conf config.Config, publisher messages.Publisher, logger *slog
 	}
 
 	return &Converter{
-		conf:      conf,
 		uploadDir: uploadDir,
 		publisher: publisher,
 		logger:    logger,

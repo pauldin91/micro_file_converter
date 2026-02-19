@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"common/config"
 	"common/messages"
 	"context"
 	"encoding/json"
@@ -28,8 +27,8 @@ type UploadHandler struct {
 	uploadDir   string
 }
 
-func NewUploadHandler(cfg config.Config, store db.Store, publisher messages.Publisher) UploadHandler {
-	var uploadDir string = cfg.Get(domain.UploadDir)
+func NewUploadHandler(store db.Store, publisher messages.Publisher) UploadHandler {
+	var uploadDir string = os.Getenv(domain.UploadDir)
 	if len(uploadDir) == 0 {
 		cwd, _ := os.Getwd()
 		uploadDir = filepath.Join(filepath.Dir(filepath.Dir(filepath.Dir(cwd))), "uploads")
@@ -129,7 +128,7 @@ func (handler UploadHandler) CreateUpload(w http.ResponseWriter, r *http.Request
 	searialized, _ := json.Marshal(dto)
 
 	go func() {
-		handler.publisher.Publish(searialized)
+		handler.publisher.Publish(ctx, searialized)
 	}()
 
 	json.NewEncoder(w).Encode(map[string]interface{}{

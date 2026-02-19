@@ -1,26 +1,22 @@
 package main
 
 import (
-	"common/config"
 	"context"
 	"fmt"
-	"log"
 	"os/signal"
 	api "webapi/cmd"
 
+	"github.com/joho/godotenv"
 	"golang.org/x/sync/errgroup"
 )
 
 func main() {
+	_ = godotenv.Load()
 	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
 	defer stop()
-	cfg := config.NewConfig()
-	err := cfg.LoadConfig("../../")
-	if err != nil {
-		log.Panicf("unable to read cfg: %s\n", err.Error())
-	}
+
 	group, subCtx := errgroup.WithContext(ctx)
-	server := api.NewServer(subCtx, cfg)
+	server := api.NewServer(subCtx)
 
 	group.Go(func() error {
 		return server.Start()
