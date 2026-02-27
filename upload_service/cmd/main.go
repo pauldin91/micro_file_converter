@@ -7,10 +7,9 @@ import (
 
 	"os"
 	"os/signal"
-	api "webapi/cmd"
+	"webapi/app"
 	db "webapi/db/sqlc"
-	"webapi/internal/domain"
-	"webapi/internal/handlers"
+	"webapi/domain"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
@@ -18,7 +17,7 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	ctx, stop := signal.NotifyContext(context.Background(), api.InterruptSignals...)
+	ctx, stop := signal.NotifyContext(context.Background(), app.InterruptSignals...)
 	defer stop()
 
 	connPool, err := pgxpool.New(ctx, os.Getenv(domain.DbConn))
@@ -32,9 +31,9 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot connect to RabbitMQ")
 	}
-	var uploadHandler handlers.UploadHandler = handlers.NewUploadHandler(store, publisher)
+	var uploadHandler app.UploadHandler = app.NewUploadHandler(store, publisher)
 
-	server := api.NewServer(uploadHandler)
+	server := app.NewServer(uploadHandler)
 	server.Start(ctx)
 	defer server.Shutdown()
 	<-ctx.Done()

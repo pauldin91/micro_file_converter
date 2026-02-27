@@ -1,4 +1,4 @@
-package handlers
+package app
 
 import (
 	"common/messages"
@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 	db "webapi/db/sqlc"
-	"webapi/internal/domain"
-	"webapi/internal/events"
+	"webapi/domain"
+	"webapi/events"
 
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"

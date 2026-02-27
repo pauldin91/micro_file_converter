@@ -1,12 +1,11 @@
-package api
+package app
 
 import (
 	"context"
 	"net/http"
 	"os"
 	"syscall"
-	"webapi/internal/domain"
-	"webapi/internal/handlers"
+	"webapi/domain"
 
 	_ "webapi/docs"
 
@@ -28,7 +27,7 @@ type Application struct {
 	httpServer *http.Server
 }
 
-func NewServer(uploadHandler handlers.UploadHandler) *Application {
+func NewServer(uploadHandler UploadHandler) *Application {
 	server := Application{}
 	router := server.registerRoutes(uploadHandler)
 	server.httpServer = &http.Server{
@@ -54,7 +53,7 @@ func (server *Application) Shutdown() {
 	}
 }
 
-func (server *Application) registerRoutes(uploadHandler handlers.UploadHandler) *chi.Mux {
+func (server *Application) registerRoutes(uploadHandler UploadHandler) *chi.Mux {
 	router := chi.NewMux()
 	router.Get(domain.SwaggerEndpoint, httpSwagger.Handler(
 		httpSwagger.URL("swagger/doc.json"),
