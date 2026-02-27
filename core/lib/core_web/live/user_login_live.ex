@@ -30,6 +30,12 @@ defmodule CoreWeb.UserLoginLive do
             Log in <span aria-hidden="true">→</span>
           </.button>
         </:actions>
+        <:actions>
+          <.button phx-disable-with="Logging in..." class="w-full">
+            <.link navigate={~p"/auth/github"}> Sign in with Github</.link>
+          </.button>
+
+        </:actions>
       </.simple_form>
     </div>
     """
