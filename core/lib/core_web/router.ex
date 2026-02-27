@@ -17,11 +17,13 @@ defmodule CoreWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # scope "/", CoreWeb do
-  #   pipe_through :browser
+  scope "/auth", CoreWeb do
+    pipe_through(:browser)
 
-  #   get "/", PageController, :home
-  # end
+    get("/signout", AuthController, :signout)
+    get("/:provider", AuthController, :request)
+    get("/:provider/callback", AuthController, :callback)
+  end
 
   # Other scopes may use custom stacks.
   # scope "/api", CoreWeb do

@@ -159,4 +159,10 @@ defmodule Core.Accounts.User do
       add_error(changeset, :current_password, "is not valid")
     end
   end
+
+  def changeset(struct, params \\ %{}) do
+    struct
+    |> cast(params, [:email, :provider, :token])
+    |> validate_required([:email, :provider, :token])
+  end
 end
