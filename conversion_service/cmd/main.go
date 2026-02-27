@@ -6,8 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
-	"micro_file_converter/internal/domain"
-	"micro_file_converter/internal/service"
+	"micro_file_converter/domain"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,7 +32,7 @@ func main() {
 	}
 	defer publisher.Close()
 
-	converter, err := service.NewConverter(publisher, logger)
+	converter, err := domain.NewConverter(publisher, logger)
 	if err != nil {
 		logger.Error("could not create converter", slog.Any("error", err))
 		os.Exit(1)
