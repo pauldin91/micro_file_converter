@@ -1,4 +1,4 @@
-package service
+package domain
 
 import (
 	"common"
@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"micro_file_converter/internal/domain"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -33,7 +32,7 @@ func NewConverter(publisher messages.Publisher, logger *slog.Logger) (*Converter
 		logger = slog.Default()
 	}
 
-	uploadDir := os.Getenv(domain.UploadDir)
+	uploadDir := os.Getenv(UploadDir)
 	if uploadDir == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
