@@ -8,6 +8,7 @@ defmodule Core.Repo.Migrations.CreateUsersAuthTables do
       add :email, :citext, null: false
       add :hashed_password, :string, null: true
       add :provider, :string, null: true
+      add :token, :string, null: true
       add :confirmed_at, :utc_datetime_usec
 
       timestamps(type: :utc_datetime_usec)

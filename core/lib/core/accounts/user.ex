@@ -7,6 +7,7 @@ defmodule Core.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :provider, :string
+    field :token, :string
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     has_many :batches, Core.Uploads.Batch, on_delete: :delete_all

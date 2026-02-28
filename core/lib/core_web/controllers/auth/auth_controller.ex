@@ -12,7 +12,7 @@ defmodule CoreWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, _params) do
-    user_params = %{token: auth.credentials.token, email: auth.info.nickname, provider: "github"}
+    user_params = %{token: auth.credentials.token, email: auth.info.name, provider: "github"}
 
     changeset = User.changeset(%User{}, user_params)
 
