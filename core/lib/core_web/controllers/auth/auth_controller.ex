@@ -11,13 +11,12 @@ defmodule CoreWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
-    case Accounts.find_or_create_from_oauth(auth) do
-      {:ok, user} ->
-        {:ok, {session_token, _user}} = Accounts.get_oauth_token(user, auth)
-
+    result =Accounts.find_or_create_from_oauth(auth)
+    case  result do
+      {:ok,{session_token, user}} ->
         conn
         |> put_session(:user_token, session_token)
-        |> put_flash(:info, "Welcome, #{user.name}!")
+        |> put_flash(:info, "Welcome, #{user.email}!")
         |> redirect(to: ~p"/")
 
       {:error, _reason} ->

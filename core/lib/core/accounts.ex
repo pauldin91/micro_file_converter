@@ -356,23 +356,17 @@ defmodule Core.Accounts do
     provider_uid = to_string(auth.uid)
     email = auth.info.email
     name = auth.info.name
-    avatar_url = auth.info.image
 
     Repo.transaction(fn ->
       user =
         case find_oauth_user(provider, provider_uid) do
-          # Case 1: known OAuth identity — reuse existing user
           %User{} = existing_user ->
             existing_user
 
           nil ->
-            # Case 2: email already registered — link OAuth to existing account
-            # Case 3: new user — create from IdP profile
-            find_or_create_user_by_email(email, name, avatar_url)
+            find_or_create_user_by_email(email, name)
         end
 
-      # Delete stale OAuth token for this provider (covers cases 1 & 2 on
-      # re-login or token rotation) then insert fresh one.
       user
       |> UserToken.by_user_and_provider_query(provider)
       |> Repo.delete_all()
@@ -380,14 +374,12 @@ defmodule Core.Accounts do
       {_raw_oauth_token, oauth_token_struct} = UserToken.build_oauth_token(user, auth)
       Repo.insert!(oauth_token_struct)
 
-      # Issue a standard Phoenix session token — same mechanism as local auth.
       session_token = generate_user_session_token(user)
 
       {session_token, user}
     end)
   end
 
-  # Looks up the User via an existing OAuth token row (returning OAuth user).
   defp find_oauth_user(provider, provider_uid) do
     token =
       Repo.one(
@@ -399,9 +391,26 @@ defmodule Core.Accounts do
     token && Repo.get(User, token.user_id)
   end
 
-  # Returns an existing User by email, or creates a new one from IdP data.
-  defp find_or_create_user_by_email(email, name, avatar_url) do
+  defp find_or_create_user_by_email(nil,name) do
+    new_email = "#{name}@gmail.com"
+    case Repo.get_by(User, email: new_email) do
+
+      %User{} = user ->
+        user
+
+      nil ->
+        %User{}
+        |> User.oauth_registration_changeset(%{
+          email: new_email,
+        })
+        |> Repo.insert!()
+    end
+  end
+
+  defp find_or_create_user_by_email(email,_name) do
+
     case Repo.get_by(User, email: email) do
+
       %User{} = user ->
         user
 
@@ -409,8 +418,6 @@ defmodule Core.Accounts do
         %User{}
         |> User.oauth_registration_changeset(%{
           email: email,
-          name: name,
-          avatar_url: avatar_url
         })
         |> Repo.insert!()
     end

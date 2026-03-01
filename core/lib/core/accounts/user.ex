@@ -6,8 +6,6 @@ defmodule Core.Accounts.User do
     field :email, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
-    field :provider, :string
-    field :token, :string
     field :current_password, :string, virtual: true, redact: true
     field :confirmed_at, :utc_datetime
     has_many :batches, Core.Uploads.Batch, on_delete: :delete_all
@@ -170,7 +168,7 @@ defmodule Core.Accounts.User do
 
   def oauth_registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:email, :name, :avatar_url])
+    |> cast(attrs, [:email])
     |> validate_required([:email])
     |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
