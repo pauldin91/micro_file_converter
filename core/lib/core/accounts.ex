@@ -351,13 +351,12 @@ defmodule Core.Accounts do
     end
   end
 
-
   def find_or_create_from_oauth(%Ueberauth.Auth{} = auth) do
-    provider     = to_string(auth.provider)
+    provider = to_string(auth.provider)
     provider_uid = to_string(auth.uid)
-    email        = auth.info.email
-    name         = auth.info.name
-    avatar_url   = auth.info.image
+    email = auth.info.email
+    name = auth.info.name
+    avatar_url = auth.info.image
 
     Repo.transaction(fn ->
       user =
@@ -390,12 +389,14 @@ defmodule Core.Accounts do
 
   # Looks up the User via an existing OAuth token row (returning OAuth user).
   defp find_oauth_user(provider, provider_uid) do
-    Repo.one(
-      from t in UserToken,
-        join: u in assoc(t, :user),
-        where: t.context == ^"oauth:#{provider}" and t.provider_uid == ^provider_uid,
-        select: u
-    )
+    token =
+      Repo.one(
+        from t in UserToken,
+          where: t.context == ^"oauth:#{provider}",
+          where: t.provider_uid == ^provider_uid
+      )
+
+    token && Repo.get(User, token.user_id)
   end
 
   # Returns an existing User by email, or creates a new one from IdP data.
@@ -407,8 +408,8 @@ defmodule Core.Accounts do
       nil ->
         %User{}
         |> User.oauth_registration_changeset(%{
-          email:      email,
-          name:       name,
+          email: email,
+          name: name,
           avatar_url: avatar_url
         })
         |> Repo.insert!()
