@@ -167,4 +167,20 @@ defmodule Core.Accounts.User do
     |> cast(params, [:email, :provider, :token])
     |> validate_required([:email, :provider, :token])
   end
+
+  def oauth_registration_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email, :name, :avatar_url])
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 160)
+    |> unsafe_validate_unique(:email, Core.Repo)
+    |> unique_constraint(:email)
+    |> put_confirmed_at()
+  end
+
+  defp put_confirmed_at(changeset) do
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    put_change(changeset, :confirmed_at, now)
+  end
 end

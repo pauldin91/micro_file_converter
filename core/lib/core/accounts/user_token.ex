@@ -1,6 +1,8 @@
 defmodule Core.Accounts.UserToken do
   use Ecto.Schema
   import Ecto.Query
+  import Ecto.Changeset
+
   alias Core.Accounts.UserToken
 
   @hash_algorithm :sha256
@@ -14,9 +16,15 @@ defmodule Core.Accounts.UserToken do
   @session_validity_in_days 60
 
   schema "users_tokens" do
-    field :token, :binary
-    field :context, :string
-    field :sent_to, :string
+    field :token,         :binary
+    field :context,       :string
+    field :sent_to,       :string
+    field :access_token,  :string
+    field :refresh_token, :string
+    field :expires_at,    :utc_datetime
+    field :provider,      :string
+    field :provider_uid,  :string
+
     belongs_to :user, Core.Accounts.User
 
     timestamps(type: :utc_datetime, updated_at: false)
@@ -159,6 +167,41 @@ defmodule Core.Accounts.UserToken do
     end
   end
 
+  def build_oauth_token(user, auth) do
+    credentials = auth.credentials
+    provider    = to_string(auth.provider)
+
+    {raw_token, hashed_token} = build_raw_and_hashed_token()
+
+    token_struct = %UserToken{
+      token:         hashed_token,
+      context:       oauth_context(provider),
+      provider:      provider,
+      provider_uid:  to_string(auth.uid),
+      access_token:  credentials.token,
+      refresh_token: credentials.refresh_token,
+      expires_at:    parse_unix_expires_at(credentials.expires_at),
+      user_id:       user.id
+    }
+
+    {raw_token, token_struct}
+  end
+
+  def refresh_oauth_token_changeset(token_struct, new_credentials) do
+    token_struct
+    |> change(%{
+      access_token: new_credentials.token,
+      expires_at:   parse_unix_expires_at(new_credentials.expires_at)
+    })
+    |> validate_required([:access_token])
+  end
+
+  def token_expired?(%UserToken{expires_at: nil}), do: false
+
+  def token_expired?(%UserToken{expires_at: expires_at}) do
+    DateTime.compare(DateTime.utc_now(), expires_at) == :gt
+  end
+
   @doc """
   Returns the token struct for the given token value and context.
   """
@@ -176,4 +219,35 @@ defmodule Core.Accounts.UserToken do
   def by_user_and_contexts_query(user, [_ | _] = contexts) do
     from t in UserToken, where: t.user_id == ^user.id and t.context in ^contexts
   end
+
+  def by_user_and_provider_query(user, provider) do
+    from t in UserToken,
+      where: t.user_id == ^user.id and t.context == ^oauth_context(provider)
+  end
+
+  def all_oauth_tokens_query(user) do
+    from t in UserToken,
+      where: t.user_id == ^user.id and like(t.context, "oauth:%")
+  end
+
+  # Generates a cryptographically random token and its SHA-256 hash.
+  # Returns {url_safe_base64_raw, hashed_binary}.
+  defp build_raw_and_hashed_token do
+    raw    = :crypto.strong_rand_bytes(@rand_size)
+    hashed = :crypto.hash(@hash_algorithm, raw)
+    {Base.url_encode64(raw, padding: false), hashed}
+  end
+
+  # Safely converts a Unix timestamp integer to a truncated UTC DateTime,
+  # returning nil when the provider does not supply an expiry.
+  defp parse_unix_expires_at(nil), do: nil
+
+  defp parse_unix_expires_at(unix_time) do
+    unix_time
+    |> DateTime.from_unix!()
+    |> DateTime.truncate(:second)
+  end
+
+  defp oauth_context(provider), do: "oauth:#{provider}"
+
 end

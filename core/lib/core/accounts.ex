@@ -350,4 +350,109 @@ defmodule Core.Accounts do
       {:error, :user, changeset, _} -> {:error, changeset}
     end
   end
+
+
+  def find_or_create_from_oauth(%Ueberauth.Auth{} = auth) do
+    provider     = to_string(auth.provider)
+    provider_uid = to_string(auth.uid)
+    email        = auth.info.email
+    name         = auth.info.name
+    avatar_url   = auth.info.image
+
+    Repo.transaction(fn ->
+      user =
+        case find_oauth_user(provider, provider_uid) do
+          # Case 1: known OAuth identity — reuse existing user
+          %User{} = existing_user ->
+            existing_user
+
+          nil ->
+            # Case 2: email already registered — link OAuth to existing account
+            # Case 3: new user — create from IdP profile
+            find_or_create_user_by_email(email, name, avatar_url)
+        end
+
+      # Delete stale OAuth token for this provider (covers cases 1 & 2 on
+      # re-login or token rotation) then insert fresh one.
+      user
+      |> UserToken.by_user_and_provider_query(provider)
+      |> Repo.delete_all()
+
+      {_raw_oauth_token, oauth_token_struct} = UserToken.build_oauth_token(user, auth)
+      Repo.insert!(oauth_token_struct)
+
+      # Issue a standard Phoenix session token — same mechanism as local auth.
+      session_token = generate_user_session_token(user)
+
+      {session_token, user}
+    end)
+  end
+
+  # Looks up the User via an existing OAuth token row (returning OAuth user).
+  defp find_oauth_user(provider, provider_uid) do
+    Repo.one(
+      from t in UserToken,
+        join: u in assoc(t, :user),
+        where: t.context == ^"oauth:#{provider}" and t.provider_uid == ^provider_uid,
+        select: u
+    )
+  end
+
+  # Returns an existing User by email, or creates a new one from IdP data.
+  defp find_or_create_user_by_email(email, name, avatar_url) do
+    case Repo.get_by(User, email: email) do
+      %User{} = user ->
+        user
+
+      nil ->
+        %User{}
+        |> User.oauth_registration_changeset(%{
+          email:      email,
+          name:       name,
+          avatar_url: avatar_url
+        })
+        |> Repo.insert!()
+    end
+  end
+
+  def get_oauth_token(user, provider) do
+    user
+    |> UserToken.by_user_and_provider_query(provider)
+    |> Repo.one()
+  end
+
+  def list_oauth_tokens(user) do
+    user
+    |> UserToken.all_oauth_tokens_query()
+    |> Repo.all()
+  end
+
+  def refresh_oauth_token(user, provider, refresh_fn) when is_function(refresh_fn, 1) do
+    oauth_token =
+      user
+      |> UserToken.by_user_and_provider_query(provider)
+      |> Repo.one!()
+
+    if UserToken.token_expired?(oauth_token) do
+      case refresh_fn.(oauth_token.refresh_token) do
+        {:ok, new_credentials} ->
+          oauth_token
+          |> UserToken.refresh_oauth_token_changeset(new_credentials)
+          |> Repo.update()
+
+        {:error, _} = err ->
+          err
+      end
+    else
+      {:ok, oauth_token}
+    end
+  end
+
+  def revoke_oauth_token(user, provider) do
+    user
+    |> UserToken.by_user_and_provider_query(provider)
+    |> Repo.delete_all()
+
+    :ok
+  end
 end

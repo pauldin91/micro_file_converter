@@ -2,8 +2,7 @@ defmodule CoreWeb.AuthController do
   use CoreWeb, :controller
   plug(Ueberauth)
 
-  alias Core.Accounts.User
-  alias Core.Repo
+  alias Core.Accounts
 
   def callback(%{assigns: %{ueberauth_failure: %Ueberauth.Failure{}}} = conn, _params) do
     conn
@@ -11,31 +10,24 @@ defmodule CoreWeb.AuthController do
     |> redirect(to: ~p"/")
   end
 
-  def callback(%{assigns: %{ueberauth_auth: %Ueberauth.Auth{} = auth}} = conn, _params) do
-    user_params = %{token: auth.credentials.token, email: auth.info.name, provider: "github"}
-
-    changeset = User.changeset(%User{}, user_params)
-
-    signin(conn, changeset)
-  end
-
-  defp signin(conn, changeset) do
-    case(insert_or_update_user(changeset)) do
+  def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
+    case Accounts.find_or_create_from_oauth(auth) do
       {:ok, user} ->
-        token = Phoenix.Token.sign(conn, "key", user.id)
+        {:ok, {session_token, _user}} = Accounts.get_oauth_token(user, auth)
 
         conn
-        |> put_flash(:info, "Welcome back!")
-        |> put_session(:user_id, user.id)
-        |> assign(:user_token, token)
+        |> put_session(:user_token, session_token)
+        |> put_flash(:info, "Welcome, #{user.name}!")
         |> redirect(to: ~p"/")
 
       {:error, _reason} ->
         conn
-        |> put_flash(:error, "Error sigining in")
-        |> redirect(to: ~p"/")
+        |> put_flash(:error, "Authentication failed.")
+        |> redirect(to: "/login")
     end
   end
+
+
 
   def signout(conn, _params) do
     conn
@@ -43,10 +35,4 @@ defmodule CoreWeb.AuthController do
     |> redirect(to: ~p"/")
   end
 
-  defp insert_or_update_user(changeset) do
-    case Repo.get_by(User, email: changeset.changes.email) do
-      nil -> Repo.insert(changeset)
-      user -> {:ok, user}
-    end
-  end
 end

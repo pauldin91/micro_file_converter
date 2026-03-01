@@ -7,8 +7,6 @@ defmodule Core.Repo.Migrations.CreateUsersAuthTables do
     create table(:users) do
       add :email, :citext, null: false
       add :hashed_password, :string, null: true
-      add :provider, :string, null: true
-      add :token, :string, null: true
       add :confirmed_at, :utc_datetime_usec
 
       timestamps(type: :utc_datetime_usec)
@@ -21,6 +19,11 @@ defmodule Core.Repo.Migrations.CreateUsersAuthTables do
       add :token, :binary, null: false
       add :context, :string, null: false
       add :sent_to, :string
+      add :access_token, :text
+      add :refresh_token, :text
+      add :expires_at, :utc_datetime
+      add :provider, :string
+      add :provider_uid, :string
 
       timestamps(type: :utc_datetime_usec, updated_at: false)
     end
