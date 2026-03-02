@@ -354,7 +354,7 @@ defmodule Core.Accounts do
   def find_or_create_from_oauth(%Ueberauth.Auth{} = auth) do
     provider = to_string(auth.provider)
     provider_uid = to_string(auth.uid)
-    login = auth.info.login
+    name = auth.info.name
 
     Repo.transaction(fn ->
       user =
@@ -363,7 +363,7 @@ defmodule Core.Accounts do
             existing_user
 
           nil ->
-            find_or_create_user(login)
+            find_or_create_user(name)
         end
 
       user
@@ -371,6 +371,7 @@ defmodule Core.Accounts do
       |> Repo.delete_all()
 
       {_raw_oauth_token, oauth_token_struct} = UserToken.build_oauth_token(user, auth)
+      dbg(oauth_token_struct)
       Repo.insert!(oauth_token_struct)
 
       session_token = generate_user_session_token(user)
@@ -390,9 +391,9 @@ defmodule Core.Accounts do
     token && Repo.get(User, token.user_id)
   end
 
-  defp find_or_create_user(login) do
+  defp find_or_create_user(name) do
 
-    case Repo.get_by(User, login: login) do
+    case Repo.get_by(User, name: name) do
 
       %User{} = user ->
         user
@@ -400,7 +401,8 @@ defmodule Core.Accounts do
       nil ->
         %User{}
         |> User.oauth_registration_changeset(%{
-          login: login,
+           name: name,
+           email: name
         })
         |> Repo.insert!()
     end

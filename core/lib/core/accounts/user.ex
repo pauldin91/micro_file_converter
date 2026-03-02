@@ -4,7 +4,7 @@ defmodule Core.Accounts.User do
 
   schema "users" do
     field :email, :string
-    field :login, :string
+    field :name, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
@@ -169,9 +169,10 @@ defmodule Core.Accounts.User do
 
   def oauth_registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:login])
-    |> validate_required([:login])
-    |> validate_length(:login, max: 160)
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
+    |> validate_length(:name, max: 160)
+    |> unique_constraint(:name)
     |> put_confirmed_at()
   end
 

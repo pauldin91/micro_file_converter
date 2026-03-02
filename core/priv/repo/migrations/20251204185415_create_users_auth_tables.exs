@@ -6,7 +6,7 @@ defmodule Core.Repo.Migrations.CreateUsersAuthTables do
 
     create table(:users) do
       add :email, :citext, null: false
-      add :login
+      add :name, :string
       add :hashed_password, :string, null: true
       add :confirmed_at, :utc_datetime_usec
 
