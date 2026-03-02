@@ -11,7 +11,7 @@ defmodule CoreWeb.AuthController do
   end
 
   def callback(%{assigns: %{ueberauth_auth: auth}} = conn, _params) do
-    result =Accounts.find_or_create_from_oauth(auth)
+    result = Accounts.find_or_create_from_oauth(auth)
     case  result do
       {:ok,{session_token, user}} ->
         conn
