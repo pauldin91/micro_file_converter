@@ -4,6 +4,7 @@ defmodule Core.Accounts.User do
 
   schema "users" do
     field :email, :string
+    field :login, :string
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :current_password, :string, virtual: true, redact: true
@@ -168,12 +169,9 @@ defmodule Core.Accounts.User do
 
   def oauth_registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:email])
-    |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-    |> validate_length(:email, max: 160)
-    |> unsafe_validate_unique(:email, Core.Repo)
-    |> unique_constraint(:email)
+    |> cast(attrs, [:login])
+    |> validate_required([:login])
+    |> validate_length(:login, max: 160)
     |> put_confirmed_at()
   end
 

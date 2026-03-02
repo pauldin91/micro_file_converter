@@ -354,8 +354,7 @@ defmodule Core.Accounts do
   def find_or_create_from_oauth(%Ueberauth.Auth{} = auth) do
     provider = to_string(auth.provider)
     provider_uid = to_string(auth.uid)
-    email = auth.info.email
-    name = auth.info.name
+    login = auth.info.login
 
     Repo.transaction(fn ->
       user =
@@ -364,7 +363,7 @@ defmodule Core.Accounts do
             existing_user
 
           nil ->
-            find_or_create_user_by_email(email, name)
+            find_or_create_user(login)
         end
 
       user
@@ -391,9 +390,9 @@ defmodule Core.Accounts do
     token && Repo.get(User, token.user_id)
   end
 
-  defp find_or_create_user_by_email(nil,name) do
-    new_email = "#{name}@gmail.com"
-    case Repo.get_by(User, email: new_email) do
+  defp find_or_create_user(login) do
+
+    case Repo.get_by(User, login: login) do
 
       %User{} = user ->
         user
@@ -401,23 +400,7 @@ defmodule Core.Accounts do
       nil ->
         %User{}
         |> User.oauth_registration_changeset(%{
-          email: new_email,
-        })
-        |> Repo.insert!()
-    end
-  end
-
-  defp find_or_create_user_by_email(email,_name) do
-
-    case Repo.get_by(User, email: email) do
-
-      %User{} = user ->
-        user
-
-      nil ->
-        %User{}
-        |> User.oauth_registration_changeset(%{
-          email: email,
+          login: login,
         })
         |> Repo.insert!()
     end

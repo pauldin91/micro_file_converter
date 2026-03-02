@@ -166,42 +166,6 @@ defmodule Core.Accounts.UserToken do
         :error
     end
   end
-
-  def build_oauth_token(user, auth) do
-    credentials = auth.credentials
-    provider    = to_string(auth.provider)
-
-    {raw_token, hashed_token} = build_raw_and_hashed_token()
-
-    token_struct = %UserToken{
-      token:         hashed_token,
-      context:       oauth_context(provider),
-      provider:      provider,
-      provider_uid:  to_string(auth.uid),
-      access_token:  credentials.token,
-      refresh_token: credentials.refresh_token,
-      expires_at:    parse_unix_expires_at(credentials.expires_at),
-      user_id:       user.id
-    }
-
-    {raw_token, token_struct}
-  end
-
-  def refresh_oauth_token_changeset(token_struct, new_credentials) do
-    token_struct
-    |> change(%{
-      access_token: new_credentials.token,
-      expires_at:   parse_unix_expires_at(new_credentials.expires_at)
-    })
-    |> validate_required([:access_token])
-  end
-
-  def token_expired?(%UserToken{expires_at: nil}), do: false
-
-  def token_expired?(%UserToken{expires_at: expires_at}) do
-    DateTime.compare(DateTime.utc_now(), expires_at) == :gt
-  end
-
   @doc """
   Returns the token struct for the given token value and context.
   """
@@ -249,5 +213,42 @@ defmodule Core.Accounts.UserToken do
   end
 
   defp oauth_context(provider), do: "oauth:#{provider}"
+
+  def build_oauth_token(user, auth) do
+    credentials = auth.credentials
+    provider    = to_string(auth.provider)
+
+    {raw_token, hashed_token} = build_raw_and_hashed_token()
+
+    token_struct = %UserToken{
+      token:         hashed_token,
+      context:       oauth_context(provider),
+      provider:      provider,
+      provider_uid:  to_string(auth.uid),
+      access_token:  credentials.token,
+      refresh_token: credentials.refresh_token,
+      expires_at:    parse_unix_expires_at(credentials.expires_at),
+      user_id:       user.id
+    }
+
+    {raw_token, token_struct}
+  end
+
+  def refresh_oauth_token_changeset(token_struct, new_credentials) do
+    token_struct
+    |> change(%{
+      access_token: new_credentials.token,
+      expires_at:   parse_unix_expires_at(new_credentials.expires_at)
+    })
+    |> validate_required([:access_token])
+  end
+
+  def token_expired?(%UserToken{expires_at: nil}), do: false
+
+  def token_expired?(%UserToken{expires_at: expires_at}) do
+    DateTime.compare(DateTime.utc_now(), expires_at) == :gt
+  end
+
+
 
 end
