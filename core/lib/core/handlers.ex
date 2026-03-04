@@ -36,7 +36,7 @@ defmodule Core.Handlers do
            }),
          :ok <- link_all_pictures(batch_dto),
          {:ok, serialized} <-
-           Metadata.save_metadata(
+           Metadata.save(
              %Core.Mappings.Batch{
                batch_dto
                | timestamp: batch.inserted_at,

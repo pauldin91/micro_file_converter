@@ -11,7 +11,7 @@ defmodule CoreWeb.BatchLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:metadata, Metadata.load_metadata(id))
+     |> assign(:metadata, Metadata.load(id))
      |> assign(:batch, Uploads.get_batch!(id))}
   end
 

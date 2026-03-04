@@ -10,14 +10,14 @@ defmodule Core.Metadata do
     metadata_path
   end
 
-  defp read_metadata(batch_id) do
+  def read(batch_id) do
     get_metadata_location(batch_id)
     |> File.read!()
   end
 
-  def load_metadata(batch_id) do
+  def load(batch_id) do
     with {:ok, map} <-
-           read_metadata(batch_id)
+           read(batch_id)
            |> Jason.decode() do
       map
     else
