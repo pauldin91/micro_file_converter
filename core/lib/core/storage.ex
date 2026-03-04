@@ -2,7 +2,7 @@ defmodule Core.Storage do
   alias Core.Mappings.Stored
   alias Core.Mappings.Entry
 
-  def get_batch_dir(%{batch_id: id, filename: filename}) do
+  defp get_batch_dir(%{batch_id: id, filename: filename}) do
     upload_dir = Application.fetch_env!(:core, :uploads_dir)
     Path.join([upload_dir, id, filename])
   end
