@@ -169,8 +169,8 @@ defmodule Core.Accounts.User do
 
   def oauth_registration_changeset(user, attrs) do
     user
-    |> cast(attrs, [:name])
-    |> validate_required([:name])
+    |> cast(attrs, [:name,:email])
+    |> validate_required([:name,:email])
     |> validate_length(:name, max: 160)
     |> unique_constraint(:name)
     |> put_confirmed_at()

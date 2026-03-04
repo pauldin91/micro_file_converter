@@ -371,7 +371,6 @@ defmodule Core.Accounts do
       |> Repo.delete_all()
 
       {_raw_oauth_token, oauth_token_struct} = UserToken.build_oauth_token(user, auth)
-      dbg(oauth_token_struct)
       Repo.insert!(oauth_token_struct)
 
       session_token = generate_user_session_token(user)
