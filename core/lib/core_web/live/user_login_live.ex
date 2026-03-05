@@ -31,9 +31,10 @@ defmodule CoreWeb.UserLoginLive do
           </.button>
         </:actions>
         <:actions>
-          <.button phx-disable-with="Logging in..." class="w-full">
-            <.link navigate={~p"/auth/github"}> Sign in with Github</.link>
-          </.button>
+          <a href={~p"/auth/github"} class="w-full flex justify-center items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50">
+            <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" alt="" class="h-5 w-5" />
+            Sign in with GitHub
+          </a>
 
         </:actions>
       </.simple_form>

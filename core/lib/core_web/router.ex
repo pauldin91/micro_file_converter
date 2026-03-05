@@ -73,7 +73,6 @@ defmodule CoreWeb.Router do
       live "/", BatchLive.Index, :index
       live "/new", BatchLive.Index, :new
       live "/:id/edit", BatchLive.Index, :edit
-
       live "/:id", BatchLive.Show, :show
       live "/:id/show/edit", BatchLive.Show, :edit
     end
