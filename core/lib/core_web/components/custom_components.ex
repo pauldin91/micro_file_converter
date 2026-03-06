@@ -4,7 +4,6 @@ defmodule CoreWeb.CustomComponents do
   alias Core.Uploads.Formatter
 
   attr :files, :any, required: true
-
   def display_uploads(assigns) do
     ~H"""
     <div id="upload-display">
@@ -36,7 +35,6 @@ defmodule CoreWeb.CustomComponents do
   end
 
   attr :files, :any, required: true
-
   def drag_n_drop(assigns) do
     ~H"""
     <div class="border-2 border-dashed border-base-300 rounded-lg p-6 mb-4" id="drag-n-drop">
@@ -69,7 +67,7 @@ defmodule CoreWeb.CustomComponents do
   end
 
   attr :entry, :any, required: true
-
+  @spec render_prop_input(map()) :: Phoenix.LiveView.Rendered.t()
   def render_prop_input(assigns) do
     ~H"""
     <%= if Map.get(@entry.meta,"selection") != nil do %>
@@ -95,4 +93,24 @@ defmodule CoreWeb.CustomComponents do
     <% end %>
     """
   end
+
+  attr :props_entries, :any, required: true
+  def render_props_table(assigns) do
+    ~H"""
+      <div :if={@props_entries != []} class="space-y-2">
+        <label class="font-semibold text-m">Transform Properties</label>
+
+        <div
+          :for={entry <- @props_entries}
+          class="flex gap-2 items-center"
+        >
+          <label class="w-1/3">
+            {entry.key}
+          </label>
+          <.render_prop_input entry={entry} />
+        </div>
+      </div>
+    """
+  end
+
 end
