@@ -48,19 +48,6 @@ defmodule Core.Handlers do
     end
   end
 
-  defp publish_batch(serialized, transform) do
-    queue =
-      cond do
-        transform == "convert" -> get_event_queue(:none)
-        true -> get_event_queue(transform)
-      end
-
-    Core.RabbitMq.Publisher.publish_message(queue, serialized)
-  end
-
-  defp get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
-  defp get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
-
   defp link_all_pictures(batch_dto) do
     Enum.reduce_while(batch_dto.files, :ok, fn file, :ok ->
       case link_picture(file, batch_dto.id) do
@@ -70,7 +57,7 @@ defmodule Core.Handlers do
     end)
   end
 
-  defp link_picture(%Stored{} = stored, batch_id) do
+    defp link_picture(%Stored{} = stored, batch_id) do
     with {:ok, _picture} <-
            Items.create_picture(%{
              batch_id: batch_id,
@@ -83,6 +70,19 @@ defmodule Core.Handlers do
         {:error, reason}
     end
   end
+
+  defp publish_batch(serialized, transform) do
+    queue =
+      cond do
+        transform == "convert" -> get_event_queue(:none)
+        true -> get_event_queue(transform)
+      end
+
+    Core.RabbitMq.Publisher.publish_message(queue, serialized)
+  end
+
+  defp get_event_queue(:none), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(0)
+  defp get_event_queue(_name), do: Application.fetch_env!(:core, :processing_queues) |> Enum.at(1)
 
   def purge_user_batches(user_id) do
     Uploads.list_batch_ids_of_user(user_id)

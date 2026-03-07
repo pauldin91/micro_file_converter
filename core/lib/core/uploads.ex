@@ -63,10 +63,21 @@ defmodule Core.Uploads do
 
   """
   def create_batch(attrs \\ %{}) do
-    %Batch{}
-    |> Batch.changeset(attrs)
-    |> Repo.insert()
-    |> broadcast(:batch_created)
+    changeset =
+      %Batch{}
+      |> Batch.changeset(attrs)
+
+    with {:ok, batch} <- Repo.insert(changeset) do
+      broadcast({:ok, batch}, :batch_created)
+      {:ok, batch}
+    else
+      {:error, reason} ->
+        error =
+          {:error, reason}
+
+        broadcast(error, :batch_created)
+        error
+    end
   end
 
   @doc """
@@ -82,10 +93,21 @@ defmodule Core.Uploads do
 
   """
   def update_batch(%Batch{} = batch, attrs) do
-    batch
-    |> Batch.changeset(attrs)
-    |> Repo.update()
-    |> broadcast(:batch_updated)
+    changeset =
+      batch
+      |> Batch.changeset(attrs)
+
+    with {:ok, updated} <- Repo.update(changeset) do
+      broadcast({:ok, updated}, :batch_updated)
+      {:ok, updated}
+    else
+      {:error, reason} ->
+        error =
+          {:error, reason}
+
+        broadcast(error, :batch_updated)
+        error
+    end
   end
 
   @doc """
@@ -101,8 +123,17 @@ defmodule Core.Uploads do
 
   """
   def delete_batch(%Batch{} = batch) do
-    Repo.delete(batch)
-    |> broadcast(:batch_deleted)
+    with {:ok, del} <- Repo.delete(batch) do
+      {:ok, del} |> broadcast(:batch_deleted)
+      {:ok, del}
+    else
+      {:error, reason} ->
+        error =
+          {:error, reason}
+
+        broadcast(error, :batch_deleted)
+        error
+    end
   end
 
   def delete_batch_for_user(%Batch{user_id: uid} = batch, %Core.Accounts.User{id: uid}) do
@@ -139,13 +170,17 @@ defmodule Core.Uploads do
   def broadcast({:error, _reason} = error, _event), do: error
 
   def broadcast({:ok, post}, event) do
-    Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, post})
-    {:ok, post}
+    case Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, post}) do
+      :ok -> {:ok, post}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   def broadcast({count, nil}, event) do
-    Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, count})
-    {:ok, count}
+    case Phoenix.PubSub.broadcast(Core.PubSub, "batches", {event, count}) do
+      :ok -> {:ok, count}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @spec subscribe() :: :ok | {:error, {:already_registered, pid()}}
