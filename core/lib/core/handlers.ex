@@ -36,13 +36,11 @@ defmodule Core.Handlers do
            }),
          :ok <- link_all_pictures(batch_dto),
          {:ok, serialized} <-
-           Metadata.save(
-             %Core.Mappings.Batch{
-               batch_dto
-               | timestamp: batch.inserted_at,
-                 status: status
-             }
-           ),
+           Metadata.save(%Core.Mappings.Batch{
+             batch_dto
+             | timestamp: batch.inserted_at,
+               status: status
+           }),
          :ok <- publish_batch(serialized, batch_dto.transform.name) do
       {:ok, batch.id}
     end
@@ -57,7 +55,7 @@ defmodule Core.Handlers do
     end)
   end
 
-    defp link_picture(%Stored{} = stored, batch_id) do
+  defp link_picture(%Stored{} = stored, batch_id) do
     with {:ok, _picture} <-
            Items.create_picture(%{
              batch_id: batch_id,

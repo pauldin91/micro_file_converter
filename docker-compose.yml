@@ -57,26 +57,8 @@ services:
     networks:
       - micro.converter  
     depends_on:
-      - rabbit
-
-  upload_service:
-    container_name: upload_service
-    build: 
-      context: .
-      dockerfile: upload_service/dockerfile
-    env_file:
-      - upload_service/app.env
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./uploads:/data/uploads  
-    networks:
-      - micro.converter
-    depends_on:
-      - db
-      - rabbit      
-
-
+      - rabbit   
+      
   core:    
     container_name: core
     build: 
