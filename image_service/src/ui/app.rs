@@ -64,12 +64,13 @@ impl Application for ImageApp {
     }
 
     fn update(&mut self, message: Message) -> Command<Message> {
+        let extensions = &["png", "jpg", "jpeg"];
         match message {
             Message::SelectImage => {
                 Command::perform(
                     async {
                         rfd::FileDialog::new()
-                            .add_filter("Images", &["png", "jpg", "jpeg"])
+                            .add_filter("Images", extensions)
                             .pick_file()
                     },
                     Message::ImageSelected,
@@ -80,7 +81,7 @@ impl Application for ImageApp {
                 Command::perform(
                     async {
                         rfd::FileDialog::new()
-                            .add_filter("Images", &["png", "jpg", "jpeg"])
+                            .add_filter("Images", extensions)
                             .save_file()
                     },
                     Message::ImageSaved,
